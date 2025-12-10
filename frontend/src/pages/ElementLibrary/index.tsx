@@ -143,7 +143,7 @@ const ElementLibrary: React.FC = () => {
                 </span>
               ) : (
                 <>
-                  <span className="action-btn" onClick={() => navigate(`/home/balanced/elements/${library.id}`)}>
+                  <span className="action-btn" onClick={() => navigate(`/home/balanced/elements/${library.id}/edit`)}>
                     编辑要素
                   </span>
                   <span className="action-btn">发布</span>

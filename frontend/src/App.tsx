@@ -23,7 +23,7 @@ const App: React.FC = () => {
             <Route path="home" element={<Home />} />
             <Route path="home/balanced" element={<Project />} />
             <Route path="home/balanced/elements" element={<ElementLibrary />} />
-            <Route path="home/balanced/elements/:id" element={<ElementLibrary />} />
+            <Route path="home/balanced/elements/:id/edit" element={<IndicatorEdit />} />
             <Route path="home/balanced/tools" element={<ToolLibrary />} />
             <Route path="home/balanced/tools/:id/edit" element={<ToolLibrary />} />
             <Route path="home/balanced/indicators" element={<IndicatorLibrary />} />
