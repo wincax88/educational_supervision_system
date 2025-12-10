@@ -12,9 +12,11 @@ import {
   FileTextOutlined,
   UploadOutlined,
   DeleteOutlined,
+  DownloadOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { indicatorSystems, indicatorSystemStats } from '../../mock/data';
+import { indicatorSystems, indicatorSystemStats, IndicatorSystem } from '../../mock/data';
 import './index.css';
 
 const { Search } = Input;
@@ -23,8 +25,12 @@ const IndicatorLibrary: React.FC = () => {
   const navigate = useNavigate();
   const [systems, setSystems] = useState(indicatorSystems);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [editInfoModalVisible, setEditInfoModalVisible] = useState(false);
+  const [currentSystem, setCurrentSystem] = useState<IndicatorSystem | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const handleSearch = (value: string) => {
     filterSystems(value, statusFilter);
@@ -49,7 +55,7 @@ const IndicatorLibrary: React.FC = () => {
   };
 
   const handleCreate = (values: any) => {
-    const newSystem = {
+    const newSystem: IndicatorSystem = {
       id: String(systems.length + 1),
       name: values.name,
       type: values.type,
@@ -68,6 +74,48 @@ const IndicatorLibrary: React.FC = () => {
     setCreateModalVisible(false);
     form.resetFields();
     message.success('创建成功');
+  };
+
+  const handleViewInfo = (system: IndicatorSystem) => {
+    setCurrentSystem(system);
+    setInfoModalVisible(true);
+  };
+
+  const handleEditInfo = () => {
+    if (currentSystem) {
+      editForm.setFieldsValue({
+        name: currentSystem.name,
+        type: currentSystem.type,
+        target: currentSystem.target,
+        keywords: currentSystem.tags.join(','),
+        description: currentSystem.description,
+      });
+      setInfoModalVisible(false);
+      setEditInfoModalVisible(true);
+    }
+  };
+
+  const handleSaveInfo = (values: any) => {
+    if (currentSystem) {
+      const updatedSystem = {
+        ...currentSystem,
+        name: values.name,
+        type: values.type,
+        target: values.target,
+        tags: values.keywords ? values.keywords.split(/[,，\s]+/) : [],
+        description: values.description || '',
+        updatedAt: new Date().toISOString().split('T')[0],
+        updatedBy: 'admin',
+      };
+      setSystems(systems.map(sys => sys.id === currentSystem.id ? updatedSystem : sys));
+      setCurrentSystem(updatedSystem);
+      setEditInfoModalVisible(false);
+      message.success('保存成功');
+    }
+  };
+
+  const handleEditIndicators = (system: IndicatorSystem) => {
+    navigate(`/home/balanced/indicators/${system.id}/edit`);
   };
 
   const getStatusTag = (status: string) => {
@@ -192,10 +240,10 @@ const IndicatorLibrary: React.FC = () => {
               更新人: {system.updatedBy}
             </div>
             <div className="system-actions">
-              <span className="action-btn">
+              <span className="action-btn" onClick={() => handleViewInfo(system)}>
                 <EyeOutlined /> 基础信息
               </span>
-              <span className="action-btn">
+              <span className="action-btn" onClick={() => handleEditIndicators(system)}>
                 <EditOutlined /> 编辑指标
               </span>
               {system.status === 'published' ? (
@@ -213,6 +261,7 @@ const IndicatorLibrary: React.FC = () => {
         ))}
       </div>
 
+      {/* 创建指标体系弹窗 */}
       <Modal
         title="指标体系信息管理"
         open={createModalVisible}
@@ -271,6 +320,141 @@ const IndicatorLibrary: React.FC = () => {
             </Button>
             <Button type="primary" htmlType="submit">
               确定
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 基础信息查看弹窗 */}
+      <Modal
+        open={infoModalVisible}
+        onCancel={() => setInfoModalVisible(false)}
+        footer={null}
+        width={700}
+        closeIcon={<CloseOutlined />}
+        className="info-modal"
+      >
+        {currentSystem && (
+          <div className="info-modal-content">
+            <div className="info-modal-header">
+              <h2 className="info-modal-title">{currentSystem.name}</h2>
+              <Tag color="green" className="info-status-tag">
+                <CheckCircleOutlined /> {currentSystem.status === 'published' ? '已发布' : currentSystem.status === 'editing' ? '编辑中' : '草稿'}
+              </Tag>
+            </div>
+            <div className="info-modal-meta">
+              创建时间: {currentSystem.createdAt} | 创建人: {currentSystem.createdBy} | 更新时间: {currentSystem.updatedAt} | 更新人: {currentSystem.updatedBy}
+            </div>
+            <div className="info-modal-tags">
+              <Tag color="orange">{currentSystem.type}</Tag>
+              <Tag color="cyan">评估对象: {currentSystem.target}</Tag>
+              <Tag>指标数: {currentSystem.indicatorCount}</Tag>
+            </div>
+            <div className="info-modal-keywords">
+              {currentSystem.tags.map(tag => (
+                <Tag key={tag} color="blue">{tag}</Tag>
+              ))}
+            </div>
+            <p className="info-modal-desc">{currentSystem.description}</p>
+
+            <div className="info-modal-attachments">
+              <h4>附件 ({currentSystem.attachments.length})</h4>
+              <div className="attachment-list">
+                {currentSystem.attachments.map(att => (
+                  <div key={att.name} className="attachment-item">
+                    <div className="attachment-info">
+                      <FileTextOutlined className="attachment-icon" />
+                      <span className="attachment-name">{att.name}</span>
+                      <span className="attachment-size">({att.size})</span>
+                    </div>
+                    <Button type="link" icon={<DownloadOutlined />}>下载</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="info-modal-footer">
+              <Button onClick={() => setInfoModalVisible(false)}>关闭</Button>
+              <Button type="primary" icon={<EditOutlined />} onClick={handleEditInfo}>编辑</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 基础信息编辑弹窗 */}
+      <Modal
+        title="指标体系信息管理"
+        open={editInfoModalVisible}
+        onCancel={() => setEditInfoModalVisible(false)}
+        footer={null}
+        width={600}
+        className="edit-info-modal"
+      >
+        <p style={{ color: '#666', marginBottom: 24 }}>编辑指标体系的基本信息</p>
+        <Form form={editForm} onFinish={handleSaveInfo} layout="vertical">
+          <Form.Item
+            label="名称"
+            name="name"
+            rules={[{ required: true, message: '请输入名称' }]}
+          >
+            <Input placeholder="请输入评估指标体系名称" />
+          </Form.Item>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item
+              label="指标体系类型"
+              name="type"
+              rules={[{ required: true, message: '请选择类型' }]}
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="请选择类型">
+                <Select.Option value="达标类">达标类</Select.Option>
+                <Select.Option value="评分类">评分类</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label="评估对象"
+              name="target"
+              rules={[{ required: true, message: '请输入评估对象' }]}
+              style={{ flex: 1 }}
+            >
+              <Input placeholder="如：区县、学校等" />
+            </Form.Item>
+          </div>
+          <Form.Item label="关键字" name="keywords">
+            <Input placeholder="用逗号分隔多个关键字" />
+          </Form.Item>
+          <Form.Item label="描述" name="description">
+            <Input.TextArea placeholder="请输入指标体系描述" rows={4} />
+          </Form.Item>
+          <Form.Item label="附件">
+            <Upload.Dragger className="attachment-uploader">
+              <p className="ant-upload-drag-icon">
+                <UploadOutlined />
+              </p>
+              <p className="ant-upload-text">点击上传附件</p>
+              <p className="ant-upload-hint">支持PDF、Word、Excel等格式</p>
+            </Upload.Dragger>
+            {currentSystem && currentSystem.attachments.length > 0 && (
+              <div className="uploaded-attachments">
+                {currentSystem.attachments.map(att => (
+                  <div key={att.name} className="uploaded-attachment-item">
+                    <div className="uploaded-attachment-info">
+                      <FileTextOutlined />
+                      <span>{att.name}</span>
+                      <span className="file-size">{att.size}</span>
+                    </div>
+                    <CloseOutlined className="remove-btn" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Button style={{ marginRight: 8 }} onClick={() => setEditInfoModalVisible(false)}>
+              取消
+            </Button>
+            <Button type="primary" htmlType="submit">
+              保存
             </Button>
           </Form.Item>
         </Form>

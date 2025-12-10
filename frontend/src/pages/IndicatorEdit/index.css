@@ -1,0 +1,341 @@
+.indicator-edit-page {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 系统信息卡片 */
+.system-info-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-left: 4px solid #1890ff;
+}
+
+.system-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.system-info-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.system-info-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.system-info-desc {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.system-attachments {
+  margin-bottom: 16px;
+}
+
+.attachment-tag {
+  margin-right: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.system-info-meta {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 指标列表区域 */
+.indicator-list-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.indicator-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.expand-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.expand-actions span {
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.expand-actions span:hover {
+  text-decoration: underline;
+}
+
+/* 指标树 */
+.indicator-tree {
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.indicator-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.indicator-item:last-child {
+  border-bottom: none;
+}
+
+.indicator-row {
+  padding: 16px 20px;
+  position: relative;
+}
+
+.indicator-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.expand-icon {
+  cursor: pointer;
+  color: #666;
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(0);
+}
+
+.expand-placeholder {
+  width: 20px;
+  display: inline-block;
+}
+
+.level-tag {
+  min-width: 32px;
+  text-align: center;
+}
+
+.code-tag {
+  background: #333;
+  color: #fff;
+  border: none;
+  min-width: 40px;
+  text-align: center;
+}
+
+.indicator-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+.indicator-desc {
+  color: #999;
+  font-size: 13px;
+  margin-left: 60px;
+  margin-bottom: 12px;
+}
+
+.indicator-details {
+  margin-left: 60px;
+  margin-top: 12px;
+}
+
+.detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.detail-code {
+  font-family: monospace;
+}
+
+.material-name {
+  color: #333;
+  font-size: 14px;
+}
+
+.detail-desc {
+  width: 100%;
+  color: #999;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.indicator-actions {
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.indicator-row:hover .indicator-actions {
+  opacity: 1;
+}
+
+.action-icon {
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-icon:hover {
+  color: #1890ff;
+}
+
+.action-icon.danger:hover {
+  color: #ff4d4f;
+}
+
+/* 子指标缩进 */
+.indicator-children {
+  margin-left: 40px;
+  border-left: 2px solid #f0f0f0;
+}
+
+.indicator-children .indicator-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.indicator-children .indicator-children {
+  margin-left: 40px;
+}
+
+/* 空状态 */
+.empty-indicator {
+  padding: 60px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 弹窗样式 */
+.indicator-modal .modal-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.evaluation-section {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.evaluation-item {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.evaluation-item .item-name {
+  font-size: 14px;
+  color: #333;
+  margin-left: 8px;
+}
+
+.evaluation-item .item-actions {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  gap: 8px;
+  color: #999;
+}
+
+.evaluation-item .item-actions span {
+  cursor: pointer;
+}
+
+.evaluation-item .item-actions span:hover {
+  color: #1890ff;
+}
+
+.evaluation-item .item-desc {
+  color: #999;
+  font-size: 12px;
+  margin-top: 8px;
+}

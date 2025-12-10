@@ -60,6 +60,38 @@ export interface Project {
   status: '配置中' | '填报中' | '评审中' | '已中止' | '已完成';
 }
 
+// 数据指标
+export interface DataIndicator {
+  id: string;
+  code: string;
+  name: string;
+  threshold: string;
+  description: string;
+}
+
+// 佐证资料
+export interface SupportingMaterial {
+  id: string;
+  code: string;
+  name: string;
+  fileTypes: string;
+  maxSize: string;
+  description: string;
+}
+
+// 指标项
+export interface Indicator {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  level: number; // 1, 2, 3 表示一级、二级、三级指标
+  isLeaf: boolean; // 是否为末级指标
+  dataIndicators?: DataIndicator[]; // 末级指标的数据指标
+  supportingMaterials?: SupportingMaterial[]; // 末级指标的佐证资料
+  children?: Indicator[];
+}
+
 // Element Libraries
 export const elementLibraries: ElementLibrary[] = [
   {
@@ -235,6 +267,141 @@ export const projects: Project[] = [
     status: '配置中',
   },
 ];
+
+// 指标体系的指标树数据
+export const indicatorTrees: { [systemId: string]: Indicator[] } = {
+  '1': [
+    {
+      id: 'I1',
+      code: '1',
+      name: '资源配置',
+      description: '资源配置相关的评估指标',
+      level: 1,
+      isLeaf: false,
+      children: [
+        {
+          id: 'I1-1',
+          code: '1.1',
+          name: '小学学校达标情况',
+          description: '该指标用于评估教育资源配置的均衡性',
+          level: 2,
+          isLeaf: true,
+          dataIndicators: [
+            {
+              id: 'D1-1-1',
+              code: '1.1-D1',
+              name: '师生比',
+              threshold: '≥ 0.8',
+              description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+            },
+          ],
+          supportingMaterials: [
+            {
+              id: 'M1-1-1',
+              code: '1.1-M1',
+              name: '相关证明材料',
+              fileTypes: 'PDF, Word',
+              maxSize: '10MB',
+              description: '需提供能够证明该指标达标情况的相关文件、数据统计表或其他支撑材料',
+            },
+          ],
+        },
+        {
+          id: 'I1-2',
+          code: '1.2',
+          name: '初中学校达标情况',
+          description: '该指标用于评估教育资源配置的均衡性',
+          level: 2,
+          isLeaf: true,
+          dataIndicators: [
+            {
+              id: 'D1-2-1',
+              code: '1.2-D1',
+              name: '生均教学及辅助用房面积',
+              threshold: '≥ 0.8',
+              description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+            },
+          ],
+          supportingMaterials: [
+            {
+              id: 'M1-2-1',
+              code: '1.2-M1',
+              name: '相关证明材料',
+              fileTypes: 'PDF, Word',
+              maxSize: '10MB',
+              description: '需提供能够证明该指标达标情况的相关文件、数据统计表或其他支撑材料',
+            },
+          ],
+        },
+        {
+          id: 'I1-3',
+          code: '1.3',
+          name: '小学校际差异系数',
+          description: '小学校际差异系数相关的评估指标',
+          level: 2,
+          isLeaf: false,
+          children: [
+            {
+              id: 'I1-3-1',
+              code: '1.3.1',
+              name: '每百名学生拥有高于规定学历教师数差异系数',
+              description: '该指标用于评估教育资源配置的均衡性',
+              level: 3,
+              isLeaf: true,
+              dataIndicators: [
+                {
+                  id: 'D1-3-1-1',
+                  code: '1.3.1-D1',
+                  name: '师生比',
+                  threshold: '≥ 0.8',
+                  description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+                },
+              ],
+              supportingMaterials: [
+                {
+                  id: 'M1-3-1-1',
+                  code: '1.3.1-M1',
+                  name: '相关证明材料',
+                  fileTypes: 'PDF, Word',
+                  maxSize: '10MB',
+                  description: '需提供能够证明该指标达标情况的相关文件、数据统计表或其他支撑材料',
+                },
+              ],
+            },
+            {
+              id: 'I1-3-2',
+              code: '1.3.2',
+              name: '每百名学生拥有县级以上骨干教师数差异系数',
+              description: '该指标用于评估教育资源配置的均衡性',
+              level: 3,
+              isLeaf: true,
+              dataIndicators: [
+                {
+                  id: 'D1-3-2-1',
+                  code: '1.3.2-D1',
+                  name: '生均教学及辅助用房面积',
+                  threshold: '≥ 0.8',
+                  description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+                },
+              ],
+              supportingMaterials: [
+                {
+                  id: 'M1-3-2-1',
+                  code: '1.3.2-M1',
+                  name: '相关证明材料',
+                  fileTypes: 'PDF, Word',
+                  maxSize: '10MB',
+                  description: '需提供能够证明该指标达标情况的相关文件、数据统计表或其他支撑材料',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  '2': [],
+};
 
 // Statistics
 export const elementLibraryStats = {

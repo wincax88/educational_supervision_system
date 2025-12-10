@@ -9,6 +9,7 @@ import Project from './pages/Project';
 import ElementLibrary from './pages/ElementLibrary';
 import ToolLibrary from './pages/ToolLibrary';
 import IndicatorLibrary from './pages/IndicatorLibrary';
+import IndicatorEdit from './pages/IndicatorEdit';
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="home/balanced/tools" element={<ToolLibrary />} />
             <Route path="home/balanced/tools/:id/edit" element={<ToolLibrary />} />
             <Route path="home/balanced/indicators" element={<IndicatorLibrary />} />
+            <Route path="home/balanced/indicators/:id/edit" element={<IndicatorEdit />} />
             <Route path="home/kindergarten" element={<Project />} />
             <Route path="system" element={<div style={{ padding: 24 }}>系统配置页面（开发中）</div>} />
             <Route path="users" element={<div style={{ padding: 24 }}>用户管理页面（开发中）</div>} />
