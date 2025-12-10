@@ -1,0 +1,282 @@
+import React, { useState } from 'react';
+import { Button, Input, Tag, Modal, Form, Select, Upload, message } from 'antd';
+import {
+  ArrowLeftOutlined,
+  PlusOutlined,
+  DatabaseOutlined,
+  CheckCircleOutlined,
+  EditOutlined,
+  AimOutlined,
+  BarChartOutlined,
+  EyeOutlined,
+  FileTextOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { indicatorSystems, indicatorSystemStats } from '../../mock/data';
+import './index.css';
+
+const { Search } = Input;
+
+const IndicatorLibrary: React.FC = () => {
+  const navigate = useNavigate();
+  const [systems, setSystems] = useState(indicatorSystems);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [form] = Form.useForm();
+
+  const handleSearch = (value: string) => {
+    filterSystems(value, statusFilter);
+  };
+
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    filterSystems('', value);
+  };
+
+  const filterSystems = (searchValue: string, status: string) => {
+    let filtered = indicatorSystems;
+    if (searchValue) {
+      filtered = filtered.filter(sys =>
+        sys.name.includes(searchValue) || sys.description.includes(searchValue)
+      );
+    }
+    if (status !== 'all') {
+      filtered = filtered.filter(sys => sys.status === status);
+    }
+    setSystems(filtered);
+  };
+
+  const handleCreate = (values: any) => {
+    const newSystem = {
+      id: String(systems.length + 1),
+      name: values.name,
+      type: values.type,
+      target: values.target,
+      tags: values.keywords ? values.keywords.split(/[,，\s]+/) : [],
+      description: values.description || '',
+      indicatorCount: 0,
+      attachments: [],
+      status: 'draft' as const,
+      createdBy: 'admin',
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedBy: 'admin',
+      updatedAt: new Date().toISOString().split('T')[0],
+    };
+    setSystems([newSystem, ...systems]);
+    setCreateModalVisible(false);
+    form.resetFields();
+    message.success('创建成功');
+  };
+
+  const getStatusTag = (status: string) => {
+    switch (status) {
+      case 'published':
+        return <Tag color="green">已发布</Tag>;
+      case 'editing':
+        return <Tag color="orange">编辑中</Tag>;
+      default:
+        return <Tag>草稿</Tag>;
+    }
+  };
+
+  return (
+    <div className="indicator-library-page">
+      <div className="page-header">
+        <span className="back-btn" onClick={() => navigate('/home/balanced')}>
+          <ArrowLeftOutlined /> 返回
+        </span>
+        <h1 className="page-title">评估指标体系库主页</h1>
+      </div>
+
+      <div className="stats-section">
+        <h3>指标体系概况</h3>
+        <div className="stats-cards">
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">体系总数</div>
+              <div className="stat-value">{indicatorSystemStats.total}</div>
+            </div>
+            <DatabaseOutlined className="stat-icon" style={{ color: '#1890ff' }} />
+          </div>
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">已发布</div>
+              <div className="stat-value" style={{ color: '#52c41a' }}>{indicatorSystemStats.published}</div>
+            </div>
+            <CheckCircleOutlined className="stat-icon" style={{ color: '#52c41a' }} />
+          </div>
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">编辑中</div>
+              <div className="stat-value" style={{ color: '#fa8c16' }}>{indicatorSystemStats.editing}</div>
+            </div>
+            <EditOutlined className="stat-icon" style={{ color: '#fa8c16' }} />
+          </div>
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">达标类</div>
+              <div className="stat-value" style={{ color: '#1890ff' }}>{indicatorSystemStats.standard}</div>
+            </div>
+            <AimOutlined className="stat-icon" style={{ color: '#1890ff' }} />
+          </div>
+          <div className="stat-card">
+            <div className="stat-info">
+              <div className="stat-label">评分类</div>
+              <div className="stat-value" style={{ color: '#722ed1' }}>{indicatorSystemStats.scoring}</div>
+            </div>
+            <BarChartOutlined className="stat-icon" style={{ color: '#722ed1' }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="list-header">
+        <h3>评估指标体系列表</h3>
+        <div className="list-actions">
+          <Select
+            value={statusFilter}
+            onChange={handleStatusFilter}
+            style={{ width: 120 }}
+          >
+            <Select.Option value="all">全部状态</Select.Option>
+            <Select.Option value="published">已发布</Select.Option>
+            <Select.Option value="editing">编辑中</Select.Option>
+            <Select.Option value="draft">草稿</Select.Option>
+          </Select>
+          <Search
+            placeholder="搜索指标体系"
+            onSearch={handleSearch}
+            style={{ width: 200 }}
+            allowClear
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+            创建评估指标体系
+          </Button>
+        </div>
+      </div>
+
+      <div className="system-list">
+        {systems.map(system => (
+          <div key={system.id} className="system-card">
+            <div className="system-card-header">
+              <div className="system-main-info">
+                <span className="system-name">{system.name}</span>
+                <Tag color={system.type === '达标类' ? 'blue' : 'purple'}>{system.type}</Tag>
+                <Tag color="cyan">评估对象: {system.target}</Tag>
+              </div>
+              <div className="system-stats">
+                <span>指标数: {system.indicatorCount}</span>
+                {getStatusTag(system.status)}
+              </div>
+            </div>
+            <div className="system-tags">
+              {system.tags.map(tag => (
+                <Tag key={tag} color="blue">{tag}</Tag>
+              ))}
+            </div>
+            <p className="system-desc">{system.description}</p>
+            {system.attachments.length > 0 && (
+              <div className="system-attachments">
+                {system.attachments.map(att => (
+                  <Tag key={att.name} icon={<FileTextOutlined />} color="orange">
+                    {att.name} ({att.size})
+                  </Tag>
+                ))}
+              </div>
+            )}
+            <div className="system-meta">
+              创建时间: {system.createdAt} &nbsp;&nbsp;
+              创建人: {system.createdBy} &nbsp;&nbsp;
+              更新时间: {system.updatedAt} &nbsp;&nbsp;
+              更新人: {system.updatedBy}
+            </div>
+            <div className="system-actions">
+              <span className="action-btn">
+                <EyeOutlined /> 基础信息
+              </span>
+              <span className="action-btn">
+                <EditOutlined /> 编辑指标
+              </span>
+              {system.status === 'published' ? (
+                <span className="action-btn">取消发布</span>
+              ) : (
+                <>
+                  <span className="action-btn">发布</span>
+                  <span className="action-btn danger">
+                    <DeleteOutlined /> 删除
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Modal
+        title="指标体系信息管理"
+        open={createModalVisible}
+        onCancel={() => setCreateModalVisible(false)}
+        footer={null}
+        width={560}
+      >
+        <p style={{ color: '#666', marginBottom: 24 }}>创建新的评估指标体系</p>
+        <Form form={form} onFinish={handleCreate} layout="vertical">
+          <Form.Item
+            label="名称"
+            name="name"
+            rules={[{ required: true, message: '请输入评估指标体系名称' }]}
+          >
+            <Input placeholder="请输入评估指标体系名称" />
+          </Form.Item>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item
+              label="指标体系类型"
+              name="type"
+              rules={[{ required: true, message: '请选择类型' }]}
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="请选择类型">
+                <Select.Option value="达标类">达标类</Select.Option>
+                <Select.Option value="评分类">评分类</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label="评估对象"
+              name="target"
+              rules={[{ required: true, message: '请输入评估对象' }]}
+              style={{ flex: 1 }}
+            >
+              <Input placeholder="如：区县、学校等" />
+            </Form.Item>
+          </div>
+          <Form.Item label="关键字" name="keywords">
+            <Input placeholder="用逗号、分号、|或空格分割" />
+          </Form.Item>
+          <Form.Item label="描述" name="description">
+            <Input.TextArea placeholder="请输入指标体系描述" rows={3} />
+          </Form.Item>
+          <Form.Item label="附件" name="attachments">
+            <Upload.Dragger>
+              <p className="ant-upload-drag-icon">
+                <UploadOutlined />
+              </p>
+              <p className="ant-upload-text">点击上传附件</p>
+              <p className="ant-upload-hint">支持PDF、Word、Excel等格式</p>
+            </Upload.Dragger>
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Button style={{ marginRight: 8 }} onClick={() => setCreateModalVisible(false)}>
+              取消
+            </Button>
+            <Button type="primary" htmlType="submit">
+              确定
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+export default IndicatorLibrary;

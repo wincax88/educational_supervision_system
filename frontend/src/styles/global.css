@@ -1,0 +1,141 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page-container {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header .back-btn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 180px;
+}
+
+.stat-card .stat-info {
+  flex: 1;
+}
+
+.stat-card .stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.stat-card .stat-icon {
+  font-size: 32px;
+}
+
+.list-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border-left: 4px solid #1890ff;
+}
+
+.list-card.purple {
+  border-left-color: #722ed1;
+}
+
+.list-card.orange {
+  border-left-color: #fa8c16;
+}
+
+.list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.list-card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1890ff;
+  cursor: pointer;
+}
+
+.list-card-title:hover {
+  text-decoration: underline;
+}
+
+.list-card-meta {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+}
+
+.list-card-desc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.list-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  color: #1890ff;
+}
+
+.action-btn.danger:hover {
+  color: #ff4d4f;
+}
