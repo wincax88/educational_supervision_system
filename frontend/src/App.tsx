@@ -11,6 +11,9 @@ import ToolLibrary from './pages/ToolLibrary';
 import FormToolEdit from './pages/FormToolEdit';
 import IndicatorLibrary from './pages/IndicatorLibrary';
 import IndicatorEdit from './pages/IndicatorEdit';
+import IndicatorTreeEdit from './pages/IndicatorTreeEdit';
+import DataEntry from './pages/DataEntry';
+import DataEntryForm from './pages/DataEntryForm';
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -29,6 +32,9 @@ const App: React.FC = () => {
             <Route path="home/balanced/tools/:id/edit" element={<FormToolEdit />} />
             <Route path="home/balanced/indicators" element={<IndicatorLibrary />} />
             <Route path="home/balanced/indicators/:id/edit" element={<IndicatorEdit />} />
+            <Route path="home/balanced/indicators/:id/tree" element={<IndicatorTreeEdit />} />
+            <Route path="home/balanced/entry" element={<DataEntry />} />
+            <Route path="home/balanced/entry/:projectId/form/:formId" element={<DataEntryForm />} />
             <Route path="home/kindergarten" element={<Project />} />
             <Route path="system" element={<div style={{ padding: 24 }}>系统配置页面（开发中）</div>} />
             <Route path="users" element={<div style={{ padding: 24 }}>用户管理页面（开发中）</div>} />

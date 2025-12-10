@@ -14,6 +14,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   CloseOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { indicatorSystems, indicatorSystemStats, IndicatorSystem } from '../../mock/data';
@@ -116,6 +117,10 @@ const IndicatorLibrary: React.FC = () => {
 
   const handleEditIndicators = (system: IndicatorSystem) => {
     navigate(`/home/balanced/indicators/${system.id}/edit`);
+  };
+
+  const handleEditTree = (system: IndicatorSystem) => {
+    navigate(`/home/balanced/indicators/${system.id}/tree`);
   };
 
   const getStatusTag = (status: string) => {
@@ -242,6 +247,9 @@ const IndicatorLibrary: React.FC = () => {
             <div className="system-actions">
               <span className="action-btn" onClick={() => handleViewInfo(system)}>
                 <EyeOutlined /> 基础信息
+              </span>
+              <span className="action-btn" onClick={() => handleEditTree(system)}>
+                <ApartmentOutlined /> 指标树
               </span>
               <span className="action-btn" onClick={() => handleEditIndicators(system)}>
                 <EditOutlined /> 编辑指标

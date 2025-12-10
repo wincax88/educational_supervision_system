@@ -7,6 +7,7 @@ import {
   DatabaseOutlined,
   AppstoreOutlined,
   ToolOutlined,
+  FormOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { projects, projectStats, indicatorSystems } from '../../mock/data';
@@ -63,6 +64,9 @@ const Project: React.FC = () => {
           </Button>
           <Button onClick={() => navigate('/home/balanced/tools')}>
             <ToolOutlined /> 采集工具库
+          </Button>
+          <Button type="primary" onClick={() => navigate('/home/balanced/entry')}>
+            <FormOutlined /> 数据填报
           </Button>
         </div>
       </div>
