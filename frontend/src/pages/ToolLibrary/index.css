@@ -113,3 +113,63 @@
 .action-btn.danger:hover {
   color: #ff4d4f;
 }
+
+/* 查看工具信息弹窗样式 */
+.tool-view-modal .ant-modal-body {
+  padding: 0;
+}
+
+.tool-view-content {
+  padding: 24px;
+}
+
+.tool-view-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tool-view-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.tool-view-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tool-view-meta {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.tool-view-meta .meta-divider {
+  margin: 0 8px;
+  color: #d9d9d9;
+}
+
+.tool-view-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.8;
+  padding: 16px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+}
+
+.tool-view-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
