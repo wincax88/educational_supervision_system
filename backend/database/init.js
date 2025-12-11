@@ -285,6 +285,46 @@ function seedData(db) {
   });
   console.log('Inserted projects.');
 
+  // 9. 插入项目与采集工具关联
+  const insertProjectTool = db.prepare(`
+    INSERT OR REPLACE INTO project_tools
+    (id, project_id, tool_id, sort_order, is_required, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const projectTools = [
+    { id: 'PT1', projectId: '1', toolId: '1', sortOrder: 0, isRequired: 1 },
+    { id: 'PT2', projectId: '1', toolId: '2', sortOrder: 1, isRequired: 1 },
+    { id: 'PT3', projectId: '1', toolId: '4', sortOrder: 2, isRequired: 0 },
+  ];
+
+  projectTools.forEach(pt => {
+    insertProjectTool.run(pt.id, pt.projectId, pt.toolId, pt.sortOrder, pt.isRequired, timestamp);
+  });
+  console.log('Inserted project tools.');
+
+  // 10. 插入字段映射（示例：将表单字段映射到数据指标）
+  const insertFieldMapping = db.prepare(`
+    INSERT OR REPLACE INTO field_mappings
+    (id, tool_id, field_id, mapping_type, target_id, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const fieldMappings = [
+    // 表单1的字段映射到数据指标
+    { id: 'FM1', toolId: '1', fieldId: 'f3', mappingType: 'data_indicator', targetId: 'D1-1-1' },  // 学生数 -> 师生比指标
+    { id: 'FM2', toolId: '1', fieldId: 'f4', mappingType: 'data_indicator', targetId: 'D1-1-1' },  // 教师数 -> 师生比指标
+    { id: 'FM3', toolId: '1', fieldId: 'f5', mappingType: 'data_indicator', targetId: 'D1-1-2' },  // 教学用房 -> 生均教学用房指标
+    // 表单1的字段映射到要素
+    { id: 'FM4', toolId: '1', fieldId: 'f1', mappingType: 'element', targetId: 'E001' },  // 学校名称
+    { id: 'FM5', toolId: '1', fieldId: 'f2', mappingType: 'element', targetId: 'E002' },  // 学校类型
+  ];
+
+  fieldMappings.forEach(fm => {
+    insertFieldMapping.run(fm.id, fm.toolId, fm.fieldId, fm.mappingType, fm.targetId, timestamp, timestamp);
+  });
+  console.log('Inserted field mappings.');
+
   console.log('\nSeed data inserted successfully!');
 }
 

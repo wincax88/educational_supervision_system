@@ -168,3 +168,153 @@ export async function updateElement(id: string, data: Partial<Element>): Promise
 export async function deleteElement(id: string): Promise<void> {
   return del(`/elements/${id}`);
 }
+
+// ==================== 字段映射 API ====================
+
+// 字段映射目标信息类型
+export interface MappingTargetInfo {
+  code: string;
+  name: string;
+  threshold?: string;
+  description?: string;
+  indicatorName?: string;
+  indicatorCode?: string;
+  elementType?: string;
+  dataType?: string;
+  formula?: string;
+}
+
+// 字段映射类型
+export interface FieldMapping {
+  id?: string;
+  toolId: string;
+  fieldId: string;
+  mappingType: 'data_indicator' | 'element';
+  targetId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  targetInfo?: MappingTargetInfo;
+}
+
+// 扩展的表单字段类型（包含映射信息）
+export interface ExtendedFormField extends FormField {
+  mapping?: {
+    mappingType: 'data_indicator' | 'element';
+    targetId: string;
+    targetInfo?: MappingTargetInfo;
+  } | null;
+}
+
+// 完整表单schema响应类型
+export interface FullSchemaResponse {
+  id: string;
+  name: string;
+  type: string;
+  target: string;
+  description: string;
+  status: string;
+  schema: ExtendedFormField[];
+  mappings: Array<{
+    fieldId: string;
+    mappingType: string;
+    targetId: string;
+  }>;
+}
+
+// 获取工具的字段映射
+export async function getFieldMappings(toolId: string): Promise<FieldMapping[]> {
+  return get<FieldMapping[]>(`/tools/${toolId}/field-mappings`);
+}
+
+// 保存工具的字段映射（全量更新）
+export async function saveFieldMappings(
+  toolId: string,
+  mappings: Array<{ fieldId: string; mappingType: string; targetId: string }>
+): Promise<void> {
+  return put(`/tools/${toolId}/field-mappings`, { mappings });
+}
+
+// 添加单个字段映射
+export async function addFieldMapping(
+  toolId: string,
+  fieldId: string,
+  mappingType: 'data_indicator' | 'element',
+  targetId: string
+): Promise<{ id: string }> {
+  return post<{ id: string }>(`/tools/${toolId}/field-mappings`, {
+    fieldId,
+    mappingType,
+    targetId,
+  });
+}
+
+// 删除单个字段映射
+export async function deleteFieldMapping(toolId: string, fieldId: string): Promise<void> {
+  return del(`/tools/${toolId}/field-mappings/${fieldId}`);
+}
+
+// 获取完整的表单schema（含字段映射信息）
+export async function getFullSchema(toolId: string): Promise<FullSchemaResponse> {
+  return get<FullSchemaResponse>(`/tools/${toolId}/full-schema`);
+}
+
+// ==================== 数据指标 API ====================
+
+// 数据指标类型
+export interface DataIndicator {
+  id: string;
+  indicatorId: string;
+  code: string;
+  name: string;
+  threshold: string;
+  description: string;
+  dataSource?: string;
+  indicatorName: string;
+  indicatorCode: string;
+  indicatorLevel: number;
+  systemId: string;
+  systemName: string;
+  supportingMaterials?: SupportingMaterial[];
+}
+
+// 佐证资料配置类型
+export interface SupportingMaterial {
+  id: string;
+  code: string;
+  name: string;
+  fileTypes: string;
+  maxSize: string;
+  description: string;
+  required: number;
+}
+
+// 获取所有数据指标列表
+export async function getDataIndicators(params?: {
+  systemId?: string;
+  indicatorId?: string;
+  keyword?: string;
+}): Promise<DataIndicator[]> {
+  return get<DataIndicator[]>('/data-indicators', params as Record<string, string>);
+}
+
+// 获取单个数据指标详情（含佐证资料配置）
+export async function getDataIndicator(id: string): Promise<DataIndicator> {
+  return get<DataIndicator>(`/data-indicators/${id}`);
+}
+
+// ==================== 要素查询 API ====================
+
+// 扩展的要素类型（含库名称）
+export interface ElementWithLibrary extends Element {
+  libraryId: string;
+  libraryName: string;
+}
+
+// 获取所有要素列表
+export async function getElements(params?: {
+  libraryId?: string;
+  elementType?: string;
+  keyword?: string;
+}): Promise<ElementWithLibrary[]> {
+  return get<ElementWithLibrary[]>('/elements', params as Record<string, string>);
+}

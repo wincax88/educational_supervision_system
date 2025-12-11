@@ -146,18 +146,48 @@ CREATE TABLE IF NOT EXISTS submissions (
 );
 
 -- 佐证资料上传记录表
-CREATE TABLE IF NOT EXISTS uploaded_materials (
+CREATE TABLE IF NOT EXISTS submission_materials (
   id TEXT PRIMARY KEY,
   submission_id TEXT NOT NULL,
-  material_config_id TEXT NOT NULL,
+  material_config_id TEXT,
+  indicator_id TEXT,
   file_name TEXT NOT NULL,
   file_path TEXT NOT NULL,
   file_size INTEGER,
   file_type TEXT,
+  description TEXT,
   uploaded_by TEXT,
-  uploaded_at TEXT,
+  created_at TEXT,
+  updated_at TEXT,
   FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE,
-  FOREIGN KEY (material_config_id) REFERENCES supporting_materials(id)
+  FOREIGN KEY (material_config_id) REFERENCES supporting_materials(id),
+  FOREIGN KEY (indicator_id) REFERENCES data_indicators(id)
+);
+
+-- 项目与采集工具关联表
+CREATE TABLE IF NOT EXISTS project_tools (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  tool_id TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0,
+  is_required INTEGER DEFAULT 1,
+  created_at TEXT,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (tool_id) REFERENCES data_tools(id) ON DELETE CASCADE,
+  UNIQUE(project_id, tool_id)
+);
+
+-- 表单字段映射表（字段与数据指标/要素的映射关系）
+CREATE TABLE IF NOT EXISTS field_mappings (
+  id TEXT PRIMARY KEY,
+  tool_id TEXT NOT NULL,
+  field_id TEXT NOT NULL,
+  mapping_type TEXT NOT NULL CHECK (mapping_type IN ('data_indicator', 'element')),
+  target_id TEXT NOT NULL,
+  created_at TEXT,
+  updated_at TEXT,
+  FOREIGN KEY (tool_id) REFERENCES data_tools(id) ON DELETE CASCADE,
+  UNIQUE(tool_id, field_id)
 );
 
 -- 创建索引
@@ -169,3 +199,9 @@ CREATE INDEX IF NOT EXISTS idx_elements_library ON elements(library_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_project ON submissions(project_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_form ON submissions(form_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
+CREATE INDEX IF NOT EXISTS idx_project_tools_project ON project_tools(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_tools_tool ON project_tools(tool_id);
+CREATE INDEX IF NOT EXISTS idx_field_mappings_tool ON field_mappings(tool_id);
+CREATE INDEX IF NOT EXISTS idx_field_mappings_target ON field_mappings(target_id);
+CREATE INDEX IF NOT EXISTS idx_submission_materials_submission ON submission_materials(submission_id);
+CREATE INDEX IF NOT EXISTS idx_submission_materials_indicator ON submission_materials(indicator_id);

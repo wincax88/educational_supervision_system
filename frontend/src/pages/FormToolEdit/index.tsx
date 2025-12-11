@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Tag, Tabs, Input, Select, Switch, message } from 'antd';
+import { Button, Tag, Tabs, Input, Select, Switch, message, Tooltip } from 'antd';
 import {
   ArrowLeftOutlined,
   UploadOutlined,
@@ -22,10 +22,15 @@ import {
   UnorderedListOutlined,
   FormOutlined,
   HolderOutlined,
+  LinkOutlined,
+  DisconnectOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dataTools, DataTool } from '../../mock/data';
 import styles from './index.module.css';
+import DataIndicatorSelector from '../../components/DataIndicatorSelector';
+import ElementSelector from '../../components/ElementSelector';
+import * as toolService from '../../services/toolService';
 
 // 控件类型定义
 type ControlType =
@@ -52,6 +57,23 @@ interface Control {
   category: 'basic' | 'advanced';
 }
 
+// 字段映射信息类型
+interface FieldMappingInfo {
+  mappingType: 'data_indicator' | 'element';
+  targetId: string;
+  targetInfo?: {
+    code: string;
+    name: string;
+    threshold?: string;
+    description?: string;
+    indicatorName?: string;
+    indicatorCode?: string;
+    elementType?: string;
+    dataType?: string;
+    formula?: string;
+  };
+}
+
 // 表单字段定义
 interface FormField {
   id: string;
@@ -71,6 +93,8 @@ interface FormField {
   unit?: string;
   // 分组容器特有属性
   children?: FormField[];
+  // 映射信息
+  mapping?: FieldMappingInfo | null;
 }
 
 // 控件库配置
@@ -143,6 +167,11 @@ const FormToolEdit: React.FC = () => {
   const [dragOverCanvas, setDragOverCanvas] = useState(false);
   const draggedControlRef = useRef<ControlType | null>(null);
   const draggedFieldIndexRef = useRef<number | null>(null);
+
+  // 选择器相关状态
+  const [mappingType, setMappingType] = useState<'data_indicator' | 'element'>('data_indicator');
+  const [showIndicatorSelector, setShowIndicatorSelector] = useState(false);
+  const [showElementSelector, setShowElementSelector] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -723,16 +752,56 @@ const FormToolEdit: React.FC = () => {
                   <div className={styles.propertyItem}>
                     <label>评价依据</label>
                     <div className={styles.evaluationConfig}>
-                      <Select defaultValue="数据指标" style={{ flex: 1 }}>
-                        <Select.Option value="数据指标">数据指标</Select.Option>
-                        <Select.Option value="佐证资料">佐证资料</Select.Option>
+                      <Select
+                        value={mappingType}
+                        onChange={(value) => setMappingType(value as 'data_indicator' | 'element')}
+                        style={{ flex: 1 }}
+                      >
+                        <Select.Option value="data_indicator">数据指标</Select.Option>
+                        <Select.Option value="element">要素</Select.Option>
                       </Select>
-                      <Button>输入</Button>
-                      <Button>添加</Button>
+                      <Button
+                        type="primary"
+                        icon={<LinkOutlined />}
+                        onClick={() => {
+                          if (mappingType === 'data_indicator') {
+                            setShowIndicatorSelector(true);
+                          } else {
+                            setShowElementSelector(true);
+                          }
+                        }}
+                      >
+                        关联
+                      </Button>
+                      {selectedField.mapping && (
+                        <Tooltip title="取消关联">
+                          <Button
+                            danger
+                            icon={<DisconnectOutlined />}
+                            onClick={() => handleUpdateField(selectedField.id, { mapping: null })}
+                          />
+                        </Tooltip>
+                      )}
                     </div>
-                    <div className={styles.evaluationHint}>
-                      完整名称格式：学校基础数据采集表 - (评价依据名称)
-                    </div>
+                    {selectedField.mapping ? (
+                      <div className={styles.mappingInfo}>
+                        <Tag color={selectedField.mapping.mappingType === 'data_indicator' ? 'blue' : 'green'}>
+                          {selectedField.mapping.mappingType === 'data_indicator' ? '数据指标' : '要素'}
+                        </Tag>
+                        <span className={styles.mappingName}>
+                          {selectedField.mapping.targetInfo?.code} - {selectedField.mapping.targetInfo?.name}
+                        </span>
+                        {selectedField.mapping.targetInfo?.threshold && (
+                          <Tag color="orange" style={{ marginLeft: 8 }}>
+                            阈值: {selectedField.mapping.targetInfo.threshold}
+                          </Tag>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={styles.evaluationHint}>
+                        可关联数据指标或要素，用于数据校验和计算
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -789,6 +858,57 @@ const FormToolEdit: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 数据指标选择器 */}
+      <DataIndicatorSelector
+        visible={showIndicatorSelector}
+        onCancel={() => setShowIndicatorSelector(false)}
+        onSelect={(indicator) => {
+          if (selectedField) {
+            handleUpdateField(selectedField.id, {
+              mapping: {
+                mappingType: 'data_indicator',
+                targetId: indicator.id,
+                targetInfo: {
+                  code: indicator.code,
+                  name: indicator.name,
+                  threshold: indicator.threshold,
+                  description: indicator.description,
+                  indicatorName: indicator.indicatorName,
+                  indicatorCode: indicator.indicatorCode,
+                },
+              },
+            });
+          }
+          setShowIndicatorSelector(false);
+        }}
+        selectedId={selectedField?.mapping?.mappingType === 'data_indicator' ? selectedField.mapping.targetId : undefined}
+      />
+
+      {/* 要素选择器 */}
+      <ElementSelector
+        visible={showElementSelector}
+        onCancel={() => setShowElementSelector(false)}
+        onSelect={(element) => {
+          if (selectedField) {
+            handleUpdateField(selectedField.id, {
+              mapping: {
+                mappingType: 'element',
+                targetId: element.id,
+                targetInfo: {
+                  code: element.code,
+                  name: element.name,
+                  elementType: element.elementType,
+                  dataType: element.dataType,
+                  formula: element.formula,
+                },
+              },
+            });
+          }
+          setShowElementSelector(false);
+        }}
+        selectedId={selectedField?.mapping?.mappingType === 'element' ? selectedField.mapping.targetId : undefined}
+      />
     </div>
   );
 };

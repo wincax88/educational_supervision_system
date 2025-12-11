@@ -7,6 +7,8 @@ const fs = require('fs');
 const { router: indicatorRoutes, setDb: setIndicatorDb } = require('./routes/indicators');
 const { router: toolRoutes, setDb: setToolDb } = require('./routes/tools');
 const { router: submissionRoutes, setDb: setSubmissionDb } = require('./routes/submissions');
+const { router: projectToolRoutes, setDb: setProjectToolDb } = require('./routes/projectTools');
+const uploadsRouteFactory = require('./routes/uploads');
 
 const app = express();
 const PORT = 3001;
@@ -48,6 +50,7 @@ function initDatabase() {
   setIndicatorDb(db);
   setToolDb(db);
   setSubmissionDb(db);
+  setProjectToolDb(db);
 
   return db;
 }
@@ -64,6 +67,11 @@ try {
 app.use('/api', indicatorRoutes);
 app.use('/api', toolRoutes);
 app.use('/api', submissionRoutes);
+app.use('/api', projectToolRoutes);
+// 文件上传路由需要在数据库初始化后注册
+if (db) {
+  app.use('/api', uploadsRouteFactory(db));
+}
 
 // 登录接口
 app.post('/api/login', (req, res) => {

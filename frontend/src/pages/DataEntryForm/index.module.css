@@ -265,6 +265,121 @@
   margin-top: 4px;
 }
 
+/* 阈值相关样式 */
+.thresholdHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #d46b08;
+  margin-left: 8px;
+}
+
+.thresholdHint :global(.anticon) {
+  font-size: 12px;
+}
+
+.thresholdValid {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.thresholdInvalid {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #ff4d4f;
+}
+
+.mappingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #f0f5ff;
+  border: 1px solid #adc6ff;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #2f54eb;
+  margin-left: 8px;
+}
+
+.mappingBadge :global(.anticon) {
+  font-size: 12px;
+}
+
+/* 派生要素样式 */
+.derivedField {
+  position: relative;
+}
+
+.derivedField :global(.ant-input-number) {
+  background: #fafafa;
+}
+
+.derivedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #e6fffb;
+  border: 1px solid #87e8de;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #13c2c2;
+  margin-left: 8px;
+}
+
+.formulaHint {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 校验警告提示 */
+.validationWarnings {
+  margin-bottom: 20px;
+}
+
+.warningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.warningItem:last-child {
+  margin-bottom: 0;
+}
+
+.warningItem :global(.anticon) {
+  color: #faad14;
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.warningContent {
+  flex: 1;
+}
+
+.warningField {
+  font-weight: 500;
+  color: #333;
+}
+
+.warningMessage {
+  font-size: 13px;
+  color: #666;
+}
+
 /* 响应式布局 */
 @media (max-width: 768px) {
   .formFieldsContainer > :global(.ant-form-item[style*="25%"]),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Button,
   Tag,
@@ -17,6 +17,7 @@ import {
   Alert,
   Form,
   InputNumber,
+  Tooltip,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -27,13 +28,25 @@ import {
   CheckCircleFilled,
   ClockCircleFilled,
   ExclamationCircleFilled,
+  WarningOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as toolService from '../../services/toolService';
 import type { FormField } from '../../services/toolService';
 import * as submissionService from '../../services/submissionService';
 import type { Submission } from '../../services/submissionService';
+import { parseThreshold, validateThreshold, calculate, parseVariables } from '../../utils/formulaCalculator';
 import styles from './index.module.css';
+
+// 映射目标信息
+interface MappingTargetInfo {
+  code: string;
+  name: string;
+  threshold?: string;
+  elementType?: string;
+  formula?: string;
+}
 
 // 扩展 FormField 类型以包含更多属性
 interface ExtendedFormField extends FormField {
@@ -43,6 +56,20 @@ interface ExtendedFormField extends FormField {
   decimalPlaces?: '整数' | '1位小数' | '2位小数';
   optionLayout?: 'horizontal' | 'vertical';
   children?: ExtendedFormField[];
+  mapping?: {
+    mappingType: 'data_indicator' | 'element';
+    targetId: string;
+    targetInfo?: MappingTargetInfo;
+  } | null;
+}
+
+// 校验警告类型
+interface ValidationWarning {
+  fieldId: string;
+  fieldLabel: string;
+  value: number;
+  threshold: string;
+  message: string;
 }
 
 // 工具信息
@@ -67,6 +94,7 @@ const DataEntryForm: React.FC = () => {
   const [formFields, setFormFields] = useState<ExtendedFormField[]>([]);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [validationWarnings, setValidationWarnings] = useState<ValidationWarning[]>([]);
 
   // 加载数据
   useEffect(() => {
@@ -75,23 +103,21 @@ const DataEntryForm: React.FC = () => {
 
       setLoading(true);
       try {
-        // 获取工具信息和schema
-        const toolData = await toolService.getById(formId);
-        if (toolData) {
+        // 获取完整的工具信息和schema（含字段映射）
+        const fullSchemaData = await toolService.getFullSchema(formId);
+        if (fullSchemaData) {
           setToolInfo({
-            id: toolData.id,
-            name: toolData.name,
-            description: toolData.description || '',
-            type: toolData.type,
-            target: toolData.target || '',
-            status: toolData.status,
+            id: fullSchemaData.id,
+            name: fullSchemaData.name,
+            description: fullSchemaData.description || '',
+            type: fullSchemaData.type,
+            target: fullSchemaData.target || '',
+            status: fullSchemaData.status,
           });
-        }
 
-        // 获取表单schema
-        const schemaData = await toolService.getSchema(formId);
-        if (schemaData?.schema) {
-          setFormFields(schemaData.schema);
+          if (fullSchemaData.schema) {
+            setFormFields(fullSchemaData.schema as ExtendedFormField[]);
+          }
         }
 
         // 尝试获取已有的填报记录
@@ -165,8 +191,44 @@ const DataEntryForm: React.FC = () => {
       // 验证表单
       await form.validateFields();
 
-      setSubmitting(true);
       const values = form.getFieldsValue();
+
+      // 执行阈值校验
+      const warnings = performThresholdValidation(values);
+      setValidationWarnings(warnings);
+
+      // 如果有警告，显示确认框
+      if (warnings.length > 0) {
+        const confirmed = await new Promise<boolean>((resolve) => {
+          import('antd').then(({ Modal }) => {
+            Modal.confirm({
+              title: '数据校验警告',
+              content: (
+                <div>
+                  <p>以下字段的值未满足阈值要求，是否仍要提交？</p>
+                  <ul style={{ marginTop: 12, paddingLeft: 20 }}>
+                    {warnings.map((w, idx) => (
+                      <li key={idx} style={{ marginBottom: 8 }}>
+                        <strong>{w.fieldLabel}</strong>: {w.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ),
+              okText: '仍然提交',
+              cancelText: '返回修改',
+              onOk: () => resolve(true),
+              onCancel: () => resolve(false),
+            });
+          });
+        });
+
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      setSubmitting(true);
 
       if (submission) {
         // 更新并提交
@@ -228,6 +290,111 @@ const DataEntryForm: React.FC = () => {
     }
   };
 
+  // 执行阈值校验
+  const performThresholdValidation = (values: Record<string, any>): ValidationWarning[] => {
+    const warnings: ValidationWarning[] = [];
+
+    const checkField = (field: ExtendedFormField) => {
+      // 只对有映射且有阈值的数值字段进行校验
+      if (field.type === 'number' && field.mapping?.targetInfo?.threshold) {
+        const value = values[field.id];
+        if (typeof value === 'number') {
+          const thresholdConfig = parseThreshold(field.mapping.targetInfo.threshold);
+          const result = validateThreshold(value, thresholdConfig);
+          if (!result.valid && result.message) {
+            warnings.push({
+              fieldId: field.id,
+              fieldLabel: field.label,
+              value,
+              threshold: field.mapping.targetInfo.threshold,
+              message: result.message,
+            });
+          }
+        }
+      }
+
+      // 递归检查子字段
+      if (field.children) {
+        field.children.forEach(checkField);
+      }
+    };
+
+    formFields.forEach(checkField);
+    return warnings;
+  };
+
+  // 计算派生要素值
+  const calculateDerivedFields = useMemo(() => {
+    // 找出所有派生要素字段
+    const derivedFields: Array<{
+      field: ExtendedFormField;
+      formula: string;
+      variables: string[];
+    }> = [];
+
+    const findDerivedFields = (fields: ExtendedFormField[]) => {
+      fields.forEach((field) => {
+        if (
+          field.mapping?.targetInfo?.elementType === '派生要素' &&
+          field.mapping.targetInfo.formula
+        ) {
+          const variables = parseVariables(field.mapping.targetInfo.formula);
+          derivedFields.push({
+            field,
+            formula: field.mapping.targetInfo.formula,
+            variables,
+          });
+        }
+        if (field.children) {
+          findDerivedFields(field.children);
+        }
+      });
+    };
+
+    findDerivedFields(formFields);
+    return derivedFields;
+  }, [formFields]);
+
+  // 根据表单值计算派生字段
+  const computeDerivedValues = (values: Record<string, any>): Record<string, number> => {
+    const results: Record<string, number> = {};
+
+    // 构建变量值映射（fieldId 或 code -> value）
+    const valueMap: Record<string, number> = {};
+
+    const extractValues = (fields: ExtendedFormField[]) => {
+      fields.forEach((field) => {
+        const value = values[field.id];
+        if (typeof value === 'number') {
+          valueMap[field.id] = value;
+          // 如果有映射，也用 code 作为键
+          if (field.mapping?.targetInfo?.code) {
+            valueMap[field.mapping.targetInfo.code] = value;
+          }
+        }
+        if (field.children) {
+          extractValues(field.children);
+        }
+      });
+    };
+
+    extractValues(formFields);
+
+    // 计算每个派生字段
+    calculateDerivedFields.forEach(({ field, formula }) => {
+      try {
+        const result = calculate(formula, valueMap);
+        results[field.id] = result;
+      } catch (error) {
+        // 计算失败时不填充值
+        console.warn(`计算派生字段 ${field.label} 失败:`, error);
+      }
+    });
+
+    return results;
+  };
+
+
   // 渲染表单字段
   const renderFormField = (field: ExtendedFormField) => {
     const commonRules = field.required
@@ -268,7 +435,12 @@ const DataEntryForm: React.FC = () => {
           </Form.Item>
         );
 
-      case 'number':
+      case 'number': {
+        const isDerived = field.mapping?.targetInfo?.elementType === '派生要素';
+        const threshold = field.mapping?.targetInfo?.threshold;
+        const formula = field.mapping?.targetInfo?.formula;
+        const mappingCode = field.mapping?.targetInfo?.code;
+
         return (
           <Form.Item
             key={field.id}
@@ -277,6 +449,28 @@ const DataEntryForm: React.FC = () => {
               <span>
                 {field.label}
                 {field.unit && <span className={styles.fieldUnit}>({field.unit})</span>}
+                {threshold && (
+                  <Tooltip title={`阈值要求: ${threshold}`}>
+                    <span className={styles.thresholdHint}>
+                      <InfoCircleOutlined />
+                      {threshold}
+                    </span>
+                  </Tooltip>
+                )}
+                {isDerived && (
+                  <Tooltip title={`自动计算: ${formula}`}>
+                    <span className={styles.derivedBadge}>
+                      派生
+                    </span>
+                  </Tooltip>
+                )}
+                {mappingCode && !isDerived && (
+                  <Tooltip title={`关联: ${field.mapping?.targetInfo?.name || mappingCode}`}>
+                    <span className={styles.mappingBadge}>
+                      {mappingCode}
+                    </span>
+                  </Tooltip>
+                )}
               </span>
             }
             rules={[
@@ -288,12 +482,21 @@ const DataEntryForm: React.FC = () => {
                 message: `请输入${field.minValue || ''}${field.minValue && field.maxValue ? '-' : ''}${field.maxValue || ''}之间的数值`,
               },
             ]}
-            extra={field.helpText}
+            extra={
+              <>
+                {field.helpText}
+                {isDerived && formula && (
+                  <div className={styles.formulaHint}>计算公式: {formula}</div>
+                )}
+              </>
+            }
             style={{ width: field.width }}
+            className={isDerived ? styles.derivedField : undefined}
           >
             <InputNumber
-              placeholder={field.placeholder || '请输入数字'}
+              placeholder={isDerived ? '自动计算' : (field.placeholder || '请输入数字')}
               style={{ width: '100%' }}
+              disabled={isDerived}
               precision={
                 field.decimalPlaces === '1位小数'
                   ? 1
@@ -304,6 +507,7 @@ const DataEntryForm: React.FC = () => {
             />
           </Form.Item>
         );
+      }
 
       case 'select':
         return (
@@ -592,6 +796,33 @@ const DataEntryForm: React.FC = () => {
         />
       )}
 
+      {/* 校验警告提示 */}
+      {validationWarnings.length > 0 && (
+        <div className={styles.validationWarnings}>
+          <Alert
+            message="数据校验提示"
+            description={
+              <div>
+                <p style={{ marginBottom: 8 }}>以下字段的值未满足阈值要求：</p>
+                {validationWarnings.map((warning, idx) => (
+                  <div key={idx} className={styles.warningItem}>
+                    <WarningOutlined />
+                    <div className={styles.warningContent}>
+                      <span className={styles.warningField}>{warning.fieldLabel}</span>
+                      <span className={styles.warningMessage}> - {warning.message}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            }
+            type="warning"
+            showIcon
+            closable
+            onClose={() => setValidationWarnings([])}
+          />
+        </div>
+      )}
+
       {/* 表单内容 */}
       <div className={styles.formContentCard}>
         {formFields.length === 0 ? (
@@ -606,6 +837,18 @@ const DataEntryForm: React.FC = () => {
             layout="vertical"
             initialValues={formData}
             disabled={submission?.status === 'submitted'}
+            onValuesChange={(_, allValues) => {
+              // 当有派生字段时，计算并更新派生字段值
+              if (calculateDerivedFields.length > 0) {
+                const derivedValues = computeDerivedValues(allValues);
+                if (Object.keys(derivedValues).length > 0) {
+                  // 使用 setTimeout 避免循环更新
+                  setTimeout(() => {
+                    form.setFieldsValue(derivedValues);
+                  }, 0);
+                }
+              }
+            }}
           >
             <div className={styles.formFieldsContainer}>
               {formFields.map((field) => renderFormField(field))}

@@ -428,6 +428,22 @@
   margin-top: 4px;
 }
 
+.mappingInfo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.mappingName {
+  font-size: 13px;
+  color: #333;
+}
+
 .optionsList {
   display: flex;
   flex-direction: column;
