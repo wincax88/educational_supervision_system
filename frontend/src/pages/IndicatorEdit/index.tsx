@@ -9,7 +9,7 @@ import {
   SaveOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
-import './index.css';
+import styles from './index.module.css';
 
 // 要素类型
 type ElementType = '基础要素' | '派生要素';
@@ -181,18 +181,18 @@ const IndicatorEdit: React.FC = () => {
   };
 
   if (!library) {
-    return <div className="element-edit-page">加载中...</div>;
+    return <div className={styles.elementEditPage}>加载中...</div>;
   }
 
   return (
-    <div className="element-edit-page">
+    <div className={styles.elementEditPage}>
       {/* 页面头部 */}
-      <div className="page-header">
-        <div className="header-left">
-          <span className="back-btn" onClick={() => navigate(-1)}>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerLeft}>
+          <span className={styles.backBtn} onClick={() => navigate(-1)}>
             <ArrowLeftOutlined /> 返回
           </span>
-          <h1 className="page-title">编辑评估要素</h1>
+          <h1 className={styles.pageTitle}>编辑评估要素</h1>
         </div>
         <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveLibrary}>
           保存要素库
@@ -200,61 +200,61 @@ const IndicatorEdit: React.FC = () => {
       </div>
 
       {/* 要素库信息卡片 */}
-      <div className="library-info-card">
-        <div className="library-info-header">
-          <div className="library-info-left">
-            <span className="library-name">{library.name}</span>
-            <Tag className="status-tag">{library.status}</Tag>
+      <div className={styles.libraryInfoCard}>
+        <div className={styles.libraryInfoHeader}>
+          <div className={styles.libraryInfoLeft}>
+            <span className={styles.libraryName}>{library.name}</span>
+            <Tag className={styles.statusTag}>{library.status}</Tag>
           </div>
-          <span className="element-count">{library.elementCount}个要素</span>
+          <span className={styles.elementCount}>{library.elementCount}个要素</span>
         </div>
-        <p className="library-description">{library.description}</p>
+        <p className={styles.libraryDescription}>{library.description}</p>
       </div>
 
       {/* 主内容区域 */}
-      <div className="main-content">
+      <div className={styles.mainContent}>
         {/* 左侧要素列表 */}
-        <div className="element-list-section">
-          <div className="section-header">
+        <div className={styles.elementListSection}>
+          <div className={styles.sectionHeader}>
             <h3>要素列表</h3>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAddElement}>
               添加要素
             </Button>
           </div>
 
-          <div className="element-list">
+          <div className={styles.elementList}>
             {library.elements.map(element => (
               <div
                 key={element.id}
-                className={`element-item ${selectedElement?.id === element.id ? 'selected' : ''}`}
+                className={`${styles.elementItem} ${selectedElement?.id === element.id ? styles.selected : ''}`}
                 onClick={() => handleSelectElement(element)}
               >
-                <div className="element-main">
-                  <Tag className="element-code">{element.code}</Tag>
-                  <span className="element-name">{element.name}</span>
+                <div className={styles.elementMain}>
+                  <Tag className={styles.elementCode}>{element.code}</Tag>
+                  <span className={styles.elementName}>{element.name}</span>
                   <Tag
-                    className={`element-type-tag ${element.elementType === '派生要素' ? 'derived' : 'base'}`}
+                    className={`${styles.elementTypeTag} ${element.elementType === '派生要素' ? styles.derived : styles.base}`}
                   >
                     {element.elementType}
                   </Tag>
-                  <span className="element-data-type"># {element.dataType}</span>
+                  <span className={styles.elementDataType}># {element.dataType}</span>
                 </div>
                 {element.formula && (
-                  <div className="element-formula">
+                  <div className={styles.elementFormula}>
                     <FileTextOutlined />
                     <span>{element.formula}</span>
                   </div>
                 )}
-                <div className="element-actions">
+                <div className={styles.elementActions}>
                   <EditOutlined
-                    className="action-icon"
+                    className={styles.actionIcon}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleEditElement(element);
                     }}
                   />
                   <DeleteOutlined
-                    className="action-icon danger"
+                    className={`${styles.actionIcon} ${styles.danger}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteElement(element.id);
@@ -265,7 +265,7 @@ const IndicatorEdit: React.FC = () => {
             ))}
 
             {library.elements.length === 0 && (
-              <div className="empty-state">
+              <div className={styles.emptyState}>
                 暂无要素，请点击"添加要素"开始创建
               </div>
             )}
@@ -273,38 +273,38 @@ const IndicatorEdit: React.FC = () => {
         </div>
 
         {/* 右侧要素属性面板 */}
-        <div className="element-properties-section">
+        <div className={styles.elementPropertiesSection}>
           <h3>要素属性</h3>
           {selectedElement ? (
-            <div className="properties-content">
-              <div className="property-item">
+            <div className={styles.propertiesContent}>
+              <div className={styles.propertyItem}>
                 <label>要素编码</label>
-                <span className="property-value">{selectedElement.code}</span>
+                <span className={styles.propertyValue}>{selectedElement.code}</span>
               </div>
-              <div className="property-item">
+              <div className={styles.propertyItem}>
                 <label>要素名称</label>
-                <span className="property-value">{selectedElement.name}</span>
+                <span className={styles.propertyValue}>{selectedElement.name}</span>
               </div>
-              <div className="property-item">
+              <div className={styles.propertyItem}>
                 <label>要素类型</label>
                 <Tag
-                  className={`element-type-tag ${selectedElement.elementType === '派生要素' ? 'derived' : 'base'}`}
+                  className={`${styles.elementTypeTag} ${selectedElement.elementType === '派生要素' ? styles.derived : styles.base}`}
                 >
                   {selectedElement.elementType}
                 </Tag>
               </div>
-              <div className="property-item">
+              <div className={styles.propertyItem}>
                 <label>数据类型</label>
-                <span className="property-value">{selectedElement.dataType}</span>
+                <span className={styles.propertyValue}>{selectedElement.dataType}</span>
               </div>
               {selectedElement.formula && (
-                <div className="property-item">
+                <div className={styles.propertyItem}>
                   <label>计算公式</label>
-                  <div className="formula-display">{selectedElement.formula}</div>
+                  <div className={styles.formulaDisplay}>{selectedElement.formula}</div>
                 </div>
               )}
 
-              <div className="properties-actions">
+              <div className={styles.propertiesActions}>
                 <Button
                   block
                   icon={<EditOutlined />}
@@ -323,8 +323,8 @@ const IndicatorEdit: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="empty-properties">
-              <FileTextOutlined className="empty-icon" />
+            <div className={styles.emptyProperties}>
+              <FileTextOutlined className={styles.emptyIcon} />
               <span>选择一个要素查看详情</span>
             </div>
           )}
@@ -338,16 +338,16 @@ const IndicatorEdit: React.FC = () => {
         onCancel={() => setAddModalVisible(false)}
         footer={null}
         width={500}
-        className="element-modal"
+        className={styles.elementModal}
       >
-        <p className="modal-subtitle">创建一个新的评估要素</p>
+        <p className={styles.modalSubtitle}>创建一个新的评估要素</p>
         <Form form={addForm} onFinish={handleSaveAdd} layout="vertical">
-          <div className="form-row-inline">
+          <div className={styles.formRowInline}>
             <Form.Item
               label="要素编码"
               name="code"
               rules={[{ required: true, message: '请输入要素编码' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Input placeholder="如：E001" />
             </Form.Item>
@@ -355,20 +355,20 @@ const IndicatorEdit: React.FC = () => {
               label="要素名称"
               name="name"
               rules={[{ required: true, message: '请输入要素名称' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Input placeholder="如：学生总数" />
             </Form.Item>
           </div>
-          <div className="form-hint">建议使用字母+数字组合</div>
+          <div className={styles.formHint}>建议使用字母+数字组合</div>
 
-          <div className="form-row-inline">
+          <div className={styles.formRowInline}>
             <Form.Item
               label="要素类型"
               name="elementType"
               rules={[{ required: true, message: '请选择要素类型' }]}
               initialValue="基础要素"
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Select onChange={(value) => setAddFormElementType(value as ElementType)}>
                 <Select.Option value="基础要素">基础要素</Select.Option>
@@ -380,7 +380,7 @@ const IndicatorEdit: React.FC = () => {
               name="dataType"
               rules={[{ required: true, message: '请选择数据类型' }]}
               initialValue="文本"
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Select>
                 <Select.Option value="文本">文本</Select.Option>
@@ -393,7 +393,7 @@ const IndicatorEdit: React.FC = () => {
               </Select>
             </Form.Item>
           </div>
-          <div className="form-hint">
+          <div className={styles.formHint}>
             {addFormElementType === '基础要素' ? '直接采集的数据' : '通过计算得出的数据'}
           </div>
 
@@ -406,7 +406,7 @@ const IndicatorEdit: React.FC = () => {
               >
                 <Input placeholder="如：E003 / E004（使用要素编码进行计算）" />
               </Form.Item>
-              <div className="form-hint">使用要素编码和运算符（+ - * /）编写公式，支持括号</div>
+              <div className={styles.formHint}>使用要素编码和运算符（+ - * /）编写公式，支持括号</div>
             </>
           )}
 
@@ -428,16 +428,16 @@ const IndicatorEdit: React.FC = () => {
         onCancel={() => setEditModalVisible(false)}
         footer={null}
         width={500}
-        className="element-modal"
+        className={styles.elementModal}
       >
-        <p className="modal-subtitle">修改评估要素的属性信息</p>
+        <p className={styles.modalSubtitle}>修改评估要素的属性信息</p>
         <Form form={editForm} onFinish={handleSaveEdit} layout="vertical">
-          <div className="form-row-inline">
+          <div className={styles.formRowInline}>
             <Form.Item
               label="要素编码"
               name="code"
               rules={[{ required: true, message: '请输入要素编码' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Input placeholder="如：E001" />
             </Form.Item>
@@ -445,19 +445,19 @@ const IndicatorEdit: React.FC = () => {
               label="要素名称"
               name="name"
               rules={[{ required: true, message: '请输入要素名称' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Input placeholder="如：学生总数" />
             </Form.Item>
           </div>
-          <div className="form-hint">建议使用字母+数字组合</div>
+          <div className={styles.formHint}>建议使用字母+数字组合</div>
 
-          <div className="form-row-inline">
+          <div className={styles.formRowInline}>
             <Form.Item
               label="要素类型"
               name="elementType"
               rules={[{ required: true, message: '请选择要素类型' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Select onChange={(value) => setEditFormElementType(value as ElementType)}>
                 <Select.Option value="基础要素">基础要素</Select.Option>
@@ -468,7 +468,7 @@ const IndicatorEdit: React.FC = () => {
               label="数据类型"
               name="dataType"
               rules={[{ required: true, message: '请选择数据类型' }]}
-              className="form-item-half"
+              className={styles.formItemHalf}
             >
               <Select>
                 <Select.Option value="文本">文本</Select.Option>
@@ -481,7 +481,7 @@ const IndicatorEdit: React.FC = () => {
               </Select>
             </Form.Item>
           </div>
-          <div className="form-hint">
+          <div className={styles.formHint}>
             {editFormElementType === '基础要素' ? '直接采集的数据' : '通过计算得出的数据'}
           </div>
 
@@ -494,7 +494,7 @@ const IndicatorEdit: React.FC = () => {
               >
                 <Input placeholder="如：E003 / E004（使用要素编码进行计算）" />
               </Form.Item>
-              <div className="form-hint">使用要素编码和运算符（+ - * /）编写公式，支持括号</div>
+              <div className={styles.formHint}>使用要素编码和运算符（+ - * /）编写公式，支持括号</div>
             </>
           )}
 

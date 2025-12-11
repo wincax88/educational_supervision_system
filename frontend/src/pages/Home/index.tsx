@@ -6,8 +6,10 @@ import {
   SmileOutlined,
   FileSearchOutlined,
   AuditOutlined,
+  EnvironmentOutlined,
+  BankOutlined,
 } from '@ant-design/icons';
-import './index.css';
+import styles from './index.module.css';
 
 interface ModuleCard {
   key: string;
@@ -51,6 +53,24 @@ const modules: ModuleCard[] = [
   },
 ];
 
+// 基础数据管理模块
+const baseDataModules: ModuleCard[] = [
+  {
+    key: 'districts',
+    title: '区县管理',
+    icon: <EnvironmentOutlined />,
+    color: '#52c41a',
+    path: '/home/system/districts',
+  },
+  {
+    key: 'schools',
+    title: '学校管理',
+    icon: <BankOutlined />,
+    color: '#52c41a',
+    path: '/home/system/schools',
+  },
+];
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
@@ -61,24 +81,42 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-container">
-      <h2 className="section-title">督导模块</h2>
-      <div className="module-grid">
+    <div className={styles.homeContainer}>
+      <h2 className={styles.sectionTitle}>督导模块</h2>
+      <div className={styles.moduleGrid}>
         {modules.map(module => (
           <Card
             key={module.key}
-            className={`module-card ${module.status ? 'disabled' : ''}`}
+            className={`${styles.moduleCard} ${module.status ? styles.moduleCardDisabled : ''}`}
             onClick={() => handleCardClick(module)}
           >
-            <div className="module-content">
-              <div className="module-icon" style={{ color: module.color }}>
+            <div className={styles.moduleContent}>
+              <div className={styles.moduleIcon} style={{ color: module.color }}>
                 {module.icon}
               </div>
-              <span className="module-title">{module.title}</span>
+              <span className={styles.moduleTitle}>{module.title}</span>
             </div>
             {module.status && (
-              <Tag className="status-tag">开发中</Tag>
+              <Tag className={styles.statusTag}>开发中</Tag>
             )}
+          </Card>
+        ))}
+      </div>
+
+      <h2 className={styles.sectionTitle} style={{ marginTop: 32 }}>基础数据管理</h2>
+      <div className={styles.moduleGrid}>
+        {baseDataModules.map(module => (
+          <Card
+            key={module.key}
+            className={styles.moduleCard}
+            onClick={() => handleCardClick(module)}
+          >
+            <div className={styles.moduleContent}>
+              <div className={styles.moduleIcon} style={{ color: module.color }}>
+                {module.icon}
+              </div>
+              <span className={styles.moduleTitle}>{module.title}</span>
+            </div>
           </Card>
         ))}
       </div>

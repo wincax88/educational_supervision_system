@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Radio, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import './index.css';
+import styles from './index.module.css';
 
 interface RoleOption {
   key: string;
@@ -49,21 +49,21 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-header">
-        <div className="login-logo">
+    <div className={styles.loginContainer}>
+      <div className={styles.loginHeader}>
+        <div className={styles.loginLogo}>
           <svg viewBox="0 0 24 24" width="48" height="48" fill="#1890ff">
             <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
           </svg>
         </div>
-        <h1 className="login-title">沈阳市教育督导系统</h1>
-        <p className="login-subtitle">Educational Supervision System</p>
+        <h1 className={styles.loginTitle}>沈阳市教育督导系统</h1>
+        <p className={styles.loginSubtitle}>Educational Supervision System</p>
       </div>
 
-      <div className="login-content">
-        <div className="login-form-card">
-          <h2 className="form-title">用户登录</h2>
-          <p className="form-desc">请输入用户名和密码登录系统</p>
+      <div className={styles.loginContent}>
+        <div className={styles.loginFormCard}>
+          <h2 className={styles.formTitle}>用户登录</h2>
+          <p className={styles.formDesc}>请输入用户名和密码登录系统</p>
 
           <Form
             form={form}
@@ -94,9 +94,9 @@ const Login: React.FC = () => {
           </Form>
         </div>
 
-        <div className="quick-login-card">
-          <h2 className="form-title">快速登录</h2>
-          <p className="form-desc">点击测试账号直接登录，或选择角色后手动输入用户名密码</p>
+        <div className={styles.quickLoginCard}>
+          <h2 className={styles.formTitle}>快速登录</h2>
+          <p className={styles.formDesc}>点击测试账号直接登录，或选择角色后手动输入用户名密码</p>
 
           <Radio.Group
             value={selectedRole}
@@ -104,23 +104,23 @@ const Login: React.FC = () => {
               const role = roles.find(r => r.key === e.target.value);
               if (role) handleRoleSelect(role);
             }}
-            className="role-list"
+            className={styles.roleList}
           >
             {roles.map(role => (
               <div
                 key={role.key}
-                className={`role-item ${selectedRole === role.key ? 'selected' : ''}`}
+                className={`${styles.roleItem} ${selectedRole === role.key ? styles.roleItemSelected : ''}`}
                 onClick={() => handleRoleSelect(role)}
               >
                 <Radio value={role.key}>
-                  <div className="role-info">
-                    <span className="role-name">{role.name}</span>
-                    <span className="role-desc">{role.description}</span>
+                  <div className={styles.roleInfo}>
+                    <span className={styles.roleName}>{role.name}</span>
+                    <span className={styles.roleDesc}>{role.description}</span>
                   </div>
                 </Radio>
-                <div className="role-credentials">
-                  <span className="credential-tag">{role.username}</span>
-                  <span className="credential-tag">{role.password}</span>
+                <div className={styles.roleCredentials}>
+                  <span className={styles.credentialTag}>{role.username}</span>
+                  <span className={styles.credentialTag}>{role.password}</span>
                 </div>
               </div>
             ))}

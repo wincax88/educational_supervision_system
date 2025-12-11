@@ -1,0 +1,84 @@
+.schoolPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.schoolPage .pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.schoolPage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+  font-size: 14px;
+}
+
+.schoolPage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.schoolPage .pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 筛选区域 */
+.schoolPage .filterSection {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* 列表区域 */
+.schoolPage .listSection {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 表格样式 */
+.schoolPage :global(.ant-table) {
+  border-radius: 8px;
+}
+
+.schoolPage :global(.ant-table-thead > tr > th) {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.schoolPage :global(.ant-btn-link) {
+  padding: 0 4px;
+}
+
+/* 导入内容 */
+.schoolPage .importContent {
+  padding: 16px 0;
+}
+
+.schoolPage .importContent p {
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.schoolPage .importContent :global(.ant-upload-drag) {
+  border-radius: 8px;
+}
+
+.schoolPage .importContent :global(.ant-upload-drag-icon) {
+  margin-bottom: 8px;
+}

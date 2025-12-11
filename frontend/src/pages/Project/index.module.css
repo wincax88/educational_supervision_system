@@ -1,0 +1,160 @@
+.projectPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.statsSection {
+  margin-bottom: 24px;
+}
+
+.statsSection h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.statsCards {
+  display: flex;
+  gap: 16px;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  min-width: 140px;
+  flex: 1;
+}
+
+.statInfo {
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.listHeader h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.listActions {
+  display: flex;
+  gap: 12px;
+}
+
+.projectList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.projectCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #1890ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.projectInfo {
+  flex: 1;
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.projectHeader h4 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.projectInfo p {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.projectMeta {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  color: #999;
+}
+
+.projectActions {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.emptyState {
+  background: #fff;
+  border-radius: 8px;
+  padding: 60px 20px;
+  text-align: center;
+  color: #999;
+}

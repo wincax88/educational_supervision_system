@@ -8,8 +8,17 @@ import Home from './pages/Home';
 import Project from './pages/Project';
 import ElementLibrary from './pages/ElementLibrary';
 import ToolLibrary from './pages/ToolLibrary';
+import FormToolEdit from './pages/FormToolEdit';
 import IndicatorLibrary from './pages/IndicatorLibrary';
 import IndicatorEdit from './pages/IndicatorEdit';
+import IndicatorTreeEdit from './pages/IndicatorTreeEdit';
+import DataEntry from './pages/DataEntry';
+import DataEntryForm from './pages/DataEntryForm';
+import ProjectConfig from './pages/ProjectConfig';
+import DistrictManagement from './pages/DistrictManagement';
+import SchoolManagement from './pages/SchoolManagement';
+import CVAnalysis from './pages/CVAnalysis';
+import ComplianceStats from './pages/ComplianceStats';
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -25,10 +34,18 @@ const App: React.FC = () => {
             <Route path="home/balanced/elements" element={<ElementLibrary />} />
             <Route path="home/balanced/elements/:id/edit" element={<IndicatorEdit />} />
             <Route path="home/balanced/tools" element={<ToolLibrary />} />
-            <Route path="home/balanced/tools/:id/edit" element={<ToolLibrary />} />
+            <Route path="home/balanced/tools/:id/edit" element={<FormToolEdit />} />
             <Route path="home/balanced/indicators" element={<IndicatorLibrary />} />
             <Route path="home/balanced/indicators/:id/edit" element={<IndicatorEdit />} />
+            <Route path="home/balanced/indicators/:id/tree" element={<IndicatorTreeEdit />} />
+            <Route path="home/balanced/entry" element={<DataEntry />} />
+            <Route path="home/balanced/entry/:projectId/form/:formId" element={<DataEntryForm />} />
+            <Route path="home/balanced/project/:projectId/config" element={<ProjectConfig />} />
+            <Route path="home/balanced/project/:projectId/cv-analysis" element={<CVAnalysis />} />
+            <Route path="home/balanced/project/:projectId/compliance" element={<ComplianceStats />} />
             <Route path="home/kindergarten" element={<Project />} />
+            <Route path="home/system/districts" element={<DistrictManagement />} />
+            <Route path="home/system/schools" element={<SchoolManagement />} />
             <Route path="system" element={<div style={{ padding: 24 }}>系统配置页面（开发中）</div>} />
             <Route path="users" element={<div style={{ padding: 24 }}>用户管理页面（开发中）</div>} />
           </Route>

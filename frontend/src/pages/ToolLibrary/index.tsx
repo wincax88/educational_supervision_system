@@ -8,10 +8,11 @@ import {
   EyeOutlined,
   EditOutlined,
   CloseOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { dataTools, DataTool } from '../../mock/data';
-import './index.css';
+import styles from './index.module.css';
 
 const { Search } = Input;
 
@@ -98,78 +99,103 @@ const ToolLibrary: React.FC = () => {
   const getStatusTag = (status: string) => {
     switch (status) {
       case 'published':
-        return <Tag color="green">已发布</Tag>;
+        return <span className={`${styles.toolStatusTag} ${styles.published}`}>已发布</span>;
       case 'editing':
-        return <Tag color="orange">编辑中</Tag>;
+        return <span className={`${styles.toolStatusTag} ${styles.editing}`}>编辑中</span>;
       default:
-        return <Tag>草稿</Tag>;
+        return <span className={`${styles.toolStatusTag} ${styles.draft}`}>草稿</span>;
     }
   };
 
+  const handleTogglePublish = (tool: DataTool) => {
+    const newStatus = tool.status === 'published' ? 'editing' : 'published';
+    const updatedTools = tools.map(t =>
+      t.id === tool.id
+        ? { ...t, status: newStatus as 'published' | 'editing' | 'draft', updatedAt: new Date().toISOString().split('T')[0] }
+        : t
+    );
+    setTools(updatedTools);
+    message.success(newStatus === 'published' ? '发布成功' : '已取消发布');
+  };
+
+  const handleDelete = (toolId: string) => {
+    setTools(tools.filter(t => t.id !== toolId));
+    message.success('删除成功');
+  };
+
   return (
-    <div className="tool-library-page">
-      <div className="page-header">
-        <span className="back-btn" onClick={() => navigate('/home/balanced')}>
+    <div className={styles.toolLibraryPage}>
+      <div className={styles.pageHeader}>
+        <span className={styles.backBtn} onClick={() => navigate('/home/balanced')}>
           <ArrowLeftOutlined /> 返回
         </span>
-        <h1 className="page-title">数据采集工具库</h1>
+        <h1 className={styles.pageTitle}>数据采集工具库</h1>
       </div>
 
-      <div className="list-header">
-        <h3>数据采集工具列表</h3>
-        <div className="list-actions">
-          <Search
-            placeholder="搜索采集工具"
-            onSearch={handleSearch}
-            style={{ width: 200 }}
-            allowClear
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-            创建数据采集工具
-          </Button>
-        </div>
-      </div>
-
-      <div className="tool-list">
-        {tools.map(tool => (
-          <div key={tool.id} className="tool-card">
-            <div className="tool-card-header">
-              <div className="tool-info">
-                <span className="tool-name">{tool.name}</span>
-                <Tag icon={tool.type === '表单' ? <FormOutlined /> : <FileTextOutlined />}>
-                  {tool.type}
-                </Tag>
-                <Tag>{tool.target}</Tag>
-              </div>
-              {getStatusTag(tool.status)}
-            </div>
-            <p className="tool-desc">{tool.description}</p>
-            <div className="tool-meta">
-              创建时间: {tool.createdAt} &nbsp;&nbsp;
-              创建人: {tool.createdBy} &nbsp;&nbsp;
-              更新时间: {tool.updatedAt} &nbsp;&nbsp;
-              更新人: {tool.updatedBy}
-            </div>
-            <div className="tool-actions">
-              <span className="action-btn" onClick={() => handleViewTool(tool)}>
-                <EyeOutlined /> 工具信息
-              </span>
-              <span className="action-btn" onClick={() => navigate(`/home/balanced/tools/${tool.id}/edit`)}>
-                <EditOutlined /> 编辑工具
-              </span>
-              {tool.status === 'published' ? (
-                <span className="action-btn">取消发布</span>
-              ) : tool.status === 'editing' ? (
-                <>
-                  <span className="action-btn danger">删除</span>
-                  <Button type="primary" size="small">发布</Button>
-                </>
-              ) : (
-                <span className="action-btn">取消发布</span>
-              )}
-            </div>
+      <div className={styles.toolListSection}>
+        <div className={styles.listHeader}>
+          <h3>数据采集工具列表</h3>
+          <div className={styles.listActions}>
+            <Search
+              placeholder="搜索采集工具"
+              onSearch={handleSearch}
+              allowClear
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+              创建数据采集工具
+            </Button>
           </div>
-        ))}
+        </div>
+
+        <div className={styles.toolList}>
+          {tools.map(tool => (
+            <div key={tool.id} className={styles.toolCard}>
+              <div className={styles.toolCardHeader}>
+                <div className={styles.toolInfo}>
+                  <span className={styles.toolName}>{tool.name}</span>
+                  <Tag icon={tool.type === '表单' ? <FormOutlined /> : <FileTextOutlined />}>
+                    {tool.type}
+                  </Tag>
+                  <Tag>{tool.target}</Tag>
+                </div>
+                {getStatusTag(tool.status)}
+              </div>
+              <p className={styles.toolDesc}>{tool.description}</p>
+              <div className={styles.toolMeta}>
+                <span>创建时间: {tool.createdAt}</span>
+                <span>创建人: {tool.createdBy}</span>
+                <span>更新时间: {tool.updatedAt}</span>
+                <span>更新人: {tool.updatedBy}</span>
+              </div>
+              <div className={styles.toolActions}>
+                <span className={styles.actionBtn} onClick={() => handleViewTool(tool)}>
+                  <EyeOutlined /> 工具信息
+                </span>
+                <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/tools/${tool.id}/edit`)}>
+                  <EditOutlined /> 编辑工具
+                </span>
+                {tool.status === 'published' ? (
+                  <span className={styles.actionBtn} onClick={() => handleTogglePublish(tool)}>
+                    取消发布
+                  </span>
+                ) : tool.status === 'editing' ? (
+                  <>
+                    <span className={`${styles.actionBtn} ${styles.danger}`} onClick={() => handleDelete(tool.id)}>
+                      <DeleteOutlined /> 删除
+                    </span>
+                    <Button type="primary" size="small" onClick={() => handleTogglePublish(tool)}>
+                      发布
+                    </Button>
+                  </>
+                ) : (
+                  <span className={styles.actionBtn} onClick={() => handleTogglePublish(tool)}>
+                    取消发布
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <Modal
@@ -178,8 +204,9 @@ const ToolLibrary: React.FC = () => {
         onCancel={() => setCreateModalVisible(false)}
         footer={null}
         width={480}
+        className="tool-edit-modal"
       >
-        <p style={{ color: '#666', marginBottom: 24 }}>填写工具的基本信息</p>
+        <p className={styles.editSubtitle}>填写工具的基本信息</p>
         <Form form={form} onFinish={handleCreate} layout="vertical">
           <Form.Item
             label="工具类型"
@@ -226,32 +253,37 @@ const ToolLibrary: React.FC = () => {
         closable={true}
         closeIcon={<CloseOutlined />}
         className="tool-view-modal"
+        title={null}
       >
         {currentTool && (
-          <div className="tool-view-content">
-            <div className="tool-view-header">
-              <h2 className="tool-view-title">{currentTool.name}</h2>
-              <div className="tool-view-tags">
-                <Tag icon={currentTool.type === '表单' ? <FormOutlined /> : <FileTextOutlined />}>
-                  {currentTool.type}
-                </Tag>
-                <Tag>{currentTool.target}</Tag>
+          <div className={styles.toolViewContent}>
+            <div className={styles.toolViewHeader}>
+              <div className={styles.toolViewTitleRow}>
+                <h2 className={styles.toolViewTitle}>{currentTool.name}</h2>
+                <div className={styles.toolViewTags}>
+                  <Tag icon={currentTool.type === '表单' ? <FormOutlined /> : <FileTextOutlined />}>
+                    {currentTool.type}
+                  </Tag>
+                  <Tag>{currentTool.target}</Tag>
+                </div>
               </div>
-              {getStatusTag(currentTool.status)}
+              <div className={styles.toolViewStatus}>
+                {getStatusTag(currentTool.status)}
+              </div>
             </div>
-            <div className="tool-view-meta">
+            <div className={styles.toolViewMeta}>
               <span>创建时间: {currentTool.createdAt}</span>
-              <span className="meta-divider">|</span>
+              <span className={styles.metaDivider}>|</span>
               <span>创建人: {currentTool.createdBy}</span>
-              <span className="meta-divider">|</span>
+              <span className={styles.metaDivider}>|</span>
               <span>变更时间: {currentTool.updatedAt}</span>
-              <span className="meta-divider">|</span>
+              <span className={styles.metaDivider}>|</span>
               <span>变更人: {currentTool.updatedBy}</span>
             </div>
-            <div className="tool-view-desc">
+            <div className={styles.toolViewDesc}>
               {currentTool.description}
             </div>
-            <div className="tool-view-actions">
+            <div className={styles.toolViewActions}>
               <Button onClick={() => setViewModalVisible(false)}>关闭</Button>
               <Button type="primary" icon={<EditOutlined />} onClick={handleEditFromView}>
                 编辑
@@ -272,8 +304,9 @@ const ToolLibrary: React.FC = () => {
         }}
         footer={null}
         width={480}
+        className="tool-edit-modal"
       >
-        <p style={{ color: '#666', marginBottom: 24 }}>修改工具的基本信息</p>
+        <p className={styles.editSubtitle}>修改工具的基本信息</p>
         <Form form={editForm} onFinish={handleSaveEdit} layout="vertical">
           <Form.Item
             label="工具类型"

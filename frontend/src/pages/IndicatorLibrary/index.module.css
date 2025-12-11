@@ -1,0 +1,320 @@
+.indicatorLibraryPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.statsSection {
+  margin-bottom: 24px;
+}
+
+.statsSection h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.statsCards {
+  display: flex;
+  gap: 16px;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.statIcon {
+  font-size: 28px;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.listHeader h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.listActions {
+  display: flex;
+  gap: 12px;
+}
+
+.systemList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.systemCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #1890ff;
+}
+
+.systemCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.systemMainInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.systemName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.systemStats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.systemTags {
+  margin-bottom: 12px;
+}
+
+.systemDesc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.systemAttachments {
+  margin-bottom: 12px;
+}
+
+.systemMeta {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.systemActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  align-items: center;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.actionBtn:hover {
+  color: #1890ff;
+}
+
+.danger:hover {
+  color: #ff4d4f;
+}
+
+.infoModalContent {
+  position: relative;
+}
+
+.infoModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.infoModalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.infoStatusTag {
+  margin-left: 16px;
+}
+
+.infoModalMeta {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.infoModalTags {
+  margin-bottom: 12px;
+}
+
+.infoModalKeywords {
+  margin-bottom: 16px;
+}
+
+.infoModalDesc {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.infoModalAttachments {
+  margin-bottom: 24px;
+}
+
+.infoModalAttachments h4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.attachmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.attachmentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachmentIcon {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.attachmentName {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.attachmentSize {
+  color: #999;
+  font-size: 13px;
+}
+
+.infoModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.attachmentUploader {
+  margin-bottom: 16px;
+}
+
+.uploadedAttachments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.uploadedAttachmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.uploadedAttachmentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+}
+
+.fileSize {
+  color: #999;
+  font-size: 12px;
+}
+
+.removeBtn {
+  color: #999;
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  color: #ff4d4f;
+}

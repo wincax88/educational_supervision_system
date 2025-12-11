@@ -1,0 +1,774 @@
+.formToolEditPage {
+  min-height: 100%;
+  background: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面头部 */
+.formToolEditPage .pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.formToolEditPage .headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.formToolEditPage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.formToolEditPage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.formToolEditPage .pageTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 工具信息卡片 */
+.toolInfoCard {
+  margin: 16px 24px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
+}
+
+.toolInfoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.toolInfoLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.toolDescription {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.toolMeta {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 主内容区域 */
+.mainContent {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 0 24px 24px;
+  min-height: 0;
+}
+
+/* 控件库面板 */
+.controlLibrary {
+  width: 240px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 12px;
+}
+
+.controlLibrary :global(.ant-tabs) {
+  margin-bottom: 12px;
+}
+
+.controlLibrary :global(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.controlList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controlItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.controlItem:hover {
+  border-color: #1890ff;
+  background: #f6ffed;
+}
+
+.controlIcon {
+  font-size: 16px;
+  color: #1890ff;
+  padding-top: 2px;
+}
+
+.controlInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controlName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.controlDesc {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 表单设计区 */
+.formDesigner {
+  flex: 1;
+  background: #fff;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.designerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.designerHeader h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.designerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.designerActions :global(.ant-btn) {
+  font-size: 13px;
+}
+
+.designerCanvas {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+.formHeader {
+  background: #f0f7ff;
+  border: 1px solid #d6e8fc;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.formHeaderContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.formTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editIcon {
+  color: #999;
+  cursor: pointer;
+}
+
+.editIcon:hover {
+  color: #1890ff;
+}
+
+.formDesc {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.formFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.emptyCanvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  color: #999;
+  font-size: 14px;
+  width: 100%;
+}
+
+.formFieldItem {
+  background: #fff;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.formFieldItem:hover {
+  border-color: #1890ff;
+}
+
+.formFieldItem.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fieldLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.requiredMark {
+  color: #ff4d4f;
+  margin-left: 4px;
+}
+
+.fieldActions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.formFieldItem:hover .fieldActions {
+  opacity: 1;
+}
+
+.fieldActions :global(.anticon) {
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.fieldActions :global(.anticon):hover {
+  color: #1890ff;
+}
+
+.fieldActions :global(.anticon-delete):hover {
+  color: #ff4d4f;
+}
+
+.fieldContent {
+  margin-bottom: 4px;
+}
+
+.fieldContent :global(.ant-input),
+.fieldContent :global(.ant-select) {
+  pointer-events: none;
+}
+
+.fieldHelp {
+  font-size: 12px;
+  color: #999;
+}
+
+.optionsPreview {
+  display: flex;
+  gap: 8px;
+}
+
+.optionsPreview.vertical {
+  flex-direction: column;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+.dividerPreview {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 8px 0;
+}
+
+/* 属性面板 */
+.propertyPanel {
+  width: 280px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.propertyPanel :global(.ant-tabs) {
+  margin-bottom: 16px;
+}
+
+.propertyPanel :global(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.propertyContent {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.propertyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.propertyItem.inline {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.propertyItem label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.propertyItem :global(.ant-input),
+.propertyItem :global(.ant-select) {
+  font-size: 13px;
+}
+
+.evaluationConfig {
+  display: flex;
+  gap: 8px;
+}
+
+.evaluationConfig :global(.ant-btn) {
+  font-size: 13px;
+}
+
+.evaluationHint {
+  font-size: 12px;
+  color: #1890ff;
+  margin-top: 4px;
+}
+
+.mappingInfo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.mappingName {
+  font-size: 13px;
+  color: #333;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.optionRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.optionRow :global(.ant-input) {
+  flex: 1;
+}
+
+.deleteOption {
+  color: #999;
+  cursor: pointer;
+}
+
+.deleteOption:hover {
+  color: #ff4d4f;
+}
+
+.addOptionBtn {
+  margin-top: 8px;
+}
+
+.emptyProperties {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 拖拽相关样式 */
+.controlItem {
+  cursor: grab;
+  user-select: none;
+}
+
+.controlItem:active {
+  cursor: grabbing;
+}
+
+.controlItem[draggable="true"]:hover {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+/* 拖拽时控件库项目样式 */
+.controlItem:active,
+.controlItem.dragging {
+  opacity: 0.8;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* 表单字段拖拽手柄 */
+.fieldDragHandle {
+  cursor: grab;
+  color: #999;
+  margin-right: 8px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.fieldDragHandle:hover {
+  color: #1890ff;
+}
+
+.fieldDragHandle:active {
+  cursor: grabbing;
+}
+
+/* 字段拖拽时样式 */
+.formFieldItem.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+/* 拖拽放置指示器 */
+.dropIndicator {
+  width: 100%;
+  height: 4px;
+  background: #1890ff;
+  border-radius: 2px;
+  margin: 8px 0;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 空画布拖拽悬停状态 */
+.emptyCanvas.dragOver {
+  border-color: #1890ff;
+  background: #e6f7ff;
+  border-width: 3px;
+}
+
+/* 表单字段容器拖拽状态 */
+.formFields.dragging {
+  min-height: 200px;
+}
+
+.formFields.dragOver {
+  background: rgba(24, 144, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* 末尾放置区域 */
+.dropZoneEnd {
+  width: 100%;
+  min-height: 60px;
+  margin-top: 8px;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.dropZoneEnd.active {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+/* 字段header调整 */
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fieldLabel {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 拖拽悬停时字段样式 */
+.formFieldItem:not(.dragging) {
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+/* 动态列表预览样式 */
+.dynamicListPreview {
+  border: 1px dashed #1890ff;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f0f7ff;
+}
+
+.dynamicListHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #1890ff;
+}
+
+.dynamicListTitle {
+  font-weight: 500;
+  color: #333;
+}
+
+.dynamicListRange {
+  font-size: 12px;
+  color: #999;
+}
+
+.dynamicListActions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  color: #999;
+}
+
+.dynamicListActions :global(.anticon):hover {
+  color: #1890ff;
+}
+
+.dynamicListActions :global(.anticon-delete):hover {
+  color: #ff4d4f;
+}
+
+.dynamicListContent {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.dynamicListFieldsLabel {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.dynamicListFieldsRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dynamicListFieldItem {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.childFieldLabel {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.childFieldType {
+  font-size: 12px;
+  color: #999;
+}
+
+.dynamicListHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #faad14;
+}
+
+.hintIcon {
+  font-size: 14px;
+}
+
+/* 动态列表属性面板样式 */
+.itemCountConfig {
+  display: flex;
+  gap: 16px;
+}
+
+.countItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.countItem span {
+  font-size: 12px;
+  color: #666;
+}
+
+.dynamicFieldList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dynamicFieldCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dynamicFieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dynamicFieldIndex {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dynamicFieldDelete {
+  color: #999;
+  cursor: pointer;
+}
+
+.dynamicFieldDelete:hover {
+  color: #ff4d4f;
+}
+
+.dynamicFieldBody {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dynamicFieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dynamicFieldRow.inline {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dynamicFieldRow label {
+  font-size: 12px;
+  color: #666;
+}
+
+.addDynamicFieldBtn {
+  margin-top: 4px;
+}

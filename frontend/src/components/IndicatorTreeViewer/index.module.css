@@ -1,0 +1,111 @@
+.viewerModal :global(.ant-modal-body) {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.treeContainer {
+  padding: 16px 0;
+}
+
+.indicatorTree :global(.ant-tree-treenode) {
+  padding: 4px 0;
+}
+
+.indicatorTree :global(.ant-tree-node-content-wrapper) {
+  display: flex;
+  align-items: center;
+}
+
+/* 指标标题 */
+.indicatorTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.levelTag {
+  font-size: 12px;
+  margin: 0;
+}
+
+.indicatorCode {
+  font-family: monospace;
+  color: #666;
+  font-size: 13px;
+}
+
+.indicatorName {
+  font-weight: 500;
+  color: #333;
+}
+
+.weightTag {
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+/* 分组标题 */
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 13px;
+}
+
+.groupIcon {
+  color: #1890ff;
+}
+
+/* 数据指标项 */
+.dataIndicatorItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.diCode {
+  font-family: monospace;
+  color: #999;
+  font-size: 12px;
+}
+
+.diName {
+  color: #333;
+}
+
+.thresholdTag {
+  font-size: 11px;
+  margin: 0;
+}
+
+/* 佐证资料项 */
+.materialItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.materialCode {
+  font-family: monospace;
+  color: #999;
+  font-size: 12px;
+}
+
+.materialName {
+  color: #333;
+}
+
+.requiredTag {
+  font-size: 11px;
+  margin: 0;
+}

@@ -1,0 +1,387 @@
+.toolLibraryPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.toolLibraryPage .pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.toolLibraryPage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+  font-size: 14px;
+}
+
+.toolLibraryPage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.toolLibraryPage .pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 列表区域 */
+.toolLibraryPage .toolListSection {
+  display: block;
+}
+
+.toolLibraryPage .listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.toolLibraryPage .listHeader h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.toolLibraryPage .listActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.toolLibraryPage .listActions :global(.ant-input-search) {
+  width: 200px;
+}
+
+.toolLibraryPage .listActions :global(.ant-input-search .ant-input) {
+  border-radius: 6px;
+}
+
+.toolLibraryPage .listActions :global(.ant-btn-primary) {
+  background-color: #1677ff;
+  border-radius: 6px;
+}
+
+/* 工具卡片列表 */
+.toolLibraryPage .toolList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 工具卡片 */
+.toolLibraryPage .toolCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 24px;
+  border: 1px solid #e8e8e8;
+  border-left: 4px solid #1677ff;
+  box-sizing: border-box;
+}
+
+.toolLibraryPage .toolCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 卡片头部：名称+标签 | 状态 */
+.toolLibraryPage .toolCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.toolLibraryPage .toolInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolLibraryPage .toolName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-right: 4px;
+}
+
+.toolLibraryPage .toolInfo :global(.ant-tag) {
+  margin: 0;
+  border-radius: 4px;
+}
+
+/* 状态标签样式 - 使用更具体的选择器避免冲突 */
+.toolLibraryPage .toolStatusTag {
+  border-radius: 4px;
+  padding: 2px 12px;
+  font-size: 12px;
+  border: none;
+  display: inline-block;
+  flex-shrink: 0;
+  position: static;
+}
+
+.toolLibraryPage .toolStatusTag.published {
+  background-color: #52c41a;
+  color: #fff;
+}
+
+.toolLibraryPage .toolStatusTag.editing {
+  background-color: #faad14;
+  color: #fff;
+}
+
+.toolLibraryPage .toolStatusTag.draft {
+  background-color: #d9d9d9;
+  color: #666;
+}
+
+/* 描述 */
+.toolLibraryPage .toolDesc {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+  display: block;
+  width: 100%;
+}
+
+/* 元信息 */
+.toolLibraryPage .toolMeta {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+  display: block;
+  width: 100%;
+}
+
+.toolLibraryPage .toolMeta span {
+  margin-right: 24px;
+  white-space: nowrap;
+}
+
+.toolLibraryPage .toolMeta span:last-child {
+  margin-right: 0;
+}
+
+/* 操作按钮区域 */
+.toolLibraryPage .toolActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  align-items: center;
+  width: 100%;
+}
+
+.toolLibraryPage .actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.toolLibraryPage .actionBtn:hover {
+  color: #1677ff;
+  background-color: #f0f5ff;
+}
+
+.toolLibraryPage .actionBtn.danger {
+  color: #666;
+}
+
+.toolLibraryPage .actionBtn.danger:hover {
+  color: #ff4d4f;
+  background-color: #fff2f0;
+}
+
+.toolLibraryPage .toolActions :global(.ant-btn-primary) {
+  background-color: #1677ff;
+  border-color: #1677ff;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 32px;
+  padding: 0 16px;
+}
+
+.toolLibraryPage .toolActions :global(.ant-btn-primary:hover) {
+  background-color: #4096ff;
+  border-color: #4096ff;
+}
+
+/* 查看工具信息弹窗样式 */
+:global(.tool-view-modal .ant-modal-header) {
+  display: none;
+}
+
+:global(.tool-view-modal .ant-modal-body) {
+  padding: 0;
+}
+
+:global(.tool-view-modal .ant-modal-close) {
+  top: 16px;
+  right: 16px;
+}
+
+.toolViewContent {
+  padding: 24px;
+}
+
+.toolViewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.toolViewTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolViewTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.toolViewTags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolViewStatus {
+  flex-shrink: 0;
+}
+
+.toolViewStatus .toolStatusTag {
+  position: static;
+}
+
+.toolViewStatus .toolStatusTag.published {
+  background-color: #52c41a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 12px;
+}
+
+.toolViewStatus .toolStatusTag.editing {
+  background-color: #faad14;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 12px;
+}
+
+.toolViewMeta {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.toolViewMeta .metaDivider {
+  margin: 0 8px;
+  color: #d9d9d9;
+}
+
+.toolViewDesc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.8;
+  padding: 16px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+}
+
+.toolViewActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 编辑弹窗样式 */
+:global(.tool-edit-modal .ant-modal-header) {
+  padding: 20px 24px 0;
+  border-bottom: none;
+}
+
+:global(.tool-edit-modal .ant-modal-title) {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+:global(.tool-edit-modal .ant-modal-body) {
+  padding: 0 24px 24px;
+}
+
+:global(.tool-edit-modal) .editSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+:global(.tool-edit-modal .ant-form-item-label > label) {
+  color: #333;
+  font-weight: 500;
+}
+
+:global(.tool-edit-modal .ant-input),
+:global(.tool-edit-modal .ant-select-selector),
+:global(.tool-edit-modal .ant-input-textarea textarea) {
+  border-radius: 6px;
+}
+
+:global(.tool-edit-modal .ant-btn) {
+  border-radius: 6px;
+  min-width: 64px;
+}
+
+:global(.tool-edit-modal .ant-btn-primary) {
+  background-color: #333;
+  border-color: #333;
+}
+
+:global(.tool-edit-modal .ant-btn-primary:hover) {
+  background-color: #555;
+  border-color: #555;
+}
+
+/* 空状态 */
+.toolLibraryPage .emptyList {
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+}
+
+.toolLibraryPage .emptyList :global(.anticon) {
+  font-size: 48px;
+  color: #d9d9d9;
+  margin-bottom: 16px;
+}
+
+.toolLibraryPage .emptyList p {
+  font-size: 14px;
+  margin: 0;
+}

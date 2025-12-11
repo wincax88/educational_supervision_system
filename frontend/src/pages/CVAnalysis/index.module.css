@@ -1,0 +1,81 @@
+.cvAnalysisPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.cvAnalysisPage .pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cvAnalysisPage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+  font-size: 14px;
+}
+
+.cvAnalysisPage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.cvAnalysisPage .pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 筛选区域 */
+.cvAnalysisPage .filterSection {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 统计卡片 */
+.cvAnalysisPage .statsRow {
+  margin-bottom: 16px;
+}
+
+.cvAnalysisPage .statsCard {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 详情卡片 */
+.cvAnalysisPage .detailCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.cvAnalysisPage .cvCard {
+  text-align: center;
+  height: 100%;
+}
+
+.cvAnalysisPage .cvThreshold {
+  color: #999;
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+/* 列表卡片 */
+.cvAnalysisPage .listCard {
+  border-radius: 8px;
+}
+
+.cvAnalysisPage :global(.ant-table-thead > tr > th) {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.cvAnalysisPage :global(.ant-progress-text) {
+  font-size: 12px;
+}

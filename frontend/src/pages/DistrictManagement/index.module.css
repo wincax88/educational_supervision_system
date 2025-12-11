@@ -1,0 +1,97 @@
+.districtPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.districtPage .pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.districtPage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+  font-size: 14px;
+}
+
+.districtPage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.districtPage .pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 统计卡片区域 */
+.districtPage .statsRow {
+  margin-bottom: 24px;
+}
+
+.districtPage .statsCard {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.districtPage .statsCard :global(.ant-statistic-title) {
+  color: #666;
+  font-size: 14px;
+}
+
+.districtPage .statsCard :global(.ant-statistic-content) {
+  color: #333;
+}
+
+.districtPage .statsCard :global(.ant-statistic-content-prefix) {
+  color: #1677ff;
+  margin-right: 8px;
+}
+
+/* 列表区域 */
+.districtPage .listSection {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e8e8e8;
+}
+
+.districtPage .listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.districtPage .listHeader h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.districtPage .listActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* 表格样式 */
+.districtPage :global(.ant-table) {
+  border-radius: 8px;
+}
+
+.districtPage :global(.ant-table-thead > tr > th) {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.districtPage :global(.ant-btn-link) {
+  padding: 0 4px;
+}

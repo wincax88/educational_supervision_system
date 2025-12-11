@@ -1,0 +1,411 @@
+.dataEntryFormPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backBtn {
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.backBtn:hover {
+  color: #1890ff;
+}
+
+.pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+}
+
+/* 表单信息卡片 */
+.formInfoCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid #1890ff;
+}
+
+.formInfoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.formInfoLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.formName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.formDescription {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 状态提示 */
+.statusAlert {
+  margin-bottom: 20px;
+}
+
+/* 表单内容卡片 */
+.formContentCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.formFieldsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.formFieldsContainer > :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+/* 字段宽度 */
+.formFieldsContainer > :global(.ant-form-item[style*="25%"]) {
+  flex: 0 0 calc(25% - 12px);
+}
+
+.formFieldsContainer > :global(.ant-form-item[style*="50%"]) {
+  flex: 0 0 calc(50% - 8px);
+}
+
+.formFieldsContainer > :global(.ant-form-item[style*="75%"]) {
+  flex: 0 0 calc(75% - 4px);
+}
+
+.formFieldsContainer > :global(.ant-form-item[style*="100%"]) {
+  flex: 0 0 100%;
+}
+
+/* 字段单位 */
+.fieldUnit {
+  color: #999;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* 复选框和单选框组 */
+.checkboxGroup,
+.radioGroup {
+  display: flex;
+}
+
+.checkboxGroup.vertical,
+.radioGroup.vertical {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkboxGroup.horizontal,
+.radioGroup.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* 分组卡片 */
+.formGroupCard {
+  margin-bottom: 0;
+}
+
+.formGroupCard .formFieldsContainer {
+  padding: 0;
+}
+
+/* 动态列表 */
+.dynamicListCard {
+  margin-bottom: 0;
+}
+
+.dynamicListItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.dynamicListItem:last-child {
+  margin-bottom: 0;
+}
+
+.dynamicListFields {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dynamicListFields :global(.ant-form-item) {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+.emptyDynamicList {
+  text-align: center;
+  color: #999;
+  padding: 24px;
+}
+
+/* 空表单状态 */
+.emptyForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.emptyForm .emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #d9d9d9;
+}
+
+.emptyForm p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.emptyForm .emptyHint {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* 底部操作栏 */
+.formFooter {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lastSaved {
+  color: #999;
+  font-size: 13px;
+}
+
+.footerActions {
+  display: flex;
+  gap: 12px;
+}
+
+/* 表单样式覆盖 */
+.formContentCard :global(.ant-form-item-label > label) {
+  font-weight: 500;
+  color: #333;
+}
+
+.formContentCard :global(.ant-form-item-extra) {
+  color: #999;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* 阈值相关样式 */
+.thresholdHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #d46b08;
+  margin-left: 8px;
+}
+
+.thresholdHint :global(.anticon) {
+  font-size: 12px;
+}
+
+.thresholdValid {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.thresholdInvalid {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #ff4d4f;
+}
+
+.mappingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #f0f5ff;
+  border: 1px solid #adc6ff;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #2f54eb;
+  margin-left: 8px;
+}
+
+.mappingBadge :global(.anticon) {
+  font-size: 12px;
+}
+
+/* 派生要素样式 */
+.derivedField {
+  position: relative;
+}
+
+.derivedField :global(.ant-input-number) {
+  background: #fafafa;
+}
+
+.derivedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #e6fffb;
+  border: 1px solid #87e8de;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #13c2c2;
+  margin-left: 8px;
+}
+
+.formulaHint {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 校验警告提示 */
+.validationWarnings {
+  margin-bottom: 20px;
+}
+
+.warningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.warningItem:last-child {
+  margin-bottom: 0;
+}
+
+.warningItem :global(.anticon) {
+  color: #faad14;
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.warningContent {
+  flex: 1;
+}
+
+.warningField {
+  font-weight: 500;
+  color: #333;
+}
+
+.warningMessage {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .formFieldsContainer > :global(.ant-form-item[style*="25%"]),
+  .formFieldsContainer > :global(.ant-form-item[style*="50%"]),
+  .formFieldsContainer > :global(.ant-form-item[style*="75%"]) {
+    flex: 0 0 100%;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .formFooter {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footerActions {
+    width: 100%;
+    justify-content: center;
+  }
+}

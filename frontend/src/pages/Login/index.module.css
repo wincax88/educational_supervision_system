@@ -1,0 +1,150 @@
+.loginContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f4fc 0%, #d4e8f7 100%);
+  padding: 40px 20px;
+}
+
+.loginHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.loginLogo {
+  margin-bottom: 16px;
+}
+
+.loginTitle {
+  font-size: 28px;
+  color: #1a365d;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.loginSubtitle {
+  font-size: 16px;
+  color: #4a5568;
+}
+
+.loginContent {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.loginFormCard,
+.quickLoginCard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.loginFormCard {
+  width: 360px;
+}
+
+.quickLoginCard {
+  width: 480px;
+}
+
+.formTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a365d;
+  margin-bottom: 8px;
+}
+
+.formDesc {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 24px;
+}
+
+.roleList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.roleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.roleItem:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.roleItemSelected {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.roleInfo {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+}
+
+.roleName {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a365d;
+}
+
+.roleDesc {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 2px;
+}
+
+.roleCredentials {
+  display: flex;
+  gap: 8px;
+}
+
+.credentialTag {
+  padding: 4px 12px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #4a5568;
+  font-family: monospace;
+}
+
+:global(.ant-radio-wrapper) {
+  margin-right: 0;
+}
+
+:global(.ant-btn-primary) {
+  background: #4a5568;
+  border-color: #4a5568;
+}
+
+:global(.ant-btn-primary:hover) {
+  background: #2d3748;
+  border-color: #2d3748;
+}
+
+@media (max-width: 900px) {
+  .loginContent {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .loginFormCard,
+  .quickLoginCard {
+    width: 100%;
+    max-width: 480px;
+  }
+}

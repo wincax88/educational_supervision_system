@@ -1,0 +1,112 @@
+.compliancePage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.compliancePage .pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.compliancePage .backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+  font-size: 14px;
+}
+
+.compliancePage .backBtn:hover {
+  color: #40a9ff;
+}
+
+.compliancePage .pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* 筛选区域 */
+.compliancePage .filterSection {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 统计卡片行 */
+.compliancePage .statsRow {
+  margin-bottom: 16px;
+}
+
+.compliancePage .statsCard {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 分类达标率卡片 */
+.compliancePage .categoryCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.compliancePage .catCard {
+  text-align: center;
+  height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.compliancePage .catName {
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #333;
+  font-size: 14px;
+}
+
+.compliancePage .circleContent {
+  text-align: center;
+}
+
+.compliancePage .circlePercent {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.compliancePage .circleLabel {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 列表卡片 */
+.compliancePage .listCard {
+  border-radius: 8px;
+}
+
+.compliancePage :global(.ant-table-thead > tr > th) {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.compliancePage :global(.ant-progress-text) {
+  font-size: 12px;
+}
+
+.compliancePage :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+}
+
+.compliancePage :global(.ant-statistic-content-value) {
+  font-size: 28px;
+}

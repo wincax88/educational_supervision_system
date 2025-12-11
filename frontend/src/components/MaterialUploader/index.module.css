@@ -1,0 +1,208 @@
+.materialUploader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* 分组卡片 */
+.groupCard {
+  border-radius: 8px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 配置项卡片 */
+.configCard {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.configCard:last-child {
+  margin-bottom: 0;
+}
+
+.configHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.configCode {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  background: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+}
+
+.configName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.configDesc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* 资料列表 */
+.materialList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.materialItem {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.materialItem:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.materialIcon {
+  font-size: 32px;
+  margin-right: 12px;
+}
+
+.fileIconPdf {
+  color: #ff4d4f;
+}
+
+.fileIconWord {
+  color: #1890ff;
+}
+
+.fileIconExcel {
+  color: #52c41a;
+}
+
+.fileIconPpt {
+  color: #fa8c16;
+}
+
+.fileIconZip {
+  color: #722ed1;
+}
+
+.fileIconImage {
+  color: #13c2c2;
+}
+
+.fileIconDefault {
+  color: #999;
+}
+
+.materialInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.materialName {
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.materialMeta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.separator {
+  margin: 0 8px;
+  color: #d9d9d9;
+}
+
+.materialActions {
+  display: flex;
+  gap: 4px;
+}
+
+.materialActions :global(.ant-btn) {
+  color: #666;
+}
+
+.materialActions :global(.ant-btn:hover) {
+  color: #1890ff;
+}
+
+.materialActions :global(.ant-btn-dangerous:hover) {
+  color: #ff4d4f;
+}
+
+/* 上传区域 */
+.uploadArea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: #999;
+}
+
+.uploadProgress {
+  max-width: 200px;
+}
+
+/* 其他资料 */
+.otherMaterials {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e8e8e8;
+}
+
+.otherMaterialsTitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+/* 预览 */
+.previewContainer {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+}
+
+/* 空状态 */
+.materialUploader :global(.ant-empty) {
+  margin: 24px 0;
+}

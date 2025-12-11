@@ -1,0 +1,219 @@
+.elementLibraryPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100%;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  color: #1890ff;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.backBtn:hover {
+  text-decoration: underline;
+}
+
+.pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.statsCards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 180px;
+  flex: 1;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.statIcon {
+  font-size: 32px;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.listHeader h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.listActions {
+  display: flex;
+  gap: 12px;
+}
+
+.libraryList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listCard {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #1890ff;
+}
+
+.listCard.purple {
+  border-left-color: #722ed1;
+}
+
+.listCard.orange {
+  border-left-color: #fa8c16;
+}
+
+.listCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.listCardTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1890ff;
+  cursor: pointer;
+}
+
+.listCardTitle:hover {
+  text-decoration: underline;
+}
+
+.listCardMeta {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+  line-height: 1.8;
+}
+
+.listCardDesc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.listCardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.actionBtn:hover {
+  color: #1890ff;
+}
+
+.actionBtn.danger:hover {
+  color: #ff4d4f;
+}
+
+.infoModalContent .infoHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.infoModalContent .infoHeader h3 {
+  margin: 0;
+  color: #1890ff;
+}
+
+.infoModalContent .infoMeta {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.infoModalContent .infoDesc {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.infoModalContent h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.elementList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.elementItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.elementCode {
+  font-family: monospace;
+  color: #666;
+  min-width: 50px;
+}
+
+.elementName {
+  flex: 1;
+  color: #333;
+}

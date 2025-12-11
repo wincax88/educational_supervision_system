@@ -7,7 +7,7 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import './MainLayout.css';
+import styles from './MainLayout.module.css';
 
 const { Header, Sider, Content } = Layout;
 
@@ -55,19 +55,19 @@ const MainLayout: React.FC = () => {
   ];
 
   return (
-    <Layout className="main-layout">
+    <Layout className={styles.mainLayout}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        className="main-sider"
+        className={styles.mainSider}
         theme="light"
       >
-        <div className="logo" onClick={() => navigate('/home')}>
+        <div className={styles.logo} onClick={() => navigate('/home')}>
           <svg viewBox="0 0 24 24" width="28" height="28" fill="#1890ff">
             <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
           </svg>
-          {!collapsed && <span className="logo-text">沈阳市教育督导系统</span>}
+          {!collapsed && <span className={styles.logoText}>沈阳市教育督导系统</span>}
         </div>
         <Menu
           mode="inline"
@@ -77,10 +77,10 @@ const MainLayout: React.FC = () => {
         />
       </Sider>
       <Layout>
-        <Header className="main-header">
-          <div className="header-right">
+        <Header className={styles.mainHeader}>
+          <div className={styles.headerRight}>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Space className="user-info">
+              <Space className={styles.userInfo}>
                 <span>{user.username}</span>
                 <LogoutOutlined onClick={handleLogout} style={{ cursor: 'pointer' }} />
                 <span style={{ marginLeft: 8 }}>退出</span>
@@ -88,7 +88,7 @@ const MainLayout: React.FC = () => {
             </Dropdown>
           </div>
         </Header>
-        <Content className="main-content">
+        <Content className={styles.mainContent}>
           <Outlet />
         </Content>
       </Layout>
