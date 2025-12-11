@@ -779,3 +779,53 @@ export const projectStats = {
   stopped: 0,
   completed: 0,
 };
+
+// 工具字段类型定义
+export interface ToolSchemaField {
+  id: string;
+  type: string;
+  label: string;
+  required: boolean;
+  width: string;
+}
+
+// 工具的 Schema（字段列表）
+export const toolSchemas: { [toolId: string]: ToolSchemaField[] } = {
+  '1': [
+    { id: 'f1', type: 'text', label: '学校名称', required: true, width: '100%' },
+    { id: 'f2', type: 'select', label: '学校类型', required: true, width: '50%' },
+    { id: 'f3', type: 'number', label: '在校学生总数', required: true, width: '50%' },
+    { id: 'f4', type: 'number', label: '教职工总数', required: true, width: '50%' },
+    { id: 'f5', type: 'number', label: '专任教师数', required: true, width: '50%' },
+    { id: 'f6', type: 'number', label: '高级职称教师数', required: false, width: '50%' },
+    { id: 'f7', type: 'number', label: '生师比', required: false, width: '50%' },
+  ],
+  '2': [
+    { id: 'f1', type: 'number', label: '教师总数', required: true, width: '50%' },
+    { id: 'f2', type: 'number', label: '本科学历教师数', required: true, width: '50%' },
+    { id: 'f3', type: 'number', label: '骨干教师人数', required: true, width: '50%' },
+    { id: 'f4', type: 'number', label: '参加培训教师数', required: true, width: '50%' },
+    { id: 'f5', type: 'number', label: '高级职称教师数', required: false, width: '50%' },
+    { id: 'f6', type: 'number', label: '中级职称教师数', required: false, width: '50%' },
+  ],
+  '3': [
+    { id: 'f1', type: 'number', label: '校舍总面积', required: true, width: '50%' },
+    { id: 'f2', type: 'number', label: '教学用房面积', required: true, width: '50%' },
+    { id: 'f3', type: 'number', label: '图书馆面积', required: false, width: '50%' },
+    { id: 'f4', type: 'number', label: '体育场馆面积', required: false, width: '50%' },
+  ],
+  '4': [
+    { id: 'f1', type: 'text', label: '学校名称', required: true, width: '100%' },
+    { id: 'f2', type: 'number', label: '教学用房面积', required: true, width: '50%' },
+    { id: 'f3', type: 'number', label: '生均教学面积', required: true, width: '50%' },
+    { id: 'f4', type: 'number', label: '教学设备总值', required: true, width: '50%' },
+    { id: 'f5', type: 'number', label: '图书总册数', required: false, width: '50%' },
+    { id: 'f6', type: 'number', label: '计算机数量', required: false, width: '50%' },
+  ],
+  '5': [
+    { id: 'f1', type: 'radio', label: '对学校管理满意度', required: true, width: '100%' },
+    { id: 'f2', type: 'radio', label: '对工作环境满意度', required: true, width: '100%' },
+    { id: 'f3', type: 'radio', label: '对薪酬待遇满意度', required: true, width: '100%' },
+    { id: 'f4', type: 'textarea', label: '意见和建议', required: false, width: '100%' },
+  ],
+};

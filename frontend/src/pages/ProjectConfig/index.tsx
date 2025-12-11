@@ -57,6 +57,8 @@ import {
   availableToolsByProject as mockAvailableTools,
   indicatorMappingSummaries as mockMappingSummaries,
   indicatorSystems as mockIndicatorSystems,
+  toolSchemas as mockToolSchemas,
+  ToolSchemaField,
 } from '../../mock/data';
 
 // ==================== Mock 模式开关 ====================
@@ -81,6 +83,14 @@ const ProjectConfig: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tools');
   const [mappingFilter, setMappingFilter] = useState<'all' | 'mapped' | 'unmapped'>('all');
   const [form] = Form.useForm();
+
+  // 映射弹窗相关状态
+  const [mappingModalVisible, setMappingModalVisible] = useState(false);
+  const [selectedDataIndicator, setSelectedDataIndicator] = useState<DataIndicatorMapping | null>(null);
+  const [selectedToolId, setSelectedToolId] = useState<string | undefined>(undefined);
+  const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>(undefined);
+  const [toolFields, setToolFields] = useState<ToolSchemaField[]>([]);
+  const [mappingSaving, setMappingSaving] = useState(false);
 
   // 加载项目信息
   const loadProject = useCallback(async () => {
@@ -404,6 +414,139 @@ const ProjectConfig: React.FC = () => {
     });
   };
 
+  // 打开映射弹窗
+  const handleOpenMappingModal = (record: DataIndicatorMapping) => {
+    setSelectedDataIndicator(record);
+    // 如果已有映射，预填选择
+    if (record.mapping) {
+      setSelectedToolId(record.mapping.toolId);
+      // 加载工具字段
+      const fields = mockToolSchemas[record.mapping.toolId] || [];
+      setToolFields(fields);
+      setSelectedFieldId(record.mapping.fieldId);
+    } else {
+      setSelectedToolId(undefined);
+      setSelectedFieldId(undefined);
+      setToolFields([]);
+    }
+    setMappingModalVisible(true);
+  };
+
+  // 工具选择变化时加载字段
+  const handleToolChange = (toolId: string) => {
+    setSelectedToolId(toolId);
+    setSelectedFieldId(undefined);
+    if (USE_MOCK) {
+      const fields = mockToolSchemas[toolId] || [];
+      setToolFields(fields);
+    }
+  };
+
+  // 保存映射
+  const handleSaveMapping = async () => {
+    if (!selectedDataIndicator || !selectedToolId || !selectedFieldId) {
+      message.warning('请选择工具和字段');
+      return;
+    }
+
+    setMappingSaving(true);
+    try {
+      if (USE_MOCK) {
+        // Mock 模式：直接更新本地状态
+        const tool = tools.find(t => t.toolId === selectedToolId);
+        const field = toolFields.find(f => f.id === selectedFieldId);
+
+        if (tool && field) {
+          setMappingSummary(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              dataIndicators: prev.dataIndicators.map(item => {
+                if (item.id === selectedDataIndicator.id) {
+                  return {
+                    ...item,
+                    mapping: {
+                      toolId: selectedToolId,
+                      toolName: tool.toolName,
+                      fieldId: selectedFieldId,
+                      fieldLabel: field.label,
+                    },
+                    isMapped: true,
+                  };
+                }
+                return item;
+              }),
+              stats: {
+                ...prev.stats,
+                mapped: prev.stats.mapped + (selectedDataIndicator.isMapped ? 0 : 1),
+                unmapped: prev.stats.unmapped - (selectedDataIndicator.isMapped ? 0 : 1),
+              },
+            };
+          });
+          message.success('关联成功（Mock 模式）');
+        }
+      } else {
+        // 调用实际 API
+        // await toolService.addFieldMapping(selectedToolId, selectedFieldId, 'data_indicator', selectedDataIndicator.id);
+        message.success('关联成功');
+        await loadMappingSummary();
+      }
+      setMappingModalVisible(false);
+    } catch (error: any) {
+      message.error(error.message || '关联失败');
+    } finally {
+      setMappingSaving(false);
+    }
+  };
+
+  // 取消映射
+  const handleRemoveMapping = (record: DataIndicatorMapping) => {
+    Modal.confirm({
+      title: '确认取消关联',
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要取消数据指标 "${record.name}" 的字段关联吗？`,
+      okText: '取消关联',
+      okType: 'danger',
+      cancelText: '返回',
+      onOk: async () => {
+        try {
+          if (USE_MOCK) {
+            // Mock 模式：直接更新本地状态
+            setMappingSummary(prev => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                dataIndicators: prev.dataIndicators.map(item => {
+                  if (item.id === record.id) {
+                    return {
+                      ...item,
+                      mapping: null,
+                      isMapped: false,
+                    };
+                  }
+                  return item;
+                }),
+                stats: {
+                  ...prev.stats,
+                  mapped: prev.stats.mapped - 1,
+                  unmapped: prev.stats.unmapped + 1,
+                },
+              };
+            });
+            message.success('已取消关联（Mock 模式）');
+          } else {
+            // 调用实际 API
+            // await toolService.deleteFieldMapping(record.mapping!.toolId, record.mapping!.fieldId);
+            message.success('已取消关联');
+            await loadMappingSummary();
+          }
+        } catch (error: any) {
+          message.error(error.message || '取消关联失败');
+        }
+      },
+    });
+  };
+
   // 获取状态标签
   const getStatusTag = (status: string) => {
     const statusMap: Record<string, { color: string; text: string }> = {
@@ -679,6 +822,33 @@ const ProjectConfig: React.FC = () => {
         )
       ),
     },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (_, record) => (
+        <Space>
+          <Tooltip title={record.isMapped ? '修改关联' : '关联字段'}>
+            <Button
+              type="text"
+              icon={<LinkOutlined />}
+              onClick={() => handleOpenMappingModal(record)}
+              disabled={tools.length === 0}
+            />
+          </Tooltip>
+          {record.isMapped && (
+            <Tooltip title="取消关联">
+              <Button
+                type="text"
+                danger
+                icon={<DisconnectOutlined />}
+                onClick={() => handleRemoveMapping(record)}
+              />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
   ];
 
   // 过滤映射数据
@@ -869,7 +1039,7 @@ const ProjectConfig: React.FC = () => {
                       )}
 
                       <div className={styles.mappingTip}>
-                        提示：要关联数据指标，请在「采集工具」的表单设计器中，为字段配置「评价依据」
+                        提示：点击操作列的关联按钮可手动关联表单字段，也可在「采集工具」的表单设计器中配置「评价依据」
                       </div>
                     </>
                   )}
@@ -958,6 +1128,72 @@ const ProjectConfig: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 字段映射弹窗 */}
+      <Modal
+        title="关联表单字段"
+        open={mappingModalVisible}
+        onOk={handleSaveMapping}
+        onCancel={() => setMappingModalVisible(false)}
+        confirmLoading={mappingSaving}
+        okText="确定"
+        cancelText="取消"
+        width={560}
+      >
+        {selectedDataIndicator && (
+          <div>
+            <Descriptions column={1} size="small" style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="数据指标">
+                <span style={{ fontWeight: 500 }}>{selectedDataIndicator.code} {selectedDataIndicator.name}</span>
+              </Descriptions.Item>
+              <Descriptions.Item label="所属指标">
+                {selectedDataIndicator.indicatorCode} {selectedDataIndicator.indicatorName}
+              </Descriptions.Item>
+              {selectedDataIndicator.threshold && (
+                <Descriptions.Item label="阈值">
+                  <Tag color="orange">{selectedDataIndicator.threshold}</Tag>
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择采集工具</label>
+              <Select
+                placeholder="请选择采集工具"
+                value={selectedToolId}
+                onChange={handleToolChange}
+                style={{ width: '100%' }}
+              >
+                {tools.filter(t => t.toolType === '表单').map(tool => (
+                  <Select.Option key={tool.toolId} value={tool.toolId}>
+                    {tool.toolName}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择表单字段</label>
+              <Select
+                placeholder={selectedToolId ? '请选择表单字段' : '请先选择采集工具'}
+                value={selectedFieldId}
+                onChange={setSelectedFieldId}
+                style={{ width: '100%' }}
+                disabled={!selectedToolId}
+              >
+                {toolFields.map(field => (
+                  <Select.Option key={field.id} value={field.id}>
+                    {field.label}
+                    <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>
+                      ({field.type})
+                    </span>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* 指标树查看器 */}
