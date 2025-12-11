@@ -55,9 +55,76 @@ export interface Project {
   keywords: string[];
   description: string;
   indicatorSystem: string;
+  indicatorSystemId?: string;
+  indicatorSystemName?: string;
   startDate: string;
   endDate: string;
   status: '配置中' | '填报中' | '评审中' | '已中止' | '已完成';
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// 项目工具关联类型
+export interface ProjectTool {
+  id: string;
+  projectId: string;
+  toolId: string;
+  sortOrder: number;
+  isRequired: number;
+  createdAt: string;
+  toolName: string;
+  toolType: '表单' | '问卷';
+  toolTarget: string;
+  toolDescription: string;
+  toolStatus: 'published' | 'editing' | 'draft';
+}
+
+// 可用工具类型
+export interface AvailableTool {
+  id: string;
+  name: string;
+  type: '表单' | '问卷';
+  target: string;
+  description: string;
+  status: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+// 数据指标映射信息
+export interface DataIndicatorMappingMock {
+  id: string;
+  code: string;
+  name: string;
+  threshold?: string;
+  description?: string;
+  indicatorId: string;
+  indicatorCode: string;
+  indicatorName: string;
+  mapping: {
+    toolId: string;
+    toolName: string;
+    fieldId: string;
+    fieldLabel: string;
+  } | null;
+  isMapped: boolean;
+}
+
+// 指标映射汇总
+export interface IndicatorMappingSummaryMock {
+  project: {
+    id: string;
+    name: string;
+    indicatorSystemId: string;
+    indicatorSystemName: string;
+  };
+  dataIndicators: DataIndicatorMappingMock[];
+  stats: {
+    total: number;
+    mapped: number;
+    unmapped: number;
+  };
 }
 
 // 数据指标
@@ -252,9 +319,14 @@ export const projects: Project[] = [
     keywords: ['义务教育', '优质均衡', '2024年'],
     description: '对全市各区县义务教育优质均衡发展情况进行全面督导评估',
     indicatorSystem: '义务教育优质均衡发展评估指标体系（2024版）',
+    indicatorSystemId: '1',
+    indicatorSystemName: '义务教育优质均衡发展评估指标体系（2024版）',
     startDate: '2024-03-01',
     endDate: '2024-12-31',
-    status: '填报中',
+    status: '配置中',
+    createdBy: '张伟',
+    createdAt: '2024-02-15 10:30:00',
+    updatedAt: '2024-03-01 14:20:00',
   },
   {
     id: '2',
@@ -262,11 +334,292 @@ export const projects: Project[] = [
     keywords: ['幼儿园', '普惠性', '2024年'],
     description: '对全市普惠性幼儿园进行督导评估',
     indicatorSystem: '幼儿园普惠督导评估指标体系',
+    indicatorSystemId: '2',
+    indicatorSystemName: '教育质量监测指标体系',
     startDate: '2024-04-01',
     endDate: '2024-11-30',
-    status: '配置中',
+    status: '填报中',
+    createdBy: '李娜',
+    createdAt: '2024-03-01 09:00:00',
+    updatedAt: '2024-04-01 16:45:00',
   },
 ];
+
+// 项目关联的采集工具
+export const projectTools: { [projectId: string]: ProjectTool[] } = {
+  '1': [
+    {
+      id: 'pt-1',
+      projectId: '1',
+      toolId: '1',
+      sortOrder: 1,
+      isRequired: 1,
+      createdAt: '2024-02-20 10:00:00',
+      toolName: '学校基础数据采集表',
+      toolType: '表单',
+      toolTarget: '学校',
+      toolDescription: '用于采集学校基本信息、办学条件、师资队伍等基础数据',
+      toolStatus: 'published',
+    },
+    {
+      id: 'pt-2',
+      projectId: '1',
+      toolId: '2',
+      sortOrder: 2,
+      isRequired: 1,
+      createdAt: '2024-02-20 10:05:00',
+      toolName: '教师专业发展数据表',
+      toolType: '表单',
+      toolTarget: '学校',
+      toolDescription: '采集教师的学历结构、职称结构、培训情况、教学能力等专业发展数据',
+      toolStatus: 'published',
+    },
+    {
+      id: 'pt-3',
+      projectId: '1',
+      toolId: '4',
+      sortOrder: 3,
+      isRequired: 1,
+      createdAt: '2024-02-20 10:10:00',
+      toolName: '义务教育优质均衡发展督导评估现场核查表',
+      toolType: '表单',
+      toolTarget: '学校',
+      toolDescription: '用于现场核查学校义务教育优质均衡发展情况',
+      toolStatus: 'published',
+    },
+    {
+      id: 'pt-4',
+      projectId: '1',
+      toolId: '5',
+      sortOrder: 4,
+      isRequired: 0,
+      createdAt: '2024-02-20 10:15:00',
+      toolName: '教师满意度调查问卷',
+      toolType: '问卷',
+      toolTarget: '教师',
+      toolDescription: '调查教师对学校管理、工作环境、专业发展、薪酬待遇等方面的满意度',
+      toolStatus: 'published',
+    },
+  ],
+  '2': [
+    {
+      id: 'pt-5',
+      projectId: '2',
+      toolId: '1',
+      sortOrder: 1,
+      isRequired: 1,
+      createdAt: '2024-03-05 09:00:00',
+      toolName: '学校基础数据采集表',
+      toolType: '表单',
+      toolTarget: '学校',
+      toolDescription: '用于采集学校基本信息、办学条件、师资队伍等基础数据',
+      toolStatus: 'published',
+    },
+  ],
+};
+
+// 可用工具（未关联到项目的工具）
+export const availableToolsByProject: { [projectId: string]: AvailableTool[] } = {
+  '1': [
+    {
+      id: '3',
+      name: '学校办学条件数据表',
+      type: '表单',
+      target: '学校',
+      description: '采集学校校舍建筑面积、教学设备设施、图书资源、体育场馆等办学条件相关数据',
+      status: 'published',
+      createdBy: '王芳',
+      createdAt: '2024-02-15',
+    },
+  ],
+  '2': [
+    {
+      id: '2',
+      name: '教师专业发展数据表',
+      type: '表单',
+      target: '学校',
+      description: '采集教师的学历结构、职称结构、培训情况、教学能力等专业发展数据',
+      status: 'published',
+      createdBy: '李娜',
+      createdAt: '2024-02-01',
+    },
+    {
+      id: '4',
+      name: '义务教育优质均衡发展督导评估现场核查表',
+      type: '表单',
+      target: '学校',
+      description: '用于现场核查学校义务教育优质均衡发展情况',
+      status: 'published',
+      createdBy: '系统管理员',
+      createdAt: '2024-11-10',
+    },
+    {
+      id: '5',
+      name: '教师满意度调查问卷',
+      type: '问卷',
+      target: '教师',
+      description: '调查教师对学校管理、工作环境、专业发展、薪酬待遇等方面的满意度',
+      status: 'published',
+      createdBy: '刘洋',
+      createdAt: '2024-03-01',
+    },
+  ],
+};
+
+// 指标映射汇总数据
+export const indicatorMappingSummaries: { [projectId: string]: IndicatorMappingSummaryMock } = {
+  '1': {
+    project: {
+      id: '1',
+      name: '2024年沈阳市义务教育优质均衡发展督导评估',
+      indicatorSystemId: '1',
+      indicatorSystemName: '义务教育优质均衡发展评估指标体系（2024版）',
+    },
+    dataIndicators: [
+      {
+        id: 'D1-1-1',
+        code: '1.1-D1',
+        name: '师生比',
+        threshold: '≥ 0.8',
+        description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+        indicatorId: 'I1-1',
+        indicatorCode: '1.1',
+        indicatorName: '小学学校达标情况',
+        mapping: {
+          toolId: '1',
+          toolName: '学校基础数据采集表',
+          fieldId: 'f1',
+          fieldLabel: '教职工总数',
+        },
+        isMapped: true,
+      },
+      {
+        id: 'D1-2-1',
+        code: '1.2-D1',
+        name: '生均教学及辅助用房面积',
+        threshold: '≥ 0.8',
+        description: '根据国家和省级相关标准要求，结合学校实际情况进行综合评估',
+        indicatorId: 'I1-2',
+        indicatorCode: '1.2',
+        indicatorName: '初中学校达标情况',
+        mapping: {
+          toolId: '4',
+          toolName: '义务教育优质均衡发展督导评估现场核查表',
+          fieldId: 'f2',
+          fieldLabel: '教学用房面积',
+        },
+        isMapped: true,
+      },
+      {
+        id: 'D1-3-1-1',
+        code: '1.3.1-D1',
+        name: '每百名学生拥有高于规定学历教师数差异系数',
+        threshold: '≤ 0.5',
+        description: '根据国家和省级相关标准要求',
+        indicatorId: 'I1-3-1',
+        indicatorCode: '1.3.1',
+        indicatorName: '每百名学生拥有高于规定学历教师数差异系数',
+        mapping: null,
+        isMapped: false,
+      },
+      {
+        id: 'D1-3-2-1',
+        code: '1.3.2-D1',
+        name: '每百名学生拥有县级以上骨干教师数差异系数',
+        threshold: '≤ 0.5',
+        description: '根据国家和省级相关标准要求',
+        indicatorId: 'I1-3-2',
+        indicatorCode: '1.3.2',
+        indicatorName: '每百名学生拥有县级以上骨干教师数差异系数',
+        mapping: {
+          toolId: '2',
+          toolName: '教师专业发展数据表',
+          fieldId: 'f3',
+          fieldLabel: '骨干教师人数',
+        },
+        isMapped: true,
+      },
+      {
+        id: 'D2-1-1',
+        code: '2.1-D1',
+        name: '教育经费投入达标率',
+        threshold: '≥ 95%',
+        description: '教育经费投入是否达到规定标准',
+        indicatorId: 'I2-1',
+        indicatorCode: '2.1',
+        indicatorName: '教育经费投入',
+        mapping: null,
+        isMapped: false,
+      },
+      {
+        id: 'D2-2-1',
+        code: '2.2-D1',
+        name: '教师培训覆盖率',
+        threshold: '≥ 90%',
+        description: '参加培训教师占比',
+        indicatorId: 'I2-2',
+        indicatorCode: '2.2',
+        indicatorName: '教师培训情况',
+        mapping: {
+          toolId: '2',
+          toolName: '教师专业发展数据表',
+          fieldId: 'f4',
+          fieldLabel: '参加培训教师数',
+        },
+        isMapped: true,
+      },
+    ],
+    stats: {
+      total: 6,
+      mapped: 4,
+      unmapped: 2,
+    },
+  },
+  '2': {
+    project: {
+      id: '2',
+      name: '2024年幼儿园普惠性督导评估',
+      indicatorSystemId: '2',
+      indicatorSystemName: '教育质量监测指标体系',
+    },
+    dataIndicators: [
+      {
+        id: 'DQ-1',
+        code: 'Q1-D1',
+        name: '班额达标率',
+        threshold: '≤ 30人/班',
+        description: '每班幼儿人数',
+        indicatorId: 'IQ-1',
+        indicatorCode: 'Q1',
+        indicatorName: '班级规模',
+        mapping: null,
+        isMapped: false,
+      },
+      {
+        id: 'DQ-2',
+        code: 'Q2-D1',
+        name: '师幼比',
+        threshold: '≥ 1:7',
+        description: '教师与幼儿的比例',
+        indicatorId: 'IQ-2',
+        indicatorCode: 'Q2',
+        indicatorName: '师资配置',
+        mapping: {
+          toolId: '1',
+          toolName: '学校基础数据采集表',
+          fieldId: 'f5',
+          fieldLabel: '教职工人数',
+        },
+        isMapped: true,
+      },
+    ],
+    stats: {
+      total: 2,
+      mapped: 1,
+      unmapped: 1,
+    },
+  },
+};
 
 // 指标体系的指标树数据
 export const indicatorTrees: { [systemId: string]: Indicator[] } = {

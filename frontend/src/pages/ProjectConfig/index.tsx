@@ -50,6 +50,18 @@ import type { IndicatorSystem } from '../../services/indicatorService';
 import IndicatorTreeViewer from '../../components/IndicatorTreeViewer';
 import styles from './index.module.css';
 
+// Mock 数据导入
+import {
+  projects as mockProjects,
+  projectTools as mockProjectTools,
+  availableToolsByProject as mockAvailableTools,
+  indicatorMappingSummaries as mockMappingSummaries,
+  indicatorSystems as mockIndicatorSystems,
+} from '../../mock/data';
+
+// ==================== Mock 模式开关 ====================
+const USE_MOCK = true;
+
 const ProjectConfig: React.FC = () => {
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
@@ -74,6 +86,16 @@ const ProjectConfig: React.FC = () => {
   const loadProject = useCallback(async () => {
     if (!projectId) return;
     try {
+      if (USE_MOCK) {
+        // 使用 mock 数据
+        const mockProject = mockProjects.find(p => p.id === projectId);
+        if (mockProject) {
+          setProject(mockProject as unknown as Project);
+        } else {
+          message.error('项目不存在');
+        }
+        return;
+      }
       const data = await projectService.getById(projectId);
       setProject(data);
     } catch (error) {
@@ -86,6 +108,12 @@ const ProjectConfig: React.FC = () => {
   const loadTools = useCallback(async () => {
     if (!projectId) return;
     try {
+      if (USE_MOCK) {
+        // 使用 mock 数据
+        const tools = mockProjectTools[projectId] || [];
+        setTools(tools as ProjectTool[]);
+        return;
+      }
       const data = await projectToolService.getProjectTools(projectId);
       setTools(data);
     } catch (error) {
@@ -97,6 +125,12 @@ const ProjectConfig: React.FC = () => {
   const loadAvailableTools = useCallback(async () => {
     if (!projectId) return;
     try {
+      if (USE_MOCK) {
+        // 使用 mock 数据
+        const tools = mockAvailableTools[projectId] || [];
+        setAvailableTools(tools as AvailableTool[]);
+        return;
+      }
       const data = await projectToolService.getAvailableTools(projectId);
       setAvailableTools(data);
     } catch (error) {
@@ -107,6 +141,12 @@ const ProjectConfig: React.FC = () => {
   // 加载指标体系列表
   const loadIndicatorSystems = useCallback(async () => {
     try {
+      if (USE_MOCK) {
+        // 使用 mock 数据
+        const systems = mockIndicatorSystems.filter(s => s.status === 'published');
+        setIndicatorSystems(systems as unknown as IndicatorSystem[]);
+        return;
+      }
       const data = await indicatorService.getIndicatorSystems();
       setIndicatorSystems(data.filter(s => s.status === 'published'));
     } catch (error) {
@@ -118,6 +158,14 @@ const ProjectConfig: React.FC = () => {
   const loadMappingSummary = useCallback(async () => {
     if (!projectId) return;
     try {
+      if (USE_MOCK) {
+        // 使用 mock 数据
+        const summary = mockMappingSummaries[projectId];
+        if (summary) {
+          setMappingSummary(summary as unknown as IndicatorMappingSummary);
+        }
+        return;
+      }
       const data = await projectService.getIndicatorMappingSummary(projectId);
       setMappingSummary(data);
     } catch (error) {
@@ -174,11 +222,30 @@ const ProjectConfig: React.FC = () => {
         endDate: values.endDate?.format('YYYY-MM-DD'),
         status: project?.status,
       };
-      await projectService.updateProject(projectId, data);
-      message.success('保存成功');
-      setEditModalVisible(false);
-      setMappingSummary(null); // 重置映射数据以便重新加载
-      await loadProject();
+
+      if (USE_MOCK) {
+        // Mock 模式：直接更新本地状态
+        const selectedSystem = indicatorSystems.find(s => s.id === values.indicatorSystemId);
+        setProject(prev => prev ? {
+          ...prev,
+          name: data.name,
+          keywords: data.keywords,
+          description: data.description,
+          indicatorSystemId: data.indicatorSystemId,
+          indicatorSystemName: selectedSystem?.name,
+          startDate: data.startDate,
+          endDate: data.endDate,
+        } : null);
+        message.success('保存成功（Mock 模式）');
+        setEditModalVisible(false);
+        setMappingSummary(null);
+      } else {
+        await projectService.updateProject(projectId, data);
+        message.success('保存成功');
+        setEditModalVisible(false);
+        setMappingSummary(null);
+        await loadProject();
+      }
     } catch (error: any) {
       message.error(error.message || '保存失败');
     } finally {
@@ -192,11 +259,37 @@ const ProjectConfig: React.FC = () => {
 
     setSaving(true);
     try {
-      await projectToolService.batchAddProjectTools(projectId, selectedToolIds);
-      message.success('添加成功');
-      setAddModalVisible(false);
-      setMappingSummary(null); // 重置映射数据
-      await loadTools();
+      if (USE_MOCK) {
+        // Mock 模式：将选中的可用工具添加到关联列表
+        const newTools: ProjectTool[] = selectedToolIds.map((toolId, index) => {
+          const availTool = availableTools.find(t => t.id === toolId);
+          return {
+            id: `pt-new-${Date.now()}-${index}`,
+            projectId: projectId!,
+            toolId: toolId,
+            sortOrder: tools.length + index + 1,
+            isRequired: 1,
+            createdAt: new Date().toISOString(),
+            toolName: availTool?.name || '',
+            toolType: availTool?.type || '表单',
+            toolTarget: availTool?.target || '',
+            toolDescription: availTool?.description || '',
+            toolStatus: 'published' as const,
+          };
+        });
+        setTools(prev => [...prev, ...newTools]);
+        // 从可用工具中移除已添加的
+        setAvailableTools(prev => prev.filter(t => !selectedToolIds.includes(t.id)));
+        message.success('添加成功（Mock 模式）');
+        setAddModalVisible(false);
+        setMappingSummary(null);
+      } else {
+        await projectToolService.batchAddProjectTools(projectId, selectedToolIds);
+        message.success('添加成功');
+        setAddModalVisible(false);
+        setMappingSummary(null);
+        await loadTools();
+      }
     } catch (error: any) {
       message.error(error.message || '添加失败');
     } finally {
@@ -216,10 +309,29 @@ const ProjectConfig: React.FC = () => {
       onOk: async () => {
         if (!projectId) return;
         try {
-          await projectToolService.removeProjectTool(projectId, tool.toolId);
-          message.success('移除成功');
-          setMappingSummary(null);
-          await loadTools();
+          if (USE_MOCK) {
+            // Mock 模式：从关联列表中移除
+            setTools(prev => prev.filter(t => t.toolId !== tool.toolId));
+            // 将移除的工具添加回可用工具列表
+            const removedTool: AvailableTool = {
+              id: tool.toolId,
+              name: tool.toolName,
+              type: tool.toolType,
+              target: tool.toolTarget,
+              description: tool.toolDescription,
+              status: tool.toolStatus,
+              createdBy: '',
+              createdAt: tool.createdAt,
+            };
+            setAvailableTools(prev => [...prev, removedTool]);
+            message.success('移除成功（Mock 模式）');
+            setMappingSummary(null);
+          } else {
+            await projectToolService.removeProjectTool(projectId, tool.toolId);
+            message.success('移除成功');
+            setMappingSummary(null);
+            await loadTools();
+          }
         } catch (error: any) {
           message.error(error.message || '移除失败');
         }
@@ -231,12 +343,21 @@ const ProjectConfig: React.FC = () => {
   const handleToggleRequired = async (tool: ProjectTool) => {
     if (!projectId) return;
     try {
-      await projectToolService.updateProjectTool(
-        projectId,
-        tool.toolId,
-        tool.isRequired !== 1
-      );
-      await loadTools();
+      if (USE_MOCK) {
+        // Mock 模式：直接更新本地状态
+        setTools(prev => prev.map(t =>
+          t.toolId === tool.toolId
+            ? { ...t, isRequired: t.isRequired === 1 ? 0 : 1 }
+            : t
+        ));
+      } else {
+        await projectToolService.updateProjectTool(
+          projectId,
+          tool.toolId,
+          tool.isRequired !== 1
+        );
+        await loadTools();
+      }
     } catch (error: any) {
       message.error(error.message || '更新失败');
     }
@@ -247,11 +368,11 @@ const ProjectConfig: React.FC = () => {
     if (!projectId) return;
 
     const actionMap = {
-      start: { fn: projectService.startProject, msg: '启动填报', confirm: '确定要启动填报吗？启动后将开放数据填报。' },
-      stop: { fn: projectService.stopProject, msg: '中止项目', confirm: '确定要中止项目吗？中止后项目将暂停。' },
-      review: { fn: projectService.reviewProject, msg: '结束填报', confirm: '确定要结束填报吗？结束后将进入评审阶段。' },
-      complete: { fn: projectService.completeProject, msg: '完成项目', confirm: '确定要完成项目吗？完成后项目将归档。' },
-      restart: { fn: projectService.restartProject, msg: '重新启动', confirm: '确定要重新启动项目吗？' },
+      start: { fn: projectService.startProject, msg: '启动填报', confirm: '确定要启动填报吗？启动后将开放数据填报。', newStatus: '填报中' as const },
+      stop: { fn: projectService.stopProject, msg: '中止项目', confirm: '确定要中止项目吗？中止后项目将暂停。', newStatus: '已中止' as const },
+      review: { fn: projectService.reviewProject, msg: '结束填报', confirm: '确定要结束填报吗？结束后将进入评审阶段。', newStatus: '评审中' as const },
+      complete: { fn: projectService.completeProject, msg: '完成项目', confirm: '确定要完成项目吗？完成后项目将归档。', newStatus: '已完成' as const },
+      restart: { fn: projectService.restartProject, msg: '重新启动', confirm: '确定要重新启动项目吗？', newStatus: '配置中' as const },
     };
 
     const config = actionMap[action];
@@ -265,9 +386,15 @@ const ProjectConfig: React.FC = () => {
       onOk: async () => {
         setStatusChanging(true);
         try {
-          await config.fn(projectId);
-          message.success(`${config.msg}成功`);
-          await loadProject();
+          if (USE_MOCK) {
+            // Mock 模式：直接更新本地状态
+            setProject(prev => prev ? { ...prev, status: config.newStatus } : null);
+            message.success(`${config.msg}成功（Mock 模式）`);
+          } else {
+            await config.fn(projectId);
+            message.success(`${config.msg}成功`);
+            await loadProject();
+          }
         } catch (error: any) {
           message.error(error.message || `${config.msg}失败`);
         } finally {
