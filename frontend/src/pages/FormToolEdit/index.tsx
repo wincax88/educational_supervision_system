@@ -711,8 +711,7 @@ const FormToolEdit: React.FC = () => {
                       <div
                         className={`${styles.formFieldItem} ${selectedField?.id === field.id ? styles.selected : ''} ${
                           isDraggingField && draggedFieldIndexRef.current === index ? styles.dragging : ''
-                        }`}
-                        style={{ width: field.width }}
+                        } ${styles[`width${field.width.replace('%', '')}`]}`}
                         draggable
                         onDragStart={(e) => handleFieldDragStart(e, index)}
                         onDragEnd={handleFieldDragEnd}
