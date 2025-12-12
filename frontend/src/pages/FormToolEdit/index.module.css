@@ -1,8 +1,9 @@
 .formToolEditPage {
-  min-height: 100%;
+  height: 100vh;
   background: #f5f7fa;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* 页面头部 */
@@ -13,6 +14,7 @@
   padding: 16px 24px;
   background: #fff;
   border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
 }
 
 .formToolEditPage .headerLeft {
@@ -47,6 +49,7 @@
   background: #fff;
   border-radius: 8px;
   border-left: 4px solid #1890ff;
+  flex-shrink: 0;
 }
 
 .toolInfoHeader {
@@ -89,17 +92,21 @@
   gap: 16px;
   padding: 0 24px 24px;
   min-height: 0;
+  overflow: hidden;
 }
 
 /* 控件库面板 */
 .controlLibrary {
   width: 240px;
+  flex-shrink: 0;
   background: #fff;
   border-radius: 8px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 固定高度，内部滚动 */
+  max-height: 100%;
 }
 
 .panelTitle {
@@ -168,11 +175,14 @@
 /* 表单设计区 */
 .formDesigner {
   flex: 1;
+  min-width: 0;
   background: #fff;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 中间区域允许滚动 */
+  max-height: 100%;
 }
 
 .designerHeader {
@@ -384,11 +394,14 @@
 /* 属性面板 */
 .propertyPanel {
   width: 280px;
+  flex-shrink: 0;
   background: #fff;
   border-radius: 8px;
   padding: 16px;
   display: flex;
   flex-direction: column;
+  /* 固定高度，内部滚动 */
+  max-height: 100%;
   overflow: hidden;
 }
 
@@ -789,4 +802,113 @@
 
 .addDynamicFieldBtn {
   margin-top: 4px;
+}
+
+/* 分组容器预览样式 */
+.groupPreview {
+  border: 1px dashed #52c41a;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f6ffed;
+  min-height: 80px;
+}
+
+.groupChildrenContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.groupChildItem {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.groupChildItem:hover {
+  border-color: #1890ff;
+}
+
+.groupChildItem.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 子字段宽度样式 */
+.groupChildItem.width25 {
+  grid-column: span 1;
+}
+
+.groupChildItem.width50 {
+  grid-column: span 2;
+}
+
+.groupChildItem.width75 {
+  grid-column: span 3;
+}
+
+.groupChildItem.width100 {
+  grid-column: span 4;
+}
+
+.childFieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.childFieldLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.childFieldActions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.groupChildItem:hover .childFieldActions {
+  opacity: 1;
+}
+
+.childFieldActions :global(.anticon) {
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.childFieldActions :global(.anticon):hover {
+  color: #1890ff;
+}
+
+.childFieldActions :global(.anticon-delete):hover {
+  color: #ff4d4f;
+}
+
+.childFieldContent {
+  /* 子字段内容区域 */
+}
+
+.childFieldContent :global(.ant-input),
+.childFieldContent :global(.ant-select) {
+  pointer-events: none;
+  font-size: 12px;
+}
+
+.emptyGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  color: #999;
+  font-size: 13px;
+  grid-column: span 4;
 }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Button, Tag, Tabs, Input, Select, Switch, message, Tooltip, InputNumber } from 'antd';
+import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { Button, Tag, Tabs, Input, Select, Switch, message, Tooltip, InputNumber, Modal, Upload } from 'antd';
 import {
   ArrowLeftOutlined,
   UploadOutlined,
@@ -218,6 +218,11 @@ const FormToolEdit: React.FC = () => {
   // 动态列表子字段关联状态
   const [editingDynamicFieldId, setEditingDynamicFieldId] = useState<string | null>(null);
 
+  // 导入相关状态
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [pendingImportFields, setPendingImportFields] = useState<FormField[]>([]);
+
   useEffect(() => {
     if (id) {
       const foundTool = dataTools.find(t => t.id === id);
@@ -409,12 +414,29 @@ const FormToolEdit: React.FC = () => {
     setPropertyTab('basic');
   };
 
-  // 更新字段属性
+  // 更新字段属性（支持嵌套子字段）
   const handleUpdateField = (fieldId: string, updates: Partial<FormField>) => {
-    const updatedFields = formFields.map(f =>
-      f.id === fieldId ? { ...f, ...updates } : f
-    );
+    // 递归查找并更新字段
+    const updateFieldInArray = (fields: FormField[]): FormField[] => {
+      return fields.map(f => {
+        if (f.id === fieldId) {
+          return { ...f, ...updates };
+        }
+        // 递归检查 group 的 children
+        if (f.type === 'group' && f.children && f.children.length > 0) {
+          const updatedChildren = updateFieldInArray(f.children);
+          // 检查 children 是否有变化
+          if (updatedChildren !== f.children) {
+            return { ...f, children: updatedChildren };
+          }
+        }
+        return f;
+      });
+    };
+
+    const updatedFields = updateFieldInArray(formFields);
     setFormFields(updatedFields);
+
     if (selectedField?.id === fieldId) {
       setSelectedField({ ...selectedField, ...updates });
     }
@@ -446,6 +468,144 @@ const FormToolEdit: React.FC = () => {
     setFormFields([]);
     setSelectedField(null);
     message.success('表单已清空');
+  };
+
+  // 验证导入的字段格式
+  const validateImportedField = (field: any): field is FormField => {
+    if (!field || typeof field !== 'object') return false;
+    if (!field.id || typeof field.id !== 'string') return false;
+    if (!field.type || !controls.some(c => c.type === field.type)) return false;
+    if (!field.label || typeof field.label !== 'string') return false;
+    return true;
+  };
+
+  // 为导入的字段生成新ID（避免ID冲突）
+  const regenerateFieldIds = (fields: FormField[]): FormField[] => {
+    return fields.map(field => {
+      const newId = `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newField = { ...field, id: newId };
+
+      // 递归处理子字段
+      if (field.children && field.children.length > 0) {
+        newField.children = regenerateFieldIds(field.children);
+      }
+
+      // 处理动态列表字段
+      if (field.dynamicListFields && field.dynamicListFields.length > 0) {
+        newField.dynamicListFields = field.dynamicListFields.map(df => ({
+          ...df,
+          id: `dlf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        }));
+      }
+
+      return newField;
+    });
+  };
+
+  // 处理文件选择
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!file.name.endsWith('.json')) {
+      message.error('请选择 JSON 格式的文件');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+
+        // 支持数组格式或带 schema 字段的对象格式
+        let fieldsToImport: any[] = [];
+        if (Array.isArray(parsed)) {
+          fieldsToImport = parsed;
+        } else if (parsed.schema && Array.isArray(parsed.schema)) {
+          fieldsToImport = parsed.schema;
+        } else {
+          message.error('无效的 schema 格式，请确保是字段数组或包含 schema 字段的对象');
+          return;
+        }
+
+        // 验证每个字段
+        const validFields: FormField[] = [];
+        const invalidCount = { count: 0 };
+
+        fieldsToImport.forEach((field, index) => {
+          if (validateImportedField(field)) {
+            validFields.push(field as FormField);
+          } else {
+            invalidCount.count++;
+            console.warn(`字段 ${index + 1} 格式无效:`, field);
+          }
+        });
+
+        if (validFields.length === 0) {
+          message.error('没有找到有效的表单字段');
+          return;
+        }
+
+        if (invalidCount.count > 0) {
+          message.warning(`已跳过 ${invalidCount.count} 个无效字段`);
+        }
+
+        // 生成新ID避免冲突
+        const fieldsWithNewIds = regenerateFieldIds(validFields);
+
+        // 如果当前有字段，显示确认弹窗
+        if (formFields.length > 0) {
+          setPendingImportFields(fieldsWithNewIds);
+          setImportModalVisible(true);
+        } else {
+          // 直接导入
+          setFormFields(fieldsWithNewIds);
+          message.success(`成功导入 ${fieldsWithNewIds.length} 个字段`);
+        }
+      } catch (error) {
+        console.error('解析 JSON 失败:', error);
+        message.error('解析文件失败，请确保是有效的 JSON 格式');
+      }
+    };
+
+    reader.onerror = () => {
+      message.error('读取文件失败');
+    };
+
+    reader.readAsText(file);
+
+    // 重置 input 以便可以重复选择同一文件
+    e.target.value = '';
+  };
+
+  // 触发文件选择
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // 确认导入 - 覆盖现有字段
+  const handleImportReplace = () => {
+    setFormFields(pendingImportFields);
+    setSelectedField(null);
+    setImportModalVisible(false);
+    setPendingImportFields([]);
+    message.success(`成功导入 ${pendingImportFields.length} 个字段（已覆盖原有字段）`);
+  };
+
+  // 确认导入 - 追加到现有字段
+  const handleImportAppend = () => {
+    setFormFields([...formFields, ...pendingImportFields]);
+    setImportModalVisible(false);
+    setPendingImportFields([]);
+    message.success(`成功追加 ${pendingImportFields.length} 个字段`);
+  };
+
+  // 取消导入
+  const handleImportCancel = () => {
+    setImportModalVisible(false);
+    setPendingImportFields([]);
   };
 
   // 更新选项
@@ -554,6 +714,65 @@ const FormToolEdit: React.FC = () => {
         return <Switch disabled />;
       case 'divider':
         return <div className={styles.dividerPreview} />;
+      case 'group':
+        return (
+          <div className={styles.groupPreview}>
+            <div className={styles.groupChildrenContainer}>
+              {field.children && field.children.length > 0 ? (
+                field.children.map((childField, idx) => (
+                  <div
+                    key={childField.id}
+                    className={`${styles.groupChildItem} ${selectedField?.id === childField.id ? styles.selected : ''} ${styles[`width${childField.width?.replace('%', '') || '50'}`]}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectField(childField);
+                    }}
+                  >
+                    <div className={styles.childFieldHeader}>
+                      <span className={styles.childFieldLabel}>
+                        {childField.label}
+                        {childField.required && <span className={styles.requiredMark}>*</span>}
+                      </span>
+                      <div className={styles.childFieldActions}>
+                        <CopyOutlined
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // 复制子字段到 group 中
+                            const newChild = {
+                              ...childField,
+                              id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              label: `${childField.label} (副本)`,
+                            };
+                            const newChildren = [...(field.children || [])];
+                            newChildren.splice(idx + 1, 0, newChild);
+                            handleUpdateField(field.id, { children: newChildren });
+                          }}
+                        />
+                        <DeleteOutlined
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newChildren = field.children?.filter(c => c.id !== childField.id);
+                            handleUpdateField(field.id, { children: newChildren });
+                            if (selectedField?.id === childField.id) {
+                              setSelectedField(null);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.childFieldContent}>
+                      {renderFieldPreview(childField)}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyGroup}>
+                  <p>暂无子字段，请从控件库拖拽或在属性面板添加</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
       case 'dynamicList':
         return (
           <div className={styles.dynamicListPreview}>
@@ -670,7 +889,9 @@ const FormToolEdit: React.FC = () => {
           <div className={styles.designerHeader}>
             <h3>表单设计</h3>
             <div className={styles.designerActions}>
-              <Button icon={<UploadOutlined />}>导入102字段Schema</Button>
+              <Button icon={<UploadOutlined />} onClick={handleImportClick}>
+                导入
+              </Button>
               <Button icon={<DeleteOutlined />} danger onClick={handleClearForm}>
                 清除数据
               </Button>
@@ -1192,6 +1413,43 @@ const FormToolEdit: React.FC = () => {
         }}
         selectedId={selectedField?.mapping?.mappingType === 'element' ? selectedField.mapping.targetId : undefined}
       />
+
+      {/* 隐藏的文件输入 */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".json"
+        onChange={handleFileSelect}
+      />
+
+      {/* 导入确认弹窗 */}
+      <Modal
+        title="导入表单字段"
+        open={importModalVisible}
+        onCancel={handleImportCancel}
+        footer={[
+          <Button key="cancel" onClick={handleImportCancel}>
+            取消
+          </Button>,
+          <Button key="append" onClick={handleImportAppend}>
+            追加到末尾
+          </Button>,
+          <Button key="replace" type="primary" danger onClick={handleImportReplace}>
+            覆盖现有字段
+          </Button>,
+        ]}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <p>检测到当前表单已有 <strong>{formFields.length}</strong> 个字段。</p>
+          <p>即将导入 <strong>{pendingImportFields.length}</strong> 个新字段。</p>
+        </div>
+        <p>请选择导入方式：</p>
+        <ul style={{ paddingLeft: 20, color: '#666' }}>
+          <li><strong>追加到末尾</strong>：保留现有字段，将新字段添加到表单末尾</li>
+          <li><strong>覆盖现有字段</strong>：清空现有字段，只保留导入的字段</li>
+        </ul>
+      </Modal>
     </div>
   );
 };

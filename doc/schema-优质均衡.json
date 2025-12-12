@@ -1,0 +1,609 @@
+[
+  {
+    "id": "group_teacher",
+    "type": "group",
+    "label": "一、师资配备",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "teacher_student_ratio",
+        "type": "number",
+        "label": "1. 生师比",
+        "placeholder": "请输入生师比",
+        "helpText": "小学不高于19:1，初中不高于13.5:1",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": ""
+      },
+      {
+        "id": "teacher_student_ratio_qualified",
+        "type": "select",
+        "label": "生师比是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "full_time_teachers",
+        "type": "number",
+        "label": "2. 专任教师数",
+        "placeholder": "请输入专任教师数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "bachelor_degree_teachers",
+        "type": "number",
+        "label": "本科及以上学历教师数",
+        "placeholder": "请输入本科及以上学历教师数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "bachelor_degree_ratio",
+        "type": "number",
+        "label": "本科及以上学历专任教师比例",
+        "helpText": "小学达到80%，初中达到95%",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "bachelor_degree_qualified",
+        "type": "select",
+        "label": "本科学历比例是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "senior_title_teachers",
+        "type": "number",
+        "label": "3. 高级职称教师数",
+        "placeholder": "请输入高级职称教师数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "senior_title_ratio",
+        "type": "number",
+        "label": "高级职称教师比例",
+        "helpText": "小学达到5%，初中达到15%",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "senior_title_qualified",
+        "type": "select",
+        "label": "高级职称比例是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "county_backbone_teachers",
+        "type": "number",
+        "label": "4. 县级及以上骨干教师数",
+        "placeholder": "请输入县级及以上骨干教师数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "county_backbone_ratio",
+        "type": "number",
+        "label": "县级及以上骨干教师占比",
+        "helpText": "达到1%以上",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "county_backbone_qualified",
+        "type": "select",
+        "label": "骨干教师比例是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_campus",
+    "type": "group",
+    "label": "二、校园校舍",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "student_count",
+        "type": "number",
+        "label": "在校学生数",
+        "placeholder": "请输入在校学生数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "campus_area",
+        "type": "number",
+        "label": "1. 校园占地面积",
+        "placeholder": "请输入校园占地面积",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "campus_area_per_student",
+        "type": "number",
+        "label": "生均校园占地面积",
+        "helpText": "小学达到20㎡，初中达到25㎡",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米/生"
+      },
+      {
+        "id": "campus_area_qualified",
+        "type": "select",
+        "label": "生均占地面积是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "building_area",
+        "type": "number",
+        "label": "2. 校舍建筑面积",
+        "placeholder": "请输入校舍建筑面积",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "building_area_per_student",
+        "type": "number",
+        "label": "生均校舍建筑面积",
+        "helpText": "小学达到6.4㎡，初中达到7.8㎡",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米/生"
+      },
+      {
+        "id": "building_area_qualified",
+        "type": "select",
+        "label": "生均校舍面积是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "sports_area",
+        "type": "number",
+        "label": "3. 体育运动场地面积",
+        "placeholder": "请输入体育运动场地面积",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "sports_area_per_student",
+        "type": "number",
+        "label": "生均体育运动场地面积",
+        "helpText": "小学达到7.5㎡，初中达到10.2㎡",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米/生"
+      },
+      {
+        "id": "sports_area_qualified",
+        "type": "select",
+        "label": "生均体育场地是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_equipment",
+    "type": "group",
+    "label": "三、教学装备",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "teaching_equipment_value",
+        "type": "number",
+        "label": "1. 教学仪器设备值",
+        "placeholder": "请输入教学仪器设备值",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "equipment_per_student",
+        "type": "number",
+        "label": "生均教学仪器设备值",
+        "helpText": "小学达到2000元，初中达到2500元",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "元/生"
+      },
+      {
+        "id": "equipment_qualified",
+        "type": "select",
+        "label": "生均设备值是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "library_books",
+        "type": "number",
+        "label": "2. 图书册数",
+        "placeholder": "请输入图书册数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "册"
+      },
+      {
+        "id": "books_per_student",
+        "type": "number",
+        "label": "生均图书册数",
+        "helpText": "小学达到30册，初中达到40册",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "册/生"
+      },
+      {
+        "id": "books_qualified",
+        "type": "select",
+        "label": "生均图书是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "network_multimedia_classrooms",
+        "type": "number",
+        "label": "3. 网络多媒体教室数",
+        "placeholder": "请输入网络多媒体教室数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "total_classrooms",
+        "type": "number",
+        "label": "教室总数",
+        "placeholder": "请输入教室总数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "multimedia_ratio",
+        "type": "number",
+        "label": "网络多媒体教室占比",
+        "helpText": "达到100%",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "multimedia_qualified",
+        "type": "select",
+        "label": "多媒体教室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_functional_rooms",
+    "type": "group",
+    "label": "四、功能教室",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "music_room",
+        "type": "number",
+        "label": "1. 音乐教室数",
+        "placeholder": "请输入音乐教室数",
+        "helpText": "至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "music_room_qualified",
+        "type": "select",
+        "label": "音乐教室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "art_room",
+        "type": "number",
+        "label": "2. 美术教室数",
+        "placeholder": "请输入美术教室数",
+        "helpText": "至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "art_room_qualified",
+        "type": "select",
+        "label": "美术教室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "science_lab",
+        "type": "number",
+        "label": "3. 科学实验室数",
+        "placeholder": "请输入科学实验室数",
+        "helpText": "小学至少1间，初中物理、化学、生物各至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "science_lab_qualified",
+        "type": "select",
+        "label": "科学实验室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "computer_room",
+        "type": "number",
+        "label": "4. 计算机教室数",
+        "placeholder": "请输入计算机教室数",
+        "helpText": "至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "computer_room_qualified",
+        "type": "select",
+        "label": "计算机教室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "library_room",
+        "type": "number",
+        "label": "5. 图书室/阅览室数",
+        "placeholder": "请输入图书室/阅览室数",
+        "helpText": "至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "library_room_qualified",
+        "type": "select",
+        "label": "图书室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "counseling_room",
+        "type": "number",
+        "label": "6. 心理辅导室数",
+        "placeholder": "请输入心理辅导室数",
+        "helpText": "至少1间",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "counseling_room_qualified",
+        "type": "select",
+        "label": "心理辅导室是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_class_size",
+    "type": "group",
+    "label": "五、班额控制",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "total_classes",
+        "type": "number",
+        "label": "学校班级总数",
+        "placeholder": "请输入班级总数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "average_class_size",
+        "type": "number",
+        "label": "1. 平均班额",
+        "placeholder": "请输入平均班额",
+        "helpText": "小学不超过45人，初中不超过50人",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "人/班"
+      },
+      {
+        "id": "average_class_size_qualified",
+        "type": "select",
+        "label": "平均班额是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "over_standard_classes",
+        "type": "number",
+        "label": "2. 超标准班额班级数",
+        "placeholder": "请输入超标准班额班级数",
+        "helpText": "应为0个",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "over_standard_qualified",
+        "type": "select",
+        "label": "超标准班额是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "divider_summary",
+    "type": "divider",
+    "label": "汇总信息",
+    "width": "100%",
+    "required": false
+  },
+  {
+    "id": "total_indicators",
+    "type": "number",
+    "label": "指标总数",
+    "width": "25%",
+    "required": false,
+    "decimalPlaces": "整数",
+    "unit": "项"
+  },
+  {
+    "id": "qualified_indicators",
+    "type": "number",
+    "label": "达标指标数",
+    "width": "25%",
+    "required": false,
+    "decimalPlaces": "整数",
+    "unit": "项"
+  },
+  {
+    "id": "qualification_rate",
+    "type": "number",
+    "label": "达标率",
+    "width": "25%",
+    "required": false,
+    "decimalPlaces": "2位小数",
+    "unit": "%"
+  },
+  {
+    "id": "overall_qualified",
+    "type": "select",
+    "label": "整体是否达标",
+    "width": "25%",
+    "required": false,
+    "options": [
+      { "label": "是", "value": "yes" },
+      { "label": "否", "value": "no" }
+    ]
+  }
+]
