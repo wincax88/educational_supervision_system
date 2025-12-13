@@ -2,739 +2,744 @@
   {
     "id": "group_basic_info",
     "type": "group",
-    "label": "基本信息",
+    "label": "一、基础信息",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "district_name",
-        "type": "text",
-        "label": "区县名称",
-        "placeholder": "请输入区县名称",
-        "width": "50%",
-        "required": true
+        "id": "divider_population",
+        "type": "divider",
+        "label": "人口与行政区划",
+        "width": "100%",
+        "required": false
       },
       {
-        "id": "report_year",
-        "type": "text",
-        "label": "填报年度",
-        "placeholder": "如：2024",
-        "width": "50%",
-        "required": true
-      }
-    ]
-  },
-  {
-    "id": "group_school_count",
-    "type": "group",
-    "label": "一、学校数量",
-    "width": "100%",
-    "required": false,
-    "children": [
+        "id": "total_population",
+        "type": "number",
+        "label": "人口总数",
+        "placeholder": "请输入区县人口总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "万人"
+      },
+      {
+        "id": "agricultural_population",
+        "type": "number",
+        "label": "农业人口数",
+        "placeholder": "请输入区县农业人口数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "万人"
+      },
+      {
+        "id": "township_count",
+        "type": "number",
+        "label": "乡镇数",
+        "placeholder": "请输入区县乡镇数量",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "village_count",
+        "type": "number",
+        "label": "行政村数",
+        "placeholder": "请输入区县行政村数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "divider_economy",
+        "type": "divider",
+        "label": "经济指标",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "gdp_per_capita",
+        "type": "number",
+        "label": "年人均国内生产总值",
+        "placeholder": "请输入年人均国内生产总值",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元"
+      },
+      {
+        "id": "fiscal_revenue_per_capita",
+        "type": "number",
+        "label": "年人均地方财政收入",
+        "placeholder": "请输入年人均地方财政收入",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元"
+      },
+      {
+        "id": "farmer_income_per_capita",
+        "type": "number",
+        "label": "农民年人均纯收入",
+        "placeholder": "请输入农民年人均纯收入",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元"
+      },
+      {
+        "id": "urban_income_per_capita",
+        "type": "number",
+        "label": "城镇居民年人均可支配收入",
+        "placeholder": "请输入城镇居民可年人均可支配收入",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元"
+      },
+      {
+        "id": "divider_school_type",
+        "type": "divider",
+        "label": "学校类型分布",
+        "width": "100%",
+        "required": false
+      },
       {
         "id": "primary_school_count",
         "type": "number",
-        "label": "小学数量",
-        "placeholder": "请输入小学数量",
+        "label": "普通小学",
+        "placeholder": "请输入普通小学总数",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "整数",
         "unit": "所"
       },
       {
-        "id": "junior_school_count",
+        "id": "junior_high_count",
         "type": "number",
-        "label": "初中数量",
-        "placeholder": "请输入初中数量",
+        "label": "独立初中",
+        "placeholder": "请输入独立初中总数",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "整数",
         "unit": "所"
       },
       {
         "id": "nine_year_school_count",
         "type": "number",
-        "label": "九年一贯制学校数量",
-        "placeholder": "请输入九年一贯制学校数量",
+        "label": "九年一贯制学校",
+        "placeholder": "请输入九年一贯制学校总数",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "整数",
         "unit": "所"
       },
       {
-        "id": "total_school_count",
+        "id": "twelve_year_school_count",
         "type": "number",
-        "label": "义务教育学校总数",
-        "placeholder": "请输入学校总数",
+        "label": "十二年一贯制学校",
+        "placeholder": "请输入十二年一贯制学校总数",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "整数",
         "unit": "所"
+      },
+      {
+        "id": "complete_high_school_count",
+        "type": "number",
+        "label": "完全中学",
+        "placeholder": "请输入完全中学总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "special_education_school_count",
+        "type": "number",
+        "label": "特殊教育学校",
+        "placeholder": "请输入特殊教育学校总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "divider_school_stats",
+        "type": "divider",
+        "label": "学校统计数据",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "primary_teaching_point_count",
+        "type": "number",
+        "label": "小学教学点数",
+        "placeholder": "请输入小学教学点数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "primary_teaching_point_50_plus",
+        "type": "number",
+        "label": "50人及以上小学教学点数",
+        "placeholder": "请输入50人及以上小学教学点数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "primary_class_count",
+        "type": "number",
+        "label": "小学教学班数",
+        "placeholder": "请输入小学教学班数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "primary_student_count",
+        "type": "number",
+        "label": "小学在校学生数",
+        "placeholder": "请输入小学在校学生数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "primary_staff_count",
+        "type": "number",
+        "label": "小学教职工数",
+        "placeholder": "请输入小学教职工数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "primary_teacher_count",
+        "type": "number",
+        "label": "小学专任教师数",
+        "placeholder": "请输入小学专任教师数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "junior_class_count",
+        "type": "number",
+        "label": "初中教学班数",
+        "placeholder": "请输入初中教学班数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "junior_student_count",
+        "type": "number",
+        "label": "初中在校学生数",
+        "placeholder": "请输入初中在校学生数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "junior_staff_count",
+        "type": "number",
+        "label": "初中教职工数",
+        "placeholder": "请输入初中教职工数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "junior_teacher_count",
+        "type": "number",
+        "label": "初中专任教师数",
+        "placeholder": "请输入初中专任教师数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "district_plan_approval_date",
+        "type": "date",
+        "label": "区县规划通过时间",
+        "width": "25%",
+        "required": false
       }
     ]
   },
   {
-    "id": "group_teacher",
+    "id": "group_government_guarantee",
     "type": "group",
-    "label": "二、师资配备",
+    "label": "二、政府保障程度",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "divider_teacher_ratio",
+        "id": "divider_salary",
         "type": "divider",
-        "label": "1. 生师比",
+        "label": "工资收入",
         "width": "100%",
         "required": false
       },
       {
-        "id": "primary_teacher_ratio_qualified_count",
+        "id": "teacher_avg_salary",
         "type": "number",
-        "label": "小学生师比达标学校数",
-        "helpText": "生师比不高于19:1",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_teacher_ratio_qualified_rate",
-        "type": "number",
-        "label": "小学生师比达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_teacher_ratio_qualified_count",
-        "type": "number",
-        "label": "初中生师比达标学校数",
-        "helpText": "生师比不高于13.5:1",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_teacher_ratio_qualified_rate",
-        "type": "number",
-        "label": "初中生师比达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_bachelor",
-        "type": "divider",
-        "label": "2. 本科及以上学历专任教师比例",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_bachelor_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "本科及以上学历比例达到80%",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_bachelor_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_bachelor_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "本科及以上学历比例达到95%",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_bachelor_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_senior_title",
-        "type": "divider",
-        "label": "3. 高级职称教师比例",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_senior_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "高级职称比例达到5%",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_senior_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_senior_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "高级职称比例达到15%",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_senior_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_backbone",
-        "type": "divider",
-        "label": "4. 县级及以上骨干教师占比",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "backbone_qualified_count",
-        "type": "number",
-        "label": "达标学校数",
-        "helpText": "骨干教师占比达到1%",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "backbone_qualified_rate",
-        "type": "number",
-        "label": "达标率",
+        "label": "上年度义务教育学校教师年平均工资收入水平（不含民办学校）",
+        "placeholder": "请输入上年度义务教育学校教师年平均工资收入水平（不含民办学校）",
         "width": "50%",
         "required": true,
         "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "civil_servant_avg_salary",
+        "type": "number",
+        "label": "上年度公务员年平均工资收入水平",
+        "placeholder": "请输入上年度公务员年平均工资收入水平",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "divider_exchange",
+        "type": "divider",
+        "label": "教师交流轮岗",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "exchange_eligible_teacher_count",
+        "type": "number",
+        "label": "符合交流轮岗条件教师总数",
+        "placeholder": "请输入符合交流轮岗条件教师总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "actual_exchange_teacher_count",
+        "type": "number",
+        "label": "实际交流轮岗教师数",
+        "placeholder": "请输入实际交流轮岗教师数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "exchange_eligible_teacher_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "actual_exchange_backbone_count",
+        "type": "number",
+        "label": "实际交流骨干教师数量",
+        "placeholder": "请输入实际交流骨干教师数量",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "exchange_eligible_teacher_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "divider_high_school",
+        "type": "divider",
+        "label": "优质高中招生",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "quality_high_school_enrollment_plan",
+        "type": "number",
+        "label": "优质高中招生计划总人数",
+        "placeholder": "请输入优质高中招生计划总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "quality_high_school_quota_allocation",
+        "type": "number",
+        "label": "优质高中招生分配指标数",
+        "placeholder": "请输入优质高中招生分配指标数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "quality_high_school_enrollment_plan",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "quality_high_school_rural_quota",
+        "type": "number",
+        "label": "优质高中招生向农村学校分配指标数",
+        "placeholder": "请输入优质高中招生向农村学校分配指标数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "quality_high_school_enrollment_plan",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "divider_migrant",
+        "type": "divider",
+        "label": "随迁子女就学",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "eligible_migrant_children_count",
+        "type": "number",
+        "label": "符合条件的随迁子女总人数",
+        "placeholder": "请输入符合条件的随迁子女总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "migrant_in_public_school_count",
+        "type": "number",
+        "label": "在县域内公办学校就读的随迁子女人数",
+        "placeholder": "请输入在县域内公办学校就读的随迁子女人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "eligible_migrant_children_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "migrant_in_private_school_count",
+        "type": "number",
+        "label": "在政府购买服务的县域内民办学校就读的随迁子女人数",
+        "placeholder": "请输入在政府购买服务的县域内民办学校就读的随迁子女人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "eligible_migrant_children_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "divider_enrollment",
+        "type": "divider",
+        "label": "就近入学",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "primary_nearby_enrollment_rate",
+        "type": "number",
+        "label": "小学就近划片入学比例",
+        "placeholder": "请输入小学就近划片入学比例",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
         "unit": "%"
+      },
+      {
+        "id": "junior_nearby_enrollment_rate",
+        "type": "number",
+        "label": "初中就近划片入学比例",
+        "placeholder": "请输入初中就近划片入学比例",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "divider_materials_gov",
+        "type": "divider",
+        "label": "佐证材料",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "school_layout_material",
+        "type": "upload",
+        "label": "县域内义务教育学校规划布局合理,符合国家规定要求",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "unified_standard_material",
+        "type": "upload",
+        "label": "县域内城乡义务教育学校建设标准统一、教师编制标准统一、生均公用经费基准定额统一且不低于沈阳市标准、基本装备配置标准统一",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
       }
     ]
   },
   {
-    "id": "group_campus",
+    "id": "group_education_quality",
     "type": "group",
-    "label": "三、校园校舍",
+    "label": "三、教育质量",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "divider_campus_area",
+        "id": "divider_disabled",
         "type": "divider",
-        "label": "1. 生均校园占地面积",
+        "label": "残疾儿童少年入学",
         "width": "100%",
         "required": false
       },
       {
-        "id": "primary_campus_qualified_count",
+        "id": "disabled_children_population",
         "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "生均占地面积达到20㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_campus_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_campus_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "生均占地面积达到25㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_campus_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_building_area",
-        "type": "divider",
-        "label": "2. 生均校舍建筑面积",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_building_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "生均校舍面积达到6.4㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_building_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_building_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "生均校舍面积达到7.8㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_building_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_sports_area",
-        "type": "divider",
-        "label": "3. 生均体育运动场地面积",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_sports_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "生均体育场地面积达到7.5㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_sports_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_sports_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "生均体育场地面积达到10.2㎡",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_sports_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      }
-    ]
-  },
-  {
-    "id": "group_equipment",
-    "type": "group",
-    "label": "四、教学装备",
-    "width": "100%",
-    "required": false,
-    "children": [
-      {
-        "id": "divider_equipment_value",
-        "type": "divider",
-        "label": "1. 生均教学仪器设备值",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_equipment_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "生均设备值达到2000元",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_equipment_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_equipment_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "生均设备值达到2500元",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_equipment_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_books",
-        "type": "divider",
-        "label": "2. 生均图书册数",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_books_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "生均图书达到30册",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_books_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_books_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "生均图书达到40册",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_books_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_multimedia",
-        "type": "divider",
-        "label": "3. 网络多媒体教室占比",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "multimedia_qualified_count",
-        "type": "number",
-        "label": "达标学校数",
-        "helpText": "网络多媒体教室占比达到100%",
+        "label": "适龄残疾儿童少年人口总数",
+        "placeholder": "请输入适龄残疾儿童少年人口总数",
         "width": "50%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "所"
+        "unit": "人"
       },
       {
-        "id": "multimedia_qualified_rate",
+        "id": "disabled_children_enrollment",
         "type": "number",
-        "label": "达标率",
+        "label": "适龄残疾儿童少年入学总人数",
+        "placeholder": "请输入适龄残疾儿童少年入学总人数",
         "width": "50%",
         "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      }
-    ]
-  },
-  {
-    "id": "group_functional_rooms",
-    "type": "group",
-    "label": "五、功能教室配备",
-    "width": "100%",
-    "required": false,
-    "children": [
-      {
-        "id": "music_room_qualified_count",
-        "type": "number",
-        "label": "音乐教室达标学校数",
-        "helpText": "至少配备1间",
-        "width": "25%",
-        "required": true,
         "decimalPlaces": "整数",
-        "unit": "所"
+        "unit": "人"
       },
       {
-        "id": "music_room_qualified_rate",
-        "type": "number",
-        "label": "达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
+        "id": "divider_quality_monitor",
+        "type": "divider",
+        "label": "国家义务教育质量监测",
+        "width": "100%",
+        "required": false
       },
       {
-        "id": "art_room_qualified_count",
-        "type": "number",
-        "label": "美术教室达标学校数",
-        "helpText": "至少配备1间",
+        "id": "chinese_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测语文学业水平",
+        "placeholder": "请输入语文学业水平",
         "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "required": false,
+        "unit": "级"
       },
       {
-        "id": "art_room_qualified_rate",
+        "id": "chinese_difference_rate",
         "type": "number",
-        "label": "达标率",
+        "label": "语文校际差异率",
+        "placeholder": "请输入语文校际差异率",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "%"
       },
       {
-        "id": "science_lab_qualified_count",
-        "type": "number",
-        "label": "科学实验室达标学校数",
-        "helpText": "按要求配备实验室",
+        "id": "math_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测数学学业水平",
+        "placeholder": "请输入数学学业水平",
         "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "required": false,
+        "unit": "级"
       },
       {
-        "id": "science_lab_qualified_rate",
+        "id": "math_difference_rate",
         "type": "number",
-        "label": "达标率",
+        "label": "数学校际差异率",
+        "placeholder": "请输入数学校际差异率",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "%"
       },
       {
-        "id": "computer_room_qualified_count",
-        "type": "number",
-        "label": "计算机教室达标学校数",
-        "helpText": "至少配备1间",
+        "id": "science_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测科学学业水平",
+        "placeholder": "请输入科学学业水平",
         "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "required": false,
+        "unit": "级"
       },
       {
-        "id": "computer_room_qualified_rate",
+        "id": "science_difference_rate",
         "type": "number",
-        "label": "达标率",
+        "label": "科学校际差异率",
+        "placeholder": "请输入科学校际差异率",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "%"
       },
       {
-        "id": "library_room_qualified_count",
-        "type": "number",
-        "label": "图书室达标学校数",
-        "helpText": "至少配备1间",
+        "id": "pe_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测体育学业水平",
+        "placeholder": "请输入体育学业水平",
         "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "required": false,
+        "unit": "级"
       },
       {
-        "id": "library_room_qualified_rate",
+        "id": "pe_difference_rate",
         "type": "number",
-        "label": "达标率",
+        "label": "体育校际差异率",
+        "placeholder": "请输入体育校际差异率",
         "width": "25%",
-        "required": true,
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "%"
       },
       {
-        "id": "counseling_room_qualified_count",
-        "type": "number",
-        "label": "心理辅导室达标学校数",
-        "helpText": "至少配备1间",
+        "id": "art_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测艺术学业水平",
+        "placeholder": "请输入艺术学业水平",
         "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "required": false,
+        "unit": "级"
       },
       {
-        "id": "counseling_room_qualified_rate",
+        "id": "art_difference_rate",
         "type": "number",
-        "label": "达标率",
+        "label": "艺术校际差异率",
+        "placeholder": "请输入艺术校际差异率",
         "width": "25%",
-        "required": true,
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "%"
+      },
+      {
+        "id": "moral_achievement_level",
+        "type": "text",
+        "label": "国家义务教育质量监测德育学业水平",
+        "placeholder": "请输入德育学业水平",
+        "width": "25%",
+        "required": false,
+        "unit": "级"
+      },
+      {
+        "id": "moral_difference_rate",
+        "type": "number",
+        "label": "德育校际差异率",
+        "placeholder": "请输入德育校际差异率",
+        "width": "25%",
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "%"
       }
     ]
   },
   {
-    "id": "group_class_size",
+    "id": "group_social_recognition",
     "type": "group",
-    "label": "六、班额控制",
+    "label": "四、社会认可度",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "divider_avg_class",
-        "type": "divider",
-        "label": "1. 平均班额达标情况",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "primary_avg_class_qualified_count",
-        "type": "number",
-        "label": "小学达标学校数",
-        "helpText": "平均班额不超过45人",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "primary_avg_class_qualified_rate",
-        "type": "number",
-        "label": "小学达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "junior_avg_class_qualified_count",
-        "type": "number",
-        "label": "初中达标学校数",
-        "helpText": "平均班额不超过50人",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "junior_avg_class_qualified_rate",
-        "type": "number",
-        "label": "初中达标率",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "divider_large_class",
-        "type": "divider",
-        "label": "2. 超标准班额情况",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "large_class_school_count",
-        "type": "number",
-        "label": "存在超标准班额的学校数",
-        "helpText": "应为0所",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "large_class_elimination_rate",
-        "type": "number",
-        "label": "超标准班额消除率",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      }
-    ]
-  },
-  {
-    "id": "group_balance",
-    "type": "group",
-    "label": "七、均衡发展",
-    "width": "100%",
-    "required": false,
-    "children": [
-      {
-        "id": "school_balance_coefficient",
-        "type": "number",
-        "label": "校际均衡差异系数",
-        "helpText": "小学≤0.50，初中≤0.45",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数"
-      },
-      {
-        "id": "balance_qualified",
+        "id": "social_recognition_over_85",
         "type": "select",
-        "label": "均衡系数是否达标",
+        "label": "社会认可度达到85％以上",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_exam_enrollment",
+        "type": "select",
+        "label": "存在以考试方式招生",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_illegal_school_choice",
+        "type": "select",
+        "label": "存在违规择校行为",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_key_school_or_class",
+        "type": "select",
+        "label": "存在重点学校或重点班",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_unfilled_positions",
+        "type": "select",
+        "label": "存在"有编不补"或长期聘用编外教师的情况",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_major_incident",
+        "type": "select",
+        "label": "教育系统存在重大安全责任事故和严重违纪违规事件;有弄虚作假行为",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "has_training_regulation_failure",
+        "type": "select",
+        "label": "规范治理校外培训机构及减轻中小学课外负担不力",
         "width": "50%",
         "required": true,
         "options": [
@@ -742,51 +747,6 @@
           { "label": "否", "value": "no" }
         ]
       }
-    ]
-  },
-  {
-    "id": "divider_summary",
-    "type": "divider",
-    "label": "汇总统计",
-    "width": "100%",
-    "required": false
-  },
-  {
-    "id": "total_indicators",
-    "type": "number",
-    "label": "考核指标总数",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "整数",
-    "unit": "项"
-  },
-  {
-    "id": "qualified_indicators",
-    "type": "number",
-    "label": "达标指标数",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "整数",
-    "unit": "项"
-  },
-  {
-    "id": "overall_qualified_rate",
-    "type": "number",
-    "label": "综合达标率",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "2位小数",
-    "unit": "%"
-  },
-  {
-    "id": "overall_qualified",
-    "type": "select",
-    "label": "区县整体是否达标",
-    "width": "25%",
-    "required": false,
-    "options": [
-      { "label": "是", "value": "yes" },
-      { "label": "否", "value": "no" }
     ]
   }
 ]

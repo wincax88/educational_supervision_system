@@ -689,7 +689,13 @@ const FormToolEdit: React.FC = () => {
       case 'textarea':
         return <Input.TextArea placeholder={field.placeholder || '请输入'} rows={3} disabled />;
       case 'number':
-        return <Input placeholder={field.placeholder || '请输入数字'} disabled />;
+        return (
+          <Input
+            placeholder={field.placeholder || '请输入数字'}
+            disabled
+            addonAfter={field.unit || null}
+          />
+        );
       case 'select':
         return <Select placeholder="请选择" style={{ width: '100%' }} disabled />;
       case 'checkbox':
