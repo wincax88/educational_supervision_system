@@ -196,7 +196,10 @@ const mockElementLibrary: ElementLibrary = {
     // 5.2 残疾儿童入学率
     { id: 'Q5_06', code: 'Q5_06', name: '全县残疾儿童少年总数', elementType: '基础要素', dataType: '数字', toolId: '9', fieldId: 'disabled_children_population', fieldLabel: '三、教育质量 > 适龄残疾儿童少年人口总数' },
     { id: 'Q5_07', code: 'Q5_07', name: '残疾儿童少年入学数', elementType: '基础要素', dataType: '数字', toolId: '9', fieldId: 'disabled_children_enrollment', fieldLabel: '三、教育质量 > 适龄残疾儿童少年入学总人数' },
-    { id: 'Q5_08', code: 'Q5_08', name: '在特殊教育学校就读残疾学生数', elementType: '基础要素', dataType: '数字', toolId: '9' },
+    // 原始数组数据（学校级）
+    { id: 'Q5_A08', code: 'Q5_A08', name: '各学校特殊教育班在校生人数数组', elementType: '基础要素', dataType: '数组', toolId: '8', fieldId: 'special_education_student_count', fieldLabel: '一、基础信息 > 残疾儿童、少年特殊教育班在校生人数' },
+    // 汇总派生
+    { id: 'Q5_08', code: 'Q5_08', name: '在特殊教育学校就读残疾学生数', elementType: '派生要素', dataType: '数字', formula: 'SUM(Q5_A08)' },
     { id: 'Q5_D02', code: 'Q5_D02', name: '残疾儿童少年入学率（%）', elementType: '派生要素', dataType: '数字', formula: '(Q5_07 / Q5_06) * 100' },
     { id: 'Q5_D03', code: 'Q5_D03', name: '特教学校就读占比（%）', elementType: '派生要素', dataType: '数字', formula: '(Q5_08 / Q5_07) * 100' },
     // 5.4 教师培训经费
