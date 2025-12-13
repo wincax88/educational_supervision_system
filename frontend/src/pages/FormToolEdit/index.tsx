@@ -29,7 +29,7 @@ import {
   DownloadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dataTools, DataTool } from '../../mock/data';
+import { dataTools, DataTool, formSchemas } from '../../mock/data';
 import styles from './index.module.css';
 import DataIndicatorSelector from '../../components/DataIndicatorSelector';
 import ElementSelector from '../../components/ElementSelector';
@@ -245,6 +245,11 @@ const FormToolEdit: React.FC = () => {
       const foundTool = dataTools.find(t => t.id === id);
       if (foundTool) {
         setTool(foundTool);
+      }
+      // 从 formSchemas 加载已保存的表单字段
+      const schema = formSchemas[id];
+      if (schema && schema.length > 0) {
+        setFormFields(schema);
       }
     }
   }, [id]);
