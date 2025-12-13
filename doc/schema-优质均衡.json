@@ -1,243 +1,192 @@
 [
   {
-    "id": "group_teacher",
+    "id": "group_basic",
     "type": "group",
-    "label": "一、师资配备",
+    "label": "一、基本指标",
     "width": "100%",
     "required": false,
     "children": [
-      {
-        "id": "teacher_student_ratio",
-        "type": "number",
-        "label": "1. 生师比",
-        "placeholder": "请输入生师比",
-        "helpText": "小学不高于19:1，初中不高于13.5:1",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": ""
-      },
-      {
-        "id": "teacher_student_ratio_qualified",
+            {
+        "id": "is_rural_small_school",
         "type": "select",
-        "label": "生师比是否达标",
+        "label": "是否50人及以上但不足100人的乡村小规模学校和教学点",
         "width": "50%",
-        "required": true,
+        "required": false,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
         ]
       },
       {
-        "id": "full_time_teachers",
-        "type": "number",
-        "label": "2. 专任教师数",
-        "placeholder": "请输入专任教师数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "bachelor_degree_teachers",
-        "type": "number",
-        "label": "本科及以上学历教师数",
-        "placeholder": "请输入本科及以上学历教师数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "bachelor_degree_ratio",
-        "type": "number",
-        "label": "本科及以上学历专任教师比例",
-        "helpText": "小学达到80%，初中达到95%",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "bachelor_degree_qualified",
+        "id": "is_high_density_city_school",
         "type": "select",
-        "label": "本科学历比例是否达标",
+        "label": "是否人口密度过高的大城市中心城区学校",
         "width": "50%",
-        "required": true,
+        "required": false,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
-        ]
+        ],
+        "showWhen": {
+          "field": "is_rural_small_school",
+          "value": "no"
+        }
       },
       {
-        "id": "senior_title_teachers",
-        "type": "number",
-        "label": "3. 高级职称教师数",
-        "placeholder": "请输入高级职称教师数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "senior_title_ratio",
-        "type": "number",
-        "label": "高级职称教师比例",
-        "helpText": "小学达到5%，初中达到15%",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "senior_title_qualified",
+        "id": "is_small_class_rural_school",
         "type": "select",
-        "label": "高级职称比例是否达标",
+        "label": "是否最大班额低于30人的农村小规模学校",
         "width": "50%",
-        "required": true,
+        "required": false,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
-        ]
+        ],
+        "showWhen": {
+          "field": "is_rural_small_school",
+          "value": "no"
+        }
       },
       {
-        "id": "county_backbone_teachers",
-        "type": "number",
-        "label": "4. 县级及以上骨干教师数",
-        "placeholder": "请输入县级及以上骨干教师数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "county_backbone_ratio",
-        "type": "number",
-        "label": "县级及以上骨干教师占比",
-        "helpText": "达到1%以上",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "county_backbone_qualified",
-        "type": "select",
-        "label": "骨干教师比例是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "group_campus",
-    "type": "group",
-    "label": "二、校园校舍",
-    "width": "100%",
-    "required": false,
-    "children": [
-      {
-        "id": "student_count",
-        "type": "number",
-        "label": "在校学生数",
-        "placeholder": "请输入在校学生数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "campus_area",
-        "type": "number",
-        "label": "1. 校园占地面积",
-        "placeholder": "请输入校园占地面积",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "平方米"
-      },
-      {
-        "id": "campus_area_per_student",
-        "type": "number",
-        "label": "生均校园占地面积",
-        "helpText": "小学达到20㎡，初中达到25㎡",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "平方米/生"
-      },
-      {
-        "id": "campus_area_qualified",
-        "type": "select",
-        "label": "生均占地面积是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
+        "id": "founding_year",
+        "type": "date",
+        "label": "建校年份",
+        "placeholder": "请选择学校建校的具体年份",
+        "width": "25%",
+        "required": true
       },
       {
         "id": "building_area",
         "type": "number",
-        "label": "2. 校舍建筑面积",
-        "placeholder": "请输入校舍建筑面积",
-        "width": "50%",
-        "required": true,
+        "label": "校舍建筑面积",
+        "placeholder": "请输入学校校舍的建筑总面积",
+        "width": "25%",
+        "required": false,
         "decimalPlaces": "2位小数",
         "unit": "平方米"
       },
       {
-        "id": "building_area_per_student",
+        "id": "physics_chemistry_biology_lab_count",
         "type": "number",
-        "label": "生均校舍建筑面积",
-        "helpText": "小学达到6.4㎡，初中达到7.8㎡",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "平方米/生"
+        "label": "理化生实验室教室间数",
+        "placeholder": "请输入学校内理化生实验室教室总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "间"
       },
       {
-        "id": "building_area_qualified",
+        "id": "physics_chemistry_biology_lab_auxiliary_count",
+        "type": "number",
+        "label": "理化生实验室辅房间数",
+        "placeholder": "请输入学校内理化生实验室辅房总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "间"
+      },
+      {
+        "id": "comprehensive_practice_room_count",
+        "type": "number",
+        "label": "综合实践活动室（科技教室）套数",
+        "placeholder": "请输入学校综合实践活动室（科技教室）总套数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "套"
+      },
+      {
+        "id": "computer_total_count",
+        "type": "number",
+        "label": "学校计算机总台数",
+        "placeholder": "请输入学校学校计算机总台数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "台"
+      },
+      {
+        "id": "library_books_count",
+        "type": "number",
+        "label": "阅览室拥有的正式出版书籍册数",
+        "placeholder": "请输入学校阅览室拥有的正式出版书籍册数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "册"
+      },
+      {
+        "id": "counseling_room_individual_area_qualified",
         "type": "select",
-        "label": "生均校舍面积是否达标",
+        "label": "个别心理辅导室面积是否在10~15平方米",
         "width": "50%",
-        "required": true,
+        "required": false,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
         ]
       },
       {
-        "id": "sports_area",
-        "type": "number",
-        "label": "3. 体育运动场地面积",
-        "placeholder": "请输入体育运动场地面积",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "平方米"
-      },
-      {
-        "id": "sports_area_per_student",
-        "type": "number",
-        "label": "生均体育运动场地面积",
-        "helpText": "小学达到7.5㎡，初中达到10.2㎡",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "平方米/生"
-      },
-      {
-        "id": "sports_area_qualified",
+        "id": "counseling_room_group_area_qualified",
         "type": "select",
-        "label": "生均体育场地是否达标",
+        "label": "心理辅导室团体活动室面积≥20平方米",
         "width": "50%",
-        "required": true,
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "counseling_room_office_area_qualified",
+        "type": "select",
+        "label": "心理辅导室办公接待区面积是否≥15平方米",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "network_speed_qualified",
+        "type": "select",
+        "label": "校园网计算机网络接入传输速率≥10M",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "network_coverage_qualified",
+        "type": "select",
+        "label": "网络信息点覆盖全校所有场所，网络到桌面传输速率≥100M",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "security_room_area_qualified",
+        "type": "select",
+        "label": "安防监控室面积≥32平方米",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "security_system_qualified",
+        "type": "select",
+        "label": "监控系统在重要场所和出入口无盲点；人防、技防、物防达到省定标准；工作制度健全，制度上墙",
+        "width": "50%",
+        "required": false,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
@@ -246,139 +195,394 @@
     ]
   },
   {
-    "id": "group_equipment",
+    "id": "group_resource",
     "type": "group",
-    "label": "三、教学装备",
+    "label": "二、资源配置",
     "width": "100%",
     "required": false,
     "children": [
       {
+        "id": "divider_student",
+        "type": "divider",
+        "label": "学生信息",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "student_count",
+        "type": "number",
+        "label": "学生人数（在校人数）",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "migrant_student_count",
+        "type": "number",
+        "label": "随迁子女在校生人数",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "migrant_worker_student_count",
+        "type": "number",
+        "label": "进城务工人员随迁子女在校生人数",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "inclusive_student_count",
+        "type": "number",
+        "label": "随班就读在校生人数",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "home_teaching_student_count",
+        "type": "number",
+        "label": "送教上门在校生人数",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "special_education_student_count",
+        "type": "number",
+        "label": "残疾儿童、少年特殊教育班在校生人数",
+        "placeholder": "请输入学校内在校的学生总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_teacher",
+        "type": "divider",
+        "label": "教师信息",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "college_degree_teacher_count",
+        "type": "number",
+        "label": "专科学历教师人数",
+        "placeholder": "请输入学校内专科学历教师总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "bachelor_degree_teacher_count",
+        "type": "number",
+        "label": "本科学历教师人数",
+        "placeholder": "请输入学校内本科学历教师总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "master_degree_teacher_count",
+        "type": "number",
+        "label": "硕士研究生毕业学历教师人数",
+        "placeholder": "请输入学校内硕士研究生毕业学历教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "doctor_degree_teacher_count",
+        "type": "number",
+        "label": "博士研究生毕业学历教师人数",
+        "placeholder": "请输入学校内博士研究生毕业学历教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "county_backbone_teacher_count",
+        "type": "number",
+        "label": "县级及以上骨干教师人数",
+        "placeholder": "请输入学校内县级及以上骨干教师总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "full_time_teacher_count",
+        "type": "number",
+        "label": "专任教师总人数",
+        "placeholder": "请输入学校内专任教师总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "certified_teacher_count",
+        "type": "number",
+        "label": "持有教师资格证的专任教师人数",
+        "placeholder": "请输入学校内持有教师资格证的专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "pe_teacher_count",
+        "type": "number",
+        "label": "体育专任教师人数",
+        "placeholder": "请输入学校内体育专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "music_teacher_count",
+        "type": "number",
+        "label": "音乐专任教师人数",
+        "placeholder": "请输入学校内音乐专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "art_teacher_count",
+        "type": "number",
+        "label": "美术专任教师人数",
+        "placeholder": "请输入学校内美术专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "arts_teacher_count",
+        "type": "number",
+        "label": "艺术专任教师人数",
+        "placeholder": "请输入学校内艺术专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "pe_exchange_teacher_count",
+        "type": "number",
+        "label": "体育到校交流轮岗&兼职&走教教师人数",
+        "placeholder": "请输入学校内体育到校交流轮岗&兼职&走教教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "music_exchange_teacher_count",
+        "type": "number",
+        "label": "音乐到校交流轮岗&兼职&走教教师人数",
+        "placeholder": "请输入学校内音乐到校交流轮岗&兼职&走教教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "art_exchange_teacher_count",
+        "type": "number",
+        "label": "美术到校交流轮岗&兼职&走教教师人数",
+        "placeholder": "请输入学校内美术到校交流轮岗&兼职&走教教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "arts_exchange_teacher_count",
+        "type": "number",
+        "label": "艺术到校交流轮岗&兼职&走教教师人数",
+        "placeholder": "请输入学校内艺术到校交流轮岗&兼职&走教教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_facility",
+        "type": "divider",
+        "label": "场地设施",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teaching_auxiliary_area",
+        "type": "number",
+        "label": "教学及辅助用房总面积",
+        "placeholder": "请输入学校教学及辅助用房总面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "sports_field_area",
+        "type": "number",
+        "label": "运动场地面积",
+        "placeholder": "请输入学校运动场地面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "other_sports_field_area",
+        "type": "number",
+        "label": "校内其他专用运动场地面积",
+        "placeholder": "请输入学校校内其他专用运动场地面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "indoor_sports_area",
+        "type": "number",
+        "label": "室内体育用房面积",
+        "placeholder": "请输入学校室内体育用房面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "nearby_sports_venue_area",
+        "type": "number",
+        "label": "就近便利到达的校外周边体育场馆面积",
+        "placeholder": "请输入学校就近便利到达的校外周边体育场馆面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
         "id": "teaching_equipment_value",
         "type": "number",
-        "label": "1. 教学仪器设备值",
-        "placeholder": "请输入教学仪器设备值",
-        "width": "50%",
+        "label": "教学仪器设备资产值（账面原值）",
+        "placeholder": "请输入学校教学仪器设备资产值（账面原值）",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "2位小数",
         "unit": "万元"
       },
       {
-        "id": "equipment_per_student",
+        "id": "multimedia_classroom_count",
         "type": "number",
-        "label": "生均教学仪器设备值",
-        "helpText": "小学达到2000元，初中达到2500元",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "元/生"
-      },
-      {
-        "id": "equipment_qualified",
-        "type": "select",
-        "label": "生均设备值是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "library_books",
-        "type": "number",
-        "label": "2. 图书册数",
-        "placeholder": "请输入图书册数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "册"
-      },
-      {
-        "id": "books_per_student",
-        "type": "number",
-        "label": "生均图书册数",
-        "helpText": "小学达到30册，初中达到40册",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "册/生"
-      },
-      {
-        "id": "books_qualified",
-        "type": "select",
-        "label": "生均图书是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "network_multimedia_classrooms",
-        "type": "number",
-        "label": "3. 网络多媒体教室数",
-        "placeholder": "请输入网络多媒体教室数",
-        "width": "50%",
+        "label": "网络多媒体教室间数",
+        "placeholder": "请输入学校内网络多媒体教室间数",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "间"
-      },
-      {
-        "id": "total_classrooms",
-        "type": "number",
-        "label": "教室总数",
-        "placeholder": "请输入教室总数",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "间"
-      },
-      {
-        "id": "multimedia_ratio",
-        "type": "number",
-        "label": "网络多媒体教室占比",
-        "helpText": "达到100%",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%"
-      },
-      {
-        "id": "multimedia_qualified",
-        "type": "select",
-        "label": "多媒体教室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
       }
     ]
   },
   {
-    "id": "group_functional_rooms",
+    "id": "group_government",
     "type": "group",
-    "label": "四、功能教室",
+    "label": "三、政府保障",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "music_room",
-        "type": "number",
-        "label": "1. 音乐教室数",
-        "placeholder": "请输入音乐教室数",
-        "helpText": "至少1间",
-        "width": "50%",
+        "id": "music_classroom_list",
+        "type": "repeat",
+        "label": "音乐教室面积",
+        "width": "100%",
         "required": true,
-        "decimalPlaces": "整数",
-        "unit": "间"
+        "repeatHeaders": ["序号", "教室名称", "教室面积（平方米）"],
+        "repeatFields": [
+          {
+            "id": "music_room_index",
+            "type": "number",
+            "label": "序号",
+            "width": "20%",
+            "required": true,
+            "decimalPlaces": "整数"
+          },
+          {
+            "id": "music_room_name",
+            "type": "text",
+            "label": "教室名称",
+            "width": "40%",
+            "required": true
+          },
+          {
+            "id": "music_room_area",
+            "type": "number",
+            "label": "教室面积",
+            "width": "40%",
+            "required": true,
+            "decimalPlaces": "2位小数",
+            "unit": "平方米"
+          }
+        ]
       },
       {
-        "id": "music_room_qualified",
+        "id": "art_classroom_list",
+        "type": "repeat",
+        "label": "美术教室面积",
+        "width": "100%",
+        "required": true,
+        "repeatHeaders": ["序号", "教室名称", "教室面积（平方米）"],
+        "repeatFields": [
+          {
+            "id": "art_room_index",
+            "type": "number",
+            "label": "序号",
+            "width": "20%",
+            "required": true,
+            "decimalPlaces": "整数"
+          },
+          {
+            "id": "art_room_name",
+            "type": "text",
+            "label": "教室名称",
+            "width": "40%",
+            "required": true
+          },
+          {
+            "id": "art_room_area",
+            "type": "number",
+            "label": "教室面积",
+            "width": "40%",
+            "required": true,
+            "decimalPlaces": "2位小数",
+            "unit": "平方米"
+          }
+        ]
+      },
+      {
+        "id": "migrant_student_over_50_percent",
         "type": "select",
-        "label": "音乐教室是否达标",
+        "label": "进城务工人员随迁子女在校学生占比是否＞50%",
         "width": "50%",
         "required": true,
         "options": [
@@ -387,223 +591,700 @@
         ]
       },
       {
-        "id": "art_room",
-        "type": "number",
-        "label": "2. 美术教室数",
-        "placeholder": "请输入美术教室数",
-        "helpText": "至少1间",
-        "width": "50%",
+        "id": "class_student_list",
+        "type": "repeat",
+        "label": "班级人数",
+        "width": "100%",
         "required": true,
-        "decimalPlaces": "整数",
-        "unit": "间"
-      },
-      {
-        "id": "art_room_qualified",
-        "type": "select",
-        "label": "美术教室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
+        "repeatHeaders": ["序号", "年级", "班级名称", "人数（人）"],
+        "repeatFields": [
+          {
+            "id": "class_index",
+            "type": "number",
+            "label": "序号",
+            "width": "15%",
+            "required": true,
+            "decimalPlaces": "整数"
+          },
+          {
+            "id": "class_grade",
+            "type": "text",
+            "label": "年级",
+            "width": "25%",
+            "required": true
+          },
+          {
+            "id": "class_name",
+            "type": "text",
+            "label": "班级名称",
+            "width": "30%",
+            "required": true
+          },
+          {
+            "id": "class_student_count",
+            "type": "number",
+            "label": "人数",
+            "width": "30%",
+            "required": true,
+            "decimalPlaces": "整数",
+            "unit": "人"
+          }
         ]
       },
       {
-        "id": "science_lab",
+        "id": "special_education_funding",
         "type": "number",
-        "label": "3. 科学实验室数",
-        "placeholder": "请输入科学实验室数",
-        "helpText": "小学至少1间，初中物理、化学、生物各至少1间",
+        "label": "上年度特殊教育学生生均公用经费拨付总金额",
+        "placeholder": "请输入上年度特殊教育学生生均公用经费拨付总金额",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "元"
+      },
+      {
+        "id": "divider_staff",
+        "type": "divider",
+        "label": "教职工编制",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "staff_total_count",
+        "type": "number",
+        "label": "教职工总人数",
+        "placeholder": "请输入学校教职工总人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "staff_quota",
+        "type": "number",
+        "label": "教职工编制总额",
+        "placeholder": "请输入学校教职工编制总额",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "staff_position_total",
+        "type": "number",
+        "label": "教职工岗位总量",
+        "placeholder": "请输入学校教职工岗位总量",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "staff_in_quota_count",
+        "type": "number",
+        "label": "在编教职工数",
+        "placeholder": "请输入学校在编教职工数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_on_post_count",
+        "type": "number",
+        "label": "在编在校（岗）人数",
+        "placeholder": "请输入学校在编在校（岗）人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_teacher_count",
+        "type": "number",
+        "label": "在编专任教师人数",
+        "placeholder": "请输入学校在编专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_other_count",
+        "type": "number",
+        "label": "在编行政、教辅、工勤等其他人数",
+        "placeholder": "请输入学校在编行政、教辅、工勤等其他人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_off_post_count",
+        "type": "number",
+        "label": "在编不在校（岗）人数",
+        "placeholder": "请输入学校在编不在校（岗）人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_off_post_teacher_count",
+        "type": "number",
+        "label": "在编不在校（岗）专任教师人数",
+        "placeholder": "请输入学校在编不在校（岗）专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_in_quota_off_post_other_count",
+        "type": "number",
+        "label": "在编不在校（岗）行政、教辅、工勤等其他人数",
+        "placeholder": "请输入学校在编不在校（岗）行政、教辅、工勤等其他人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "staff_total_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "staff_on_post_off_quota_count",
+        "type": "number",
+        "label": "在校（岗）不在编人数",
+        "placeholder": "请输入学校在校（岗）不在编人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "staff_in_quota_off_post_explanation",
+        "type": "upload",
+        "label": "在编不在校（岗）情况说明",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
         "width": "50%",
+        "required": true
+      },
+      {
+        "id": "staff_on_post_off_quota_explanation",
+        "type": "upload",
+        "label": "在校（岗）不在编情况说明",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "divider_training",
+        "type": "divider",
+        "label": "培训与入学",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "trained_teacher_count",
+        "type": "number",
+        "label": "近5年培训满360学时专任教师人数",
+        "placeholder": "请输入学校近5年培训满360学时专任教师人数",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "间"
+        "unit": "人"
       },
       {
-        "id": "science_lab_qualified",
-        "type": "select",
-        "label": "科学实验室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "computer_room",
+        "id": "local_student_count",
         "type": "number",
-        "label": "4. 计算机教室数",
-        "placeholder": "请输入计算机教室数",
-        "helpText": "至少1间",
-        "width": "50%",
+        "label": "家庭住址（在）划片范围内的在校学生人数",
+        "placeholder": "请输入学校家庭住址（在）划片范围内的在校学生人数",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "间"
-      },
-      {
-        "id": "computer_room_qualified",
-        "type": "select",
-        "label": "计算机教室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "library_room",
-        "type": "number",
-        "label": "5. 图书室/阅览室数",
-        "placeholder": "请输入图书室/阅览室数",
-        "helpText": "至少1间",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "间"
-      },
-      {
-        "id": "library_room_qualified",
-        "type": "select",
-        "label": "图书室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "counseling_room",
-        "type": "number",
-        "label": "6. 心理辅导室数",
-        "placeholder": "请输入心理辅导室数",
-        "helpText": "至少1间",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "间"
-      },
-      {
-        "id": "counseling_room_qualified",
-        "type": "select",
-        "label": "心理辅导室是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
+        "unit": "人"
       }
     ]
   },
   {
-    "id": "group_class_size",
+    "id": "group_quality",
     "type": "group",
-    "label": "五、班额控制",
+    "label": "四、教育质量",
     "width": "100%",
     "required": false,
     "children": [
       {
-        "id": "total_classes",
+        "id": "graduate_count",
         "type": "number",
-        "label": "学校班级总数",
-        "placeholder": "请输入班级总数",
-        "width": "50%",
+        "label": "毕业学生人数",
+        "placeholder": "请输入学校今年毕业学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "grade7_student_count_3years_ago",
+        "type": "number",
+        "label": "毕业年级三年前初一时在校学生人数",
+        "placeholder": "请输入学校毕业年级三年前初一时在校学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "transfer_in_count_3years",
+        "type": "number",
+        "label": "毕业年级三年转入学生人数",
+        "placeholder": "请输入学校毕业年级三年转入学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "deceased_count_3years",
+        "type": "number",
+        "label": "毕业年级三年死亡学生人数",
+        "placeholder": "请输入学校毕业年级三年死亡学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "transfer_out_count_3years",
+        "type": "number",
+        "label": "毕业年级三年转出学生人数",
+        "placeholder": "请输入学校毕业年级三年转出学生总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "public_funding_total",
+        "type": "number",
+        "label": "校公用经费总数",
+        "placeholder": "请输入学校校公用经费总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "teacher_training_funding",
+        "type": "number",
+        "label": "上年度教师培训经费决算总额",
+        "placeholder": "请输入学校上年度教师培训经费决算总额",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "public_funding_settlement",
+        "type": "number",
+        "label": "上年度公用经费决算总额",
+        "placeholder": "请输入学校上年度公用经费决算总额",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      }
+    ]
+  },
+  {
+    "id": "group_other",
+    "type": "group",
+    "label": "五、其他",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "divider_health",
+        "type": "divider",
+        "label": "学生体质健康",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "health_test_student_count",
+        "type": "number",
+        "label": "上学年参加国家学生体质健康标准测试人数",
+        "placeholder": "请输入学校上学年参加国家学生体质健康标准测试人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "health_excellent_count",
+        "type": "number",
+        "label": "学生学年总分评定等级优秀学生人数",
+        "placeholder": "请输入学校学生学年总分评定等级优秀学生人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "health_test_student_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "health_good_count",
+        "type": "number",
+        "label": "学生学年总分评定等级良好学生人数",
+        "placeholder": "请输入学校学生学年总分评定等级良好学生人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "health_test_student_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "health_pass_count",
+        "type": "number",
+        "label": "学生学年总分评定等级及格学生人数",
+        "placeholder": "请输入学校学生学年总分评定等级及格学生人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "health_test_student_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "health_fail_count",
+        "type": "number",
+        "label": "学生学年总分评定等级不及格学生人数",
+        "placeholder": "请输入学校学生学年总分评定等级不及格学生人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "showWhen": {
+          "field": "health_test_student_count",
+          "condition": "filled"
+        }
+      },
+      {
+        "id": "divider_teacher_age",
+        "type": "divider",
+        "label": "教师年龄分布",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teacher_age_under_24",
+        "type": "number",
+        "label": "24岁以下专任教师人数",
+        "placeholder": "请输入学校24岁以下专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_25_29",
+        "type": "number",
+        "label": "25-29岁专任教师人数",
+        "placeholder": "请输入学校25-29岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_30_34",
+        "type": "number",
+        "label": "30-34岁专任教师人数",
+        "placeholder": "请输入学校30-34岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_35_39",
+        "type": "number",
+        "label": "35-39岁专任教师人数",
+        "placeholder": "请输入学校35-39岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_40_44",
+        "type": "number",
+        "label": "40-44岁专任教师人数",
+        "placeholder": "请输入学校40-44岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_45_49",
+        "type": "number",
+        "label": "45-49岁专任教师人数",
+        "placeholder": "请输入学校45-49岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_50_54",
+        "type": "number",
+        "label": "50-54岁专任教师人数",
+        "placeholder": "请输入学校50-54岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_55_59",
+        "type": "number",
+        "label": "55-59岁专任教师人数",
+        "placeholder": "请输入学校55-59岁专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "teacher_age_over_60",
+        "type": "number",
+        "label": "60岁以上专任教师人数",
+        "placeholder": "请输入学校60岁以上专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_grade_student",
+        "type": "divider",
+        "label": "各年级在校人数",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "grade_student_list",
+        "type": "repeat",
+        "label": "各年级在校人数",
+        "width": "100%",
+        "required": false,
+        "repeatHeaders": ["年级名称", "学生人数（人）"],
+        "repeatFields": [
+          {
+            "id": "grade_name",
+            "type": "text",
+            "label": "年级名称",
+            "width": "50%",
+            "required": true
+          },
+          {
+            "id": "grade_student_count",
+            "type": "number",
+            "label": "学生人数",
+            "width": "50%",
+            "required": true,
+            "decimalPlaces": "整数",
+            "unit": "人"
+          }
+        ]
+      },
+      {
+        "id": "divider_seats",
+        "type": "divider",
+        "label": "学位信息",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "government_purchased_seats",
+        "type": "number",
+        "label": "政府购买学位数",
+        "placeholder": "请输入政府购买学位数",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "个"
       },
       {
-        "id": "average_class_size",
+        "id": "migrant_worker_seats",
         "type": "number",
-        "label": "1. 平均班额",
-        "placeholder": "请输入平均班额",
-        "helpText": "小学不超过45人，初中不超过50人",
-        "width": "50%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "人/班"
-      },
-      {
-        "id": "average_class_size_qualified",
-        "type": "select",
-        "label": "平均班额是否达标",
-        "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
-      },
-      {
-        "id": "over_standard_classes",
-        "type": "number",
-        "label": "2. 超标准班额班级数",
-        "placeholder": "请输入超标准班额班级数",
-        "helpText": "应为0个",
-        "width": "50%",
+        "label": "用于进城务工人员随迁子女学位数",
+        "placeholder": "请输入用于进城务工人员随迁子女学位数",
+        "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "个"
       },
       {
-        "id": "over_standard_qualified",
-        "type": "select",
-        "label": "超标准班额是否达标",
+        "id": "divider_digital",
+        "type": "divider",
+        "label": "数字化设备",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "digital_terminal_count",
+        "type": "number",
+        "label": "数字终端数",
+        "placeholder": "请输入数字终端数数量",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "teacher_terminal_count",
+        "type": "number",
+        "label": "教师终端数",
+        "placeholder": "请输入教师终端数数量",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "student_terminal_count",
+        "type": "number",
+        "label": "学生终端数",
+        "placeholder": "请输入学生终端数数量",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "divider_title",
+        "type": "divider",
+        "label": "职称分布",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "senior_positive_teacher_count",
+        "type": "number",
+        "label": "正高级专任教师人数",
+        "placeholder": "请输入正高级专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "senior_deputy_teacher_count",
+        "type": "number",
+        "label": "副高级专任教师人数",
+        "placeholder": "请输入副高级专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "intermediate_teacher_count",
+        "type": "number",
+        "label": "中级专任教师人数",
+        "placeholder": "请输入中级专任教师人数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_materials",
+        "type": "divider",
+        "label": "佐证材料",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "school_charter_material",
+        "type": "upload",
+        "label": "所有学校制定章程，实现学校管理与教学信息化",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
         "width": "50%",
-        "required": true,
-        "options": [
-          { "label": "是", "value": "yes" },
-          { "label": "否", "value": "no" }
-        ]
+        "required": true
+      },
+      {
+        "id": "teacher_it_skill_material",
+        "type": "upload",
+        "label": "教师能熟练运用信息化手段组织教学，设施设备利用率达到较高水平",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "moral_education_material",
+        "type": "upload",
+        "label": "所有学校德育工作、校园文化建设水平达到良好以上",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "curriculum_material",
+        "type": "upload",
+        "label": "课程开齐开足，教学秩序规范，综合实践活动有效开展",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "workload_material",
+        "type": "upload",
+        "label": "无过重课业负担",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
       }
-    ]
-  },
-  {
-    "id": "divider_summary",
-    "type": "divider",
-    "label": "汇总信息",
-    "width": "100%",
-    "required": false
-  },
-  {
-    "id": "total_indicators",
-    "type": "number",
-    "label": "指标总数",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "整数",
-    "unit": "项"
-  },
-  {
-    "id": "qualified_indicators",
-    "type": "number",
-    "label": "达标指标数",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "整数",
-    "unit": "项"
-  },
-  {
-    "id": "qualification_rate",
-    "type": "number",
-    "label": "达标率",
-    "width": "25%",
-    "required": false,
-    "decimalPlaces": "2位小数",
-    "unit": "%"
-  },
-  {
-    "id": "overall_qualified",
-    "type": "select",
-    "label": "整体是否达标",
-    "width": "25%",
-    "required": false,
-    "options": [
-      { "label": "是", "value": "yes" },
-      { "label": "否", "value": "no" }
     ]
   }
 ]
