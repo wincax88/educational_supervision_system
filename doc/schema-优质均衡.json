@@ -513,12 +513,14 @@
     "children": [
       {
         "id": "music_classroom_list",
-        "type": "repeat",
+        "type": "dynamicList",
         "label": "音乐教室面积",
         "width": "100%",
         "required": true,
-        "repeatHeaders": ["序号", "教室名称", "教室面积（平方米）"],
-        "repeatFields": [
+        "minRows": 1,
+        "maxRows": 100,
+        "headers": ["序号", "教室名称", "教室面积（平方米）"],
+        "fields": [
           {
             "id": "music_room_index",
             "type": "number",
@@ -547,12 +549,14 @@
       },
       {
         "id": "art_classroom_list",
-        "type": "repeat",
+        "type": "dynamicList",
         "label": "美术教室面积",
         "width": "100%",
         "required": true,
-        "repeatHeaders": ["序号", "教室名称", "教室面积（平方米）"],
-        "repeatFields": [
+        "minRows": 1,
+        "maxRows": 100,
+        "headers": ["序号", "教室名称", "教室面积（平方米）"],
+        "fields": [
           {
             "id": "art_room_index",
             "type": "number",
@@ -592,12 +596,14 @@
       },
       {
         "id": "class_student_list",
-        "type": "repeat",
+        "type": "dynamicList",
         "label": "班级人数",
         "width": "100%",
         "required": true,
-        "repeatHeaders": ["序号", "年级", "班级名称", "人数（人）"],
-        "repeatFields": [
+        "minRows": 1,
+        "maxRows": 100,
+        "headers": ["序号", "年级", "班级名称", "人数（人）"],
+        "fields": [
           {
             "id": "class_index",
             "type": "number",
@@ -1108,12 +1114,14 @@
       },
       {
         "id": "grade_student_list",
-        "type": "repeat",
+        "type": "dynamicList",
         "label": "各年级在校人数",
         "width": "100%",
         "required": false,
-        "repeatHeaders": ["年级名称", "学生人数（人）"],
-        "repeatFields": [
+        "minRows": 1,
+        "maxRows": 100,
+        "headers": ["年级名称", "学生人数（人）"],
+        "fields": [
           {
             "id": "grade_name",
             "type": "text",

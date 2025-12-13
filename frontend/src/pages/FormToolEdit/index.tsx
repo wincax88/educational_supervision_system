@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
-import { Button, Tag, Tabs, Input, Select, Switch, message, Tooltip, InputNumber, Modal, Upload } from 'antd';
+import { Button, Tag, Tabs, Input, Select, Switch, message, Tooltip, InputNumber, Modal, Upload, DatePicker, TimePicker, UploadProps } from 'antd';
+import { InboxOutlined } from '@ant-design/icons';
 import {
   ArrowLeftOutlined,
   UploadOutlined,
@@ -25,6 +26,7 @@ import {
   LinkOutlined,
   DisconnectOutlined,
   PlusOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dataTools, DataTool } from '../../mock/data';
@@ -44,6 +46,7 @@ type ControlType =
   | 'date'
   | 'time'
   | 'file'
+  | 'upload'  // 兼容 schema 格式
   | 'switch'
   | 'divider'
   | 'group'
@@ -113,7 +116,11 @@ interface FormField {
   // 动态列表特有属性
   minItems?: number;
   maxItems?: number;
+  minRows?: number;  // 兼容 schema 格式
+  maxRows?: number;  // 兼容 schema 格式
   dynamicListFields?: DynamicListChildField[];
+  fields?: DynamicListChildField[];  // 兼容 schema 格式
+  headers?: string[];  // 动态列表表头
   // 映射信息
   mapping?: FieldMappingInfo | null;
 }
@@ -222,6 +229,11 @@ const FormToolEdit: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [pendingImportFields, setPendingImportFields] = useState<FormField[]>([]);
+
+  // 预览相关状态
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  // 动态列表预览数据
+  const [dynamicListData, setDynamicListData] = useState<Record<string, Record<string, any>[]>>({});
 
   useEffect(() => {
     if (id) {
@@ -479,20 +491,51 @@ const FormToolEdit: React.FC = () => {
     return true;
   };
 
+  // 标准化导入的字段格式（将 schema 格式转换为内部格式）
+  const normalizeImportedField = (field: any): FormField => {
+    const normalized = { ...field };
+
+    // 动态列表字段格式转换
+    if (field.type === 'dynamicList') {
+      // 将 fields 转换为 dynamicListFields
+      if (field.fields && !field.dynamicListFields) {
+        normalized.dynamicListFields = field.fields;
+      }
+      // 将 minRows 转换为 minItems
+      if (field.minRows !== undefined && field.minItems === undefined) {
+        normalized.minItems = field.minRows;
+      }
+      // 将 maxRows 转换为 maxItems
+      if (field.maxRows !== undefined && field.maxItems === undefined) {
+        normalized.maxItems = field.maxRows;
+      }
+    }
+
+    // 递归处理子字段
+    if (field.children && field.children.length > 0) {
+      normalized.children = field.children.map((child: any) => normalizeImportedField(child));
+    }
+
+    return normalized as FormField;
+  };
+
   // 为导入的字段生成新ID（避免ID冲突）
   const regenerateFieldIds = (fields: FormField[]): FormField[] => {
     return fields.map(field => {
+      // 先标准化字段格式
+      const normalizedField = normalizeImportedField(field);
+
       const newId = `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const newField = { ...field, id: newId };
+      const newField = { ...normalizedField, id: newId };
 
       // 递归处理子字段
-      if (field.children && field.children.length > 0) {
-        newField.children = regenerateFieldIds(field.children);
+      if (normalizedField.children && normalizedField.children.length > 0) {
+        newField.children = regenerateFieldIds(normalizedField.children);
       }
 
       // 处理动态列表字段
-      if (field.dynamicListFields && field.dynamicListFields.length > 0) {
-        newField.dynamicListFields = field.dynamicListFields.map(df => ({
+      if (newField.dynamicListFields && newField.dynamicListFields.length > 0) {
+        newField.dynamicListFields = newField.dynamicListFields.map(df => ({
           ...df,
           id: `dlf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         }));
@@ -608,6 +651,82 @@ const FormToolEdit: React.FC = () => {
     setPendingImportFields([]);
   };
 
+  // 初始化动态列表预览数据
+  const initDynamicListData = (fieldId: string, fields: DynamicListChildField[] | undefined, minRows: number = 1) => {
+    if (!dynamicListData[fieldId]) {
+      const initialRows: Record<string, any>[] = [];
+      for (let i = 0; i < minRows; i++) {
+        const row: Record<string, any> = {};
+        fields?.forEach(f => {
+          row[f.id] = '';
+        });
+        initialRows.push(row);
+      }
+      setDynamicListData(prev => ({ ...prev, [fieldId]: initialRows }));
+    }
+  };
+
+  // 添加动态列表行
+  const handleAddDynamicListRow = (fieldId: string, fields: DynamicListChildField[] | undefined, maxRows: number = 100) => {
+    const currentRows = dynamicListData[fieldId] || [];
+    if (currentRows.length >= maxRows) {
+      message.warning(`最多只能添加 ${maxRows} 行`);
+      return;
+    }
+    const newRow: Record<string, any> = {};
+    fields?.forEach(f => {
+      newRow[f.id] = '';
+    });
+    setDynamicListData(prev => ({
+      ...prev,
+      [fieldId]: [...currentRows, newRow],
+    }));
+  };
+
+  // 删除动态列表行
+  const handleDeleteDynamicListRow = (fieldId: string, rowIndex: number, minRows: number = 1) => {
+    const currentRows = dynamicListData[fieldId] || [];
+    if (currentRows.length <= minRows) {
+      message.warning(`至少需要保留 ${minRows} 行`);
+      return;
+    }
+    setDynamicListData(prev => ({
+      ...prev,
+      [fieldId]: currentRows.filter((_, i) => i !== rowIndex),
+    }));
+  };
+
+  // 更新动态列表单元格
+  const handleUpdateDynamicListCell = (fieldId: string, rowIndex: number, cellId: string, value: any) => {
+    setDynamicListData(prev => {
+      const rows = [...(prev[fieldId] || [])];
+      if (rows[rowIndex]) {
+        rows[rowIndex] = { ...rows[rowIndex], [cellId]: value };
+      }
+      return { ...prev, [fieldId]: rows };
+    });
+  };
+
+  // 导出表单
+  const handleExport = () => {
+    if (formFields.length === 0) {
+      message.warning('当前表单没有字段，无法导出');
+      return;
+    }
+
+    const exportData = JSON.stringify(formFields, null, 2);
+    const blob = new Blob([exportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${tool?.name || '表单'}_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    message.success('表单导出成功');
+  };
+
   // 更新选项
   const handleUpdateOptions = (optionIndex: number, value: string) => {
     if (!selectedField || !selectedField.options) return;
@@ -716,6 +835,13 @@ const FormToolEdit: React.FC = () => {
         return <Input placeholder="选择时间" disabled suffix={<ClockCircleOutlined />} />;
       case 'file':
         return <Button icon={<CloudUploadOutlined />} disabled>上传文件</Button>;
+      case 'upload':
+        return (
+          <div className={styles.uploadPreview}>
+            <CloudUploadOutlined className={styles.uploadIcon} />
+            <span>点击或拖拽上传</span>
+          </div>
+        );
       case 'switch':
         return <Switch disabled />;
       case 'divider':
@@ -821,6 +947,325 @@ const FormToolEdit: React.FC = () => {
     }
   };
 
+  // 渲染预览表单中的字段
+  const renderPreviewFormField = (field: FormField) => {
+    const fieldStyle = { width: field.width };
+
+    switch (field.type) {
+      case 'text':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <Input placeholder={field.placeholder || '请输入'} />
+          </div>
+        );
+
+      case 'textarea':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <Input.TextArea placeholder={field.placeholder || '请输入'} rows={3} />
+          </div>
+        );
+
+      case 'number':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            {field.unit && <div className={styles.previewFieldUnit}>单位：{field.unit}</div>}
+            <InputNumber
+              placeholder={field.placeholder || '请输入数字'}
+              addonAfter={field.unit || null}
+              style={{ width: '100%' }}
+              precision={
+                field.decimalPlaces === '1位小数'
+                  ? 1
+                  : field.decimalPlaces === '2位小数'
+                  ? 2
+                  : 0
+              }
+            />
+          </div>
+        );
+
+      case 'select':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <Select
+              placeholder="请选择"
+              style={{ width: '100%' }}
+              options={field.options?.map(opt => ({ label: opt.label, value: opt.value }))}
+            />
+          </div>
+        );
+
+      case 'checkbox':
+      case 'radio':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <div className={`${styles.previewOptionsGroup} ${field.optionLayout === 'vertical' ? styles.vertical : ''}`}>
+              {field.options?.map((opt, i) => (
+                <span key={i} className={styles.previewOptionItem}>
+                  {field.type === 'radio' ? <CheckCircleOutlined /> : <CheckSquareOutlined />}
+                  {opt.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'date':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <DatePicker placeholder="年 /月/日" style={{ width: '100%' }} />
+          </div>
+        );
+
+      case 'time':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <TimePicker placeholder="选择时间" style={{ width: '100%' }} />
+          </div>
+        );
+
+      case 'file':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <Button icon={<CloudUploadOutlined />}>上传文件</Button>
+          </div>
+        );
+
+      case 'upload':
+        const uploadProps: UploadProps = {
+          name: 'file',
+          multiple: true,
+          action: '#',
+          beforeUpload: () => false, // 阻止自动上传，仅预览
+        };
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            {field.helpText && <div className={styles.previewFieldHelpText}>{field.helpText}</div>}
+            <Upload.Dragger {...uploadProps} className={styles.previewUploadDragger}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">{field.placeholder || '点击或拖拽文件到此区域上传'}</p>
+              <p className="ant-upload-hint">支持单个或批量上传</p>
+            </Upload.Dragger>
+          </div>
+        );
+
+      case 'switch':
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={fieldStyle}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <div className={styles.previewSwitchWrapper}>
+              <Switch /> <span className={styles.previewSwitchLabel}>开关</span>
+            </div>
+          </div>
+        );
+
+      case 'divider':
+        return (
+          <div key={field.id} className={styles.previewDivider} style={{ width: '100%' }}>
+            <div className={styles.previewDividerLine} />
+          </div>
+        );
+
+      case 'group':
+        return (
+          <div key={field.id} className={styles.previewGroup} style={{ width: '100%' }}>
+            <div className={styles.previewGroupTitle}>{field.label}</div>
+            <div className={styles.previewGroupContent}>
+              {field.children?.map(childField => renderPreviewFormField(childField))}
+            </div>
+          </div>
+        );
+
+      case 'dynamicList':
+        // 兼容 dynamicListFields 和 fields 两种格式
+        const listFields = field.dynamicListFields || field.fields || [];
+        const minRowCount = field.minItems || field.minRows || 1;
+        const maxRowCount = field.maxItems || field.maxRows || 100;
+
+        // 初始化动态列表数据
+        if (!dynamicListData[field.id]) {
+          setTimeout(() => initDynamicListData(field.id, listFields, minRowCount), 0);
+        }
+        const rows = dynamicListData[field.id] || [];
+        const hasSerialField = listFields.some(f =>
+          f.label.includes('序号') || f.id.includes('index') || f.id.includes('serial')
+        );
+
+        return (
+          <div key={field.id} className={styles.previewFieldItem} style={{ width: '100%' }}>
+            <div className={styles.previewFieldLabel}>
+              {field.label}
+              {field.required && <span className={styles.previewRequiredMark}>*</span>}
+            </div>
+            <div className={styles.previewDynamicListTable}>
+              <table className={styles.dynamicTable}>
+                <thead>
+                  <tr>
+                    {!hasSerialField && <th style={{ width: 60 }}>序号</th>}
+                    {listFields.map(childField => (
+                      <th key={childField.id}>{childField.label}</th>
+                    ))}
+                    <th style={{ width: 80 }}>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {!hasSerialField && <td className={styles.serialCell}>{rowIndex + 1}</td>}
+                      {listFields.map(childField => {
+                        // 如果是序号字段，自动填充
+                        const isSerialField = childField.label.includes('序号') ||
+                          childField.id.includes('index') || childField.id.includes('serial');
+
+                        if (isSerialField) {
+                          return (
+                            <td key={childField.id}>
+                              <InputNumber
+                                value={rowIndex + 1}
+                                disabled
+                                style={{ width: '100%' }}
+                              />
+                            </td>
+                          );
+                        }
+
+                        // 根据字段类型渲染不同控件
+                        switch (childField.type) {
+                          case 'number':
+                            return (
+                              <td key={childField.id}>
+                                <InputNumber
+                                  value={row[childField.id]}
+                                  onChange={(value) => handleUpdateDynamicListCell(field.id, rowIndex, childField.id, value)}
+                                  placeholder={`请输入${childField.label}`}
+                                  style={{ width: '100%' }}
+                                />
+                              </td>
+                            );
+                          case 'select':
+                            return (
+                              <td key={childField.id}>
+                                <Select
+                                  value={row[childField.id]}
+                                  onChange={(value) => handleUpdateDynamicListCell(field.id, rowIndex, childField.id, value)}
+                                  placeholder="请选择"
+                                  style={{ width: '100%' }}
+                                  options={childField.options}
+                                />
+                              </td>
+                            );
+                          case 'date':
+                            return (
+                              <td key={childField.id}>
+                                <DatePicker
+                                  style={{ width: '100%' }}
+                                  placeholder="选择日期"
+                                />
+                              </td>
+                            );
+                          case 'time':
+                            return (
+                              <td key={childField.id}>
+                                <TimePicker
+                                  style={{ width: '100%' }}
+                                  placeholder="选择时间"
+                                />
+                              </td>
+                            );
+                          case 'textarea':
+                            return (
+                              <td key={childField.id}>
+                                <Input.TextArea
+                                  value={row[childField.id]}
+                                  onChange={(e) => handleUpdateDynamicListCell(field.id, rowIndex, childField.id, e.target.value)}
+                                  placeholder={`请输入${childField.label}`}
+                                  rows={1}
+                                />
+                              </td>
+                            );
+                          default:
+                            return (
+                              <td key={childField.id}>
+                                <Input
+                                  value={row[childField.id]}
+                                  onChange={(e) => handleUpdateDynamicListCell(field.id, rowIndex, childField.id, e.target.value)}
+                                  placeholder={`请输入${childField.label}`}
+                                />
+                              </td>
+                            );
+                        }
+                      })}
+                      <td className={styles.actionCell}>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeleteDynamicListRow(field.id, rowIndex, minRowCount)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={() => handleAddDynamicListRow(field.id, listFields, maxRowCount)}
+                className={styles.addRowBtn}
+              >
+                增加一行
+              </Button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (!tool) {
     return <div className={styles.formToolEditPage}>加载中...</div>;
   }
@@ -898,10 +1343,13 @@ const FormToolEdit: React.FC = () => {
               <Button icon={<UploadOutlined />} onClick={handleImportClick}>
                 导入
               </Button>
+              <Button icon={<DownloadOutlined />} onClick={handleExport}>
+                导出
+              </Button>
               <Button icon={<DeleteOutlined />} danger onClick={handleClearForm}>
                 清除数据
               </Button>
-              <Button icon={<EyeOutlined />}>在新窗口预览</Button>
+              <Button icon={<EyeOutlined />} onClick={() => setPreviewModalVisible(true)}>预览</Button>
             </div>
           </div>
 
@@ -1455,6 +1903,31 @@ const FormToolEdit: React.FC = () => {
           <li><strong>追加到末尾</strong>：保留现有字段，将新字段添加到表单末尾</li>
           <li><strong>覆盖现有字段</strong>：清空现有字段，只保留导入的字段</li>
         </ul>
+      </Modal>
+
+      {/* 预览弹窗 */}
+      <Modal
+        title={tool.name}
+        open={previewModalVisible}
+        onCancel={() => setPreviewModalVisible(false)}
+        width={1200}
+        className={styles.previewModal}
+        footer={[
+          <Button key="close" onClick={() => setPreviewModalVisible(false)}>
+            关闭
+          </Button>,
+          <Button key="submit" type="primary">
+            提交
+          </Button>,
+        ]}
+      >
+        <div className={styles.previewModalContent}>
+          <p className={styles.previewDescription}>{tool.description}</p>
+          <div className={styles.previewFormName}>{tool.name}</div>
+          <div className={styles.previewFormFields}>
+            {formFields.map(field => renderPreviewFormField(field))}
+          </div>
+        </div>
       </Modal>
     </div>
   );
