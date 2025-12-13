@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input, Tag, Modal, Form, message } from 'antd';
+import { Button, Input, Tag, Modal, Form, message, Popconfirm } from 'antd';
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -9,6 +9,7 @@ import {
   AppstoreOutlined,
   EyeOutlined,
   CloseOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { elementLibraries, elementLibraryStats, elements } from '../../mock/data';
@@ -55,6 +56,32 @@ const ElementLibrary: React.FC = () => {
   const handleShowInfo = (library: typeof elementLibraries[0]) => {
     setSelectedLibrary(library);
     setInfoModalVisible(true);
+  };
+
+  // 发布要素库
+  const handlePublish = (libraryId: string) => {
+    setLibraries(prev => prev.map(lib =>
+      lib.id === libraryId
+        ? { ...lib, status: 'published' as const, updatedAt: new Date().toISOString().split('T')[0] }
+        : lib
+    ));
+    message.success('发布成功');
+  };
+
+  // 取消发布
+  const handleUnpublish = (libraryId: string) => {
+    setLibraries(prev => prev.map(lib =>
+      lib.id === libraryId
+        ? { ...lib, status: 'draft' as const, updatedAt: new Date().toISOString().split('T')[0] }
+        : lib
+    ));
+    message.success('已取消发布');
+  };
+
+  // 删除要素库
+  const handleDelete = (libraryId: string) => {
+    setLibraries(prev => prev.filter(lib => lib.id !== libraryId));
+    message.success('删除成功');
   };
 
   return (
@@ -138,16 +165,45 @@ const ElementLibrary: React.FC = () => {
                 <EyeOutlined /> 基础信息
               </span>
               {library.status === 'published' ? (
-                <span className={styles.actionBtn}>
-                  <CloseOutlined /> 取消发布
-                </span>
+                <Popconfirm
+                  title="取消发布"
+                  description="确定要取消发布该要素库吗？取消后将无法在项目中使用。"
+                  onConfirm={() => handleUnpublish(library.id)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <span className={styles.actionBtn}>
+                    <CloseOutlined /> 取消发布
+                  </span>
+                </Popconfirm>
               ) : (
                 <>
                   <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/elements/${library.id}/edit`)}>
                     编辑要素
                   </span>
-                  <span className={styles.actionBtn}>发布</span>
-                  <span className={`${styles.actionBtn} ${styles.danger}`}>删除</span>
+                  <Popconfirm
+                    title="发布要素库"
+                    description="确定要发布该要素库吗？发布后可在项目中使用。"
+                    onConfirm={() => handlePublish(library.id)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <span className={styles.actionBtn}>
+                      <CheckCircleOutlined /> 发布
+                    </span>
+                  </Popconfirm>
+                  <Popconfirm
+                    title="删除要素库"
+                    description="确定要删除该要素库吗？此操作不可恢复。"
+                    onConfirm={() => handleDelete(library.id)}
+                    okText="确定"
+                    cancelText="取消"
+                    okButtonProps={{ danger: true }}
+                  >
+                    <span className={`${styles.actionBtn} ${styles.danger}`}>
+                      <DeleteOutlined /> 删除
+                    </span>
+                  </Popconfirm>
                 </>
               )}
             </div>
