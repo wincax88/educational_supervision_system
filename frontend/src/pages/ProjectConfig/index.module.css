@@ -11,6 +11,7 @@
   min-height: 400px;
 }
 
+/* ==================== 页面头部 ==================== */
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -27,7 +28,7 @@
 .headerRight {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .backBtn {
@@ -36,6 +37,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  font-size: 14px;
 }
 
 .backBtn:hover {
@@ -44,114 +46,581 @@
 
 .pageTitle {
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
   color: #333;
   margin: 0;
 }
 
-/* 项目信息卡片 */
-.projectCard {
+/* ==================== 项目信息卡片 ==================== */
+.projectInfoCard {
   margin-bottom: 20px;
   border-radius: 8px;
+  border: 1px solid #e8e8e8;
 }
 
-/* 工具配置卡片 */
-.toolsCard {
-  border-radius: 8px;
+.projectHeader {
+  margin-bottom: 12px;
 }
 
-.toolsTable :global(.ant-table-row) {
-  cursor: default;
-}
-
-.toolName {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-}
-
-.toolDesc {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 300px;
-}
-
-/* Tab 操作区 */
-.tabActions {
+.projectTitleRow {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
-/* Tab 标签内的 Tag */
-.tabTag {
-  font-size: 12px;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-/* 映射统计区 */
-.mappingStats {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: #fafafa;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
-.statsItem {
+.projectName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.indicatorLink {
+  color: #1890ff;
+  font-size: 14px;
+  padding: 4px 12px;
+  background: #e6f7ff;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.indicatorLink:hover {
+  background: #bae7ff;
+}
+
+.projectMeta {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.statsItem span {
+.projectPeriod {
   color: #666;
   font-size: 14px;
 }
 
-.filterGroup {
+.statusTag {
+  margin-left: auto;
+}
+
+.projectDesc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.attachmentList {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.attachmentTag {
+  cursor: pointer;
+  padding: 4px 12px;
+}
+
+.attachmentTag:hover {
+  opacity: 0.8;
+}
+
+/* ==================== 主内容卡片 ==================== */
+.mainCard {
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.mainTabs :global(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.mainTabs :global(.ant-tabs-tab) {
+  padding: 12px 24px;
+  font-size: 14px;
+}
+
+.mainTabs :global(.ant-tabs-tab-active) {
+  font-weight: 500;
+}
+
+/* ==================== 样本配置Tab ==================== */
+.sampleTab {
+  padding: 20px 0;
+}
+
+.sampleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.sampleActions {
+  display: flex;
+  gap: 12px;
+}
+
+/* 数据对象配置信息 */
+.dataConfigInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #e6f7ff;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.configIcon {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.configLabel {
+  color: #333;
+  font-weight: 500;
+}
+
+.configTags {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* 映射表格 */
-.mappingTable :global(.ant-table-thead > tr > th) {
+.levelTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+
+.levelLine {
+  color: #999;
+  font-family: monospace;
+}
+
+/* 样本列表 */
+.sampleList {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.districtItem {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.districtItem:last-child {
+  border-bottom: none;
+}
+
+.districtRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.districtRow:hover {
+  background: #f5f5f5;
+}
+
+.districtLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expandIcon {
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+}
+
+.expandIcon:hover {
+  color: #1890ff;
+}
+
+.districtIcon,
+.schoolIcon,
+.teacherIcon {
+  font-size: 18px;
+}
+
+.districtName {
+  font-weight: 500;
+  color: #333;
+  font-size: 15px;
+}
+
+.schoolCount {
+  color: #999;
+  font-size: 13px;
+}
+
+/* 学校列表 */
+.schoolList {
+  padding-left: 40px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.schoolItem {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.schoolItem:last-child {
+  border-bottom: none;
+}
+
+.schoolRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px 12px 0;
+}
+
+.schoolLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.schoolName {
+  color: #333;
+  font-size: 14px;
+}
+
+/* 教师样本区域 */
+.teacherSection {
+  padding: 12px 20px 12px 32px;
   background: #fafafa;
 }
 
-/* 指标显示 */
-.indicatorCode {
-  font-family: monospace;
+.teacherHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacherLabel {
+  color: #666;
+  font-size: 14px;
+}
+
+.teacherModeSelect {
+  width: 140px;
+}
+
+.teacherList {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacherTag {
+  margin: 0;
+}
+
+/* ==================== 人员配置Tab ==================== */
+.personnelTab {
+  padding: 20px 0;
+}
+
+.personnelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.personnelActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchInput {
+  width: 200px;
+}
+
+/* 角色分组 */
+.roleSection {
+  margin-bottom: 24px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.roleTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.roleTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roleName {
+  font-weight: 600;
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.roleDesc {
+  color: #f5222d;
+  font-size: 13px;
+}
+
+.roleCount {
+  color: #1890ff;
+  font-size: 13px;
+}
+
+.personnelTable {
+  margin: 0;
+}
+
+.personnelTable :global(.ant-table-thead > tr > th) {
+  background: #fff;
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.personnelTable :global(.ant-table-tbody > tr > td) {
+  padding: 12px 16px;
+}
+
+.personName {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.moreLink {
+  text-align: right;
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* ==================== 弹窗样式 ==================== */
+.modalSubtitle {
+  color: #666;
+  margin: -8px 0 16px 0;
+  font-size: 14px;
+}
+
+.formHint {
+  color: #999;
+  font-size: 12px;
+  margin: -8px 0 16px 0;
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 0;
+  margin-top: 24px;
+}
+
+/* 导入人员弹窗 */
+.importGuide {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.guideTitle {
+  color: #1890ff;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+}
+
+.guideList {
+  margin: 0;
+  padding-left: 20px;
+  color: #333;
+  font-size: 13px;
+}
+
+.guideList li {
+  margin-bottom: 8px;
+}
+
+.guideItem {
+  list-style: none;
+  margin-left: -20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guideIcon {
+  color: #52c41a;
+  font-size: 14px;
+}
+
+.guideIconNew {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.guideIconWarn {
+  color: #faad14;
+  font-size: 14px;
+}
+
+.guideNote {
+  color: #666;
+  font-size: 12px;
+  margin: 12px 0 0 0;
+}
+
+.templateSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.templateInfo h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.templateInfo p {
+  margin: 0;
   font-size: 12px;
   color: #999;
 }
 
-.indicatorName {
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
+.uploadSection {
+  margin-top: 20px;
 }
 
-/* 映射提示 */
-.mappingTip {
+.uploadDragger {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px 20px;
+}
+
+.uploadDragger:hover {
+  border-color: #1890ff;
+}
+
+.uploadIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.uploadText {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.uploadButtons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.uploadHint {
+  color: #999;
+  font-size: 12px;
+}
+
+/* 导入预览 */
+.importFilter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filterTag {
+  cursor: pointer;
+  padding: 4px 12px;
+}
+
+.filterTag:hover {
+  opacity: 0.8;
+}
+
+.importStats {
   margin-top: 16px;
   padding: 12px 16px;
-  background: #f6ffed;
-  border: 1px solid #b7eb8f;
+  background: #fafafa;
   border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.statConfirmed {
   color: #52c41a;
+  margin-right: 16px;
+}
+
+.statNew {
+  color: #1890ff;
+  margin-right: 16px;
+}
+
+.statConflict {
+  color: #faad14;
+}
+
+/* 更多人员弹窗 */
+.moreModalSearch {
+  margin-bottom: 16px;
+}
+
+/* 配置样本数据对象弹窗 */
+.sampleConfigList {
+  padding: 16px 0;
+}
+
+.configItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.configTip {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  color: #ad8b00;
   font-size: 13px;
 }
 
-/* 响应式 */
+/* ==================== 响应式 ==================== */
 @media (max-width: 768px) {
   .projectConfigPage {
     padding: 16px;
@@ -163,8 +632,40 @@
     gap: 12px;
   }
 
-  .mappingStats {
+  .headerRight {
+    flex-wrap: wrap;
+  }
+
+  .projectTitleRow {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .projectMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .sampleHeader,
+  .personnelHeader {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
+  }
+
+  .sampleActions,
+  .personnelActions {
+    flex-wrap: wrap;
+  }
+
+  .dataConfigInfo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .configTags {
+    flex-wrap: wrap;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * 项目配置页面
- * 管理项目基本信息、关联的采集工具和指标映射
+ * 按照Figma设计稿重新设计
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,61 +12,178 @@ import {
   Modal,
   message,
   Spin,
-  Descriptions,
   Space,
-  Tooltip,
   Empty,
-  Switch,
   Form,
   Input,
   Select,
-  DatePicker,
   Tabs,
-  Progress,
-  Radio,
+  Checkbox,
+  Upload,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   PlusOutlined,
   DeleteOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-  PlayCircleOutlined,
-  PauseCircleOutlined,
-  CheckCircleOutlined,
-  ReloadOutlined,
-  EyeOutlined,
-  LinkOutlined,
-  DisconnectOutlined,
+  SettingOutlined,
+  UploadOutlined,
+  SearchOutlined,
+  UserAddOutlined,
+  DownOutlined,
+  RightOutlined,
+  PaperClipOutlined,
+  FileTextOutlined,
+  FilePdfOutlined,
+  FileWordOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
-import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import * as projectService from '../../services/projectService';
-import * as projectToolService from '../../services/projectToolService';
-import * as indicatorService from '../../services/indicatorService';
-import type { Project, DataIndicatorMapping, IndicatorMappingSummary } from '../../services/projectService';
-import type { ProjectTool, AvailableTool } from '../../services/projectToolService';
-import type { IndicatorSystem } from '../../services/indicatorService';
-import IndicatorTreeViewer from '../../components/IndicatorTreeViewer';
+import type { Project } from '../../services/projectService';
 import styles from './index.module.css';
 
 // Mock 数据导入
 import {
   projects as mockProjects,
-  projectTools as mockProjectTools,
-  availableToolsByProject as mockAvailableTools,
-  indicatorMappingSummaries as mockMappingSummaries,
-  indicatorSystems as mockIndicatorSystems,
-  toolSchemas as mockToolSchemas,
-  ToolSchemaField,
-  elements as mockElements,
-  elementLibraries as mockElementLibraries,
-  Element,
 } from '../../mock/data';
 
 // ==================== Mock 模式开关 ====================
 const USE_MOCK = true;
+
+// ==================== 类型定义 ====================
+
+// 人员类型
+interface Personnel {
+  id: string;
+  name: string;
+  organization: string;
+  phone: string;
+  idCard: string;
+  role: string;
+}
+
+// 样本数据对象配置
+interface SampleDataConfig {
+  district: boolean;
+  school: boolean;
+  grade: boolean;
+  class: boolean;
+  student: boolean;
+  parent: boolean;
+  department: boolean;
+  teacher: boolean;
+}
+
+// 教师样本
+interface TeacherSample {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+// 学校样本
+interface SchoolSample {
+  id: string;
+  name: string;
+  type: 'school';
+  teacherSampleMode: 'self' | 'assigned'; // 学校自行确定 / 指定具体人员
+  teachers: TeacherSample[];
+}
+
+// 区县样本
+interface DistrictSample {
+  id: string;
+  name: string;
+  type: 'district';
+  schools: SchoolSample[];
+}
+
+// 导入人员记录状态
+type ImportStatus = 'confirmed' | 'new' | 'name_conflict' | 'id_conflict' | 'phone_conflict';
+
+interface ImportRecord {
+  id: string;
+  status: ImportStatus;
+  role: string;
+  name: string;
+  organization: string;
+  phone: string;
+  idCard: string;
+}
+
+// ==================== Mock 数据 ====================
+
+const mockPersonnel: Record<string, Personnel[]> = {
+  'system_admin': [
+    { id: '1', name: 'AAA', organization: '沈阳市教育局', phone: '', idCard: '', role: 'system_admin' },
+  ],
+  'project_manager': [
+    { id: '2', name: '111', organization: '沈阳市教育局', phone: '13900000111', idCard: '210100********1111', role: 'project_manager' },
+    { id: '3', name: '222', organization: '沈阳市教育督导室', phone: '13900000222', idCard: '210100********2222', role: 'project_manager' },
+  ],
+  'data_collector': [
+    { id: '4', name: '333', organization: '和平区教育局', phone: '13900000333', idCard: '210100********3333', role: 'data_collector' },
+    { id: '5', name: '444', organization: '沈河区教育局', phone: '13900000444', idCard: '210100********4444', role: 'data_collector' },
+  ],
+  'expert': [
+    { id: '6', name: '555', organization: '东北大学', phone: '13900000555', idCard: '210100********5555', role: 'expert' },
+    { id: '7', name: '666', organization: '辽宁大学', phone: '13900000666', idCard: '210100********6666', role: 'expert' },
+  ],
+};
+
+const mockSamples: DistrictSample[] = [
+  {
+    id: 'd1',
+    name: '和平区',
+    type: 'district',
+    schools: [
+      {
+        id: 's1',
+        name: '沈阳市第一中学',
+        type: 'school',
+        teacherSampleMode: 'self',
+        teachers: [],
+      },
+      {
+        id: 's2',
+        name: '沈阳市实验学校',
+        type: 'school',
+        teacherSampleMode: 'assigned',
+        teachers: [
+          { id: 't1', name: '张老师', phone: '13800138001' },
+          { id: 't2', name: '李老师', phone: '13800138002' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'd2',
+    name: '沈河区',
+    type: 'district',
+    schools: [
+      {
+        id: 's3',
+        name: '沈河区第一小学',
+        type: 'school',
+        teacherSampleMode: 'self',
+        teachers: [],
+      },
+    ],
+  },
+];
+
+const mockImportData: ImportRecord[] = [
+  { id: '1', status: 'confirmed', role: '数据采集员', name: '王明', organization: '铁西区教育局', phone: '13900001001', idCard: '210100********1001' },
+  { id: '2', status: 'name_conflict', role: '数据采集员', name: '李华', organization: '大东区教育局新址', phone: '13900009002', idCard: '210100********1002' },
+  { id: '3', status: 'new', role: '项目管理员', name: '陈新', organization: '沈阳市督导办', phone: '13900009001', idCard: '210100********9001' },
+  { id: '4', status: 'id_conflict', role: '数据采集员', name: '张丽丽', organization: '沈北新区教育局', phone: '13900001005', idCard: '210100********1005' },
+  { id: '5', status: 'confirmed', role: '评估专家', name: '张教授', organization: '东北大学', phone: '13900002001', idCard: '210100********2001' },
+  { id: '6', status: 'phone_conflict', role: '数据采集员', name: '孙小磊', organization: '法库县教育局', phone: '13900001010', idCard: '210100********1010' },
+  { id: '7', status: 'name_conflict', role: '项目管理员', name: '111', organization: '沈阳市教育局', phone: '13900001111', idCard: '210100********9999' },
+  { id: '8', status: 'name_conflict', role: '评估专家', name: '李教授', organization: '沈阳工业大学', phone: '13900002008', idCard: '210100********2008' },
+];
+
+// ==================== 组件 ====================
 
 const ProjectConfig: React.FC = () => {
   const navigate = useNavigate();
@@ -74,39 +191,45 @@ const ProjectConfig: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
-  const [tools, setTools] = useState<ProjectTool[]>([]);
-  const [availableTools, setAvailableTools] = useState<AvailableTool[]>([]);
-  const [indicatorSystems, setIndicatorSystems] = useState<IndicatorSystem[]>([]);
-  const [mappingSummary, setMappingSummary] = useState<IndicatorMappingSummary | null>(null);
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [treeViewerVisible, setTreeViewerVisible] = useState(false);
-  const [selectedToolIds, setSelectedToolIds] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [statusChanging, setStatusChanging] = useState(false);
-  const [activeTab, setActiveTab] = useState('tools');
-  const [mappingFilter, setMappingFilter] = useState<'all' | 'mapped' | 'unmapped'>('all');
-  const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState('sample');
 
-  // 映射弹窗相关状态
-  const [mappingModalVisible, setMappingModalVisible] = useState(false);
-  const [selectedDataIndicator, setSelectedDataIndicator] = useState<DataIndicatorMapping | null>(null);
-  const [selectedToolId, setSelectedToolId] = useState<string | undefined>(undefined);
-  const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>(undefined);
-  const [toolFields, setToolFields] = useState<ToolSchemaField[]>([]);
-  const [mappingSaving, setMappingSaving] = useState(false);
-  // 要素关联相关状态
-  const [mappingMode, setMappingMode] = useState<'direct' | 'element'>('direct');
-  const [selectedElementLibraryId, setSelectedElementLibraryId] = useState<string | undefined>(undefined);
-  const [selectedElementId, setSelectedElementId] = useState<string | undefined>(undefined);
-  const [filteredElements, setFilteredElements] = useState<Element[]>([]);
+  // 人员配置相关状态
+  const [personnel, setPersonnel] = useState<Record<string, Personnel[]>>(mockPersonnel);
+  const [personnelSearch, setPersonnelSearch] = useState('');
+  const [addPersonModalVisible, setAddPersonModalVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importStep, setImportStep] = useState<'upload' | 'preview'>('upload');
+  const [importData, setImportData] = useState<ImportRecord[]>([]);
+  const [importFilter, setImportFilter] = useState<'all' | 'confirmed' | 'new' | 'conflict'>('all');
+  const [morePersonModalVisible, setMorePersonModalVisible] = useState(false);
+  const [morePersonRole, setMorePersonRole] = useState<string>('');
+  const [addPersonForm] = Form.useForm();
+
+  // 样本配置相关状态
+  const [samples, setSamples] = useState<DistrictSample[]>(mockSamples);
+  const [sampleDataConfig, setSampleDataConfig] = useState<SampleDataConfig>({
+    district: true,
+    school: true,
+    grade: false,
+    class: false,
+    student: false,
+    parent: false,
+    department: false,
+    teacher: true,
+  });
+  const [expandedDistricts, setExpandedDistricts] = useState<string[]>(['d1']);
+  const [configSampleModalVisible, setConfigSampleModalVisible] = useState(false);
+  const [addSampleModalVisible, setAddSampleModalVisible] = useState(false);
+  const [addTeacherModalVisible, setAddTeacherModalVisible] = useState(false);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [addSampleForm] = Form.useForm();
+  const [addTeacherForm] = Form.useForm();
 
   // 加载项目信息
   const loadProject = useCallback(async () => {
     if (!projectId) return;
     try {
       if (USE_MOCK) {
-        // 使用 mock 数据
         const mockProject = mockProjects.find(p => p.id === projectId);
         if (mockProject) {
           setProject(mockProject as unknown as Project);
@@ -123,848 +246,294 @@ const ProjectConfig: React.FC = () => {
     }
   }, [projectId]);
 
-  // 加载关联的工具
-  const loadTools = useCallback(async () => {
-    if (!projectId) return;
-    try {
-      if (USE_MOCK) {
-        // 使用 mock 数据
-        const tools = mockProjectTools[projectId] || [];
-        setTools(tools as ProjectTool[]);
-        return;
-      }
-      const data = await projectToolService.getProjectTools(projectId);
-      setTools(data);
-    } catch (error) {
-      console.error('加载关联工具失败:', error);
-    }
-  }, [projectId]);
-
-  // 加载可用工具
-  const loadAvailableTools = useCallback(async () => {
-    if (!projectId) return;
-    try {
-      if (USE_MOCK) {
-        // 使用 mock 数据
-        const tools = mockAvailableTools[projectId] || [];
-        setAvailableTools(tools as AvailableTool[]);
-        return;
-      }
-      const data = await projectToolService.getAvailableTools(projectId);
-      setAvailableTools(data);
-    } catch (error) {
-      console.error('加载可用工具失败:', error);
-    }
-  }, [projectId]);
-
-  // 加载指标体系列表
-  const loadIndicatorSystems = useCallback(async () => {
-    try {
-      if (USE_MOCK) {
-        // 使用 mock 数据
-        const systems = mockIndicatorSystems.filter(s => s.status === 'published');
-        setIndicatorSystems(systems as unknown as IndicatorSystem[]);
-        return;
-      }
-      const data = await indicatorService.getIndicatorSystems();
-      setIndicatorSystems(data.filter(s => s.status === 'published'));
-    } catch (error) {
-      console.error('加载指标体系失败:', error);
-    }
-  }, []);
-
-  // 加载指标映射汇总
-  const loadMappingSummary = useCallback(async () => {
-    if (!projectId) return;
-    try {
-      if (USE_MOCK) {
-        // 使用 mock 数据
-        const summary = mockMappingSummaries[projectId];
-        if (summary) {
-          setMappingSummary(summary as unknown as IndicatorMappingSummary);
-        }
-        return;
-      }
-      const data = await projectService.getIndicatorMappingSummary(projectId);
-      setMappingSummary(data);
-    } catch (error) {
-      console.error('加载指标映射失败:', error);
-    }
-  }, [projectId]);
-
   useEffect(() => {
     setLoading(true);
-    Promise.all([loadProject(), loadTools(), loadIndicatorSystems()]).finally(() => {
+    loadProject().finally(() => {
       setLoading(false);
     });
-  }, [loadProject, loadTools, loadIndicatorSystems]);
+  }, [loadProject]);
 
-  // 切换到映射 Tab 时加载映射数据
-  useEffect(() => {
-    if (activeTab === 'mapping' && !mappingSummary) {
-      loadMappingSummary();
-    }
-  }, [activeTab, mappingSummary, loadMappingSummary]);
+  // ==================== 人员配置相关处理 ====================
 
-  // 打开添加工具弹窗
-  const handleOpenAddModal = async () => {
-    await loadAvailableTools();
-    setSelectedToolIds([]);
-    setAddModalVisible(true);
+  // 添加人员
+  const handleAddPerson = async (values: any) => {
+    const newPerson: Personnel = {
+      id: `p-${Date.now()}`,
+      name: values.name,
+      organization: values.organization,
+      phone: values.phone,
+      idCard: values.idCard || '',
+      role: values.role,
+    };
+
+    setPersonnel(prev => ({
+      ...prev,
+      [values.role]: [...(prev[values.role] || []), newPerson],
+    }));
+
+    message.success('添加成功');
+    setAddPersonModalVisible(false);
+    addPersonForm.resetFields();
   };
 
-  // 打开编辑弹窗
-  const handleOpenEditModal = () => {
-    if (!project) return;
-    form.setFieldsValue({
-      name: project.name,
-      keywords: Array.isArray(project.keywords) ? project.keywords.join(', ') : project.keywords,
-      description: project.description,
-      indicatorSystemId: project.indicatorSystemId,
-      startDate: project.startDate ? dayjs(project.startDate) : null,
-      endDate: project.endDate ? dayjs(project.endDate) : null,
-    });
-    setEditModalVisible(true);
-  };
-
-  // 保存项目编辑
-  const handleSaveProject = async (values: any) => {
-    if (!projectId) return;
-    setSaving(true);
-    try {
-      const data = {
-        name: values.name,
-        keywords: values.keywords ? values.keywords.split(/[,，;；|\s]+/).filter(Boolean) : [],
-        description: values.description || '',
-        indicatorSystemId: values.indicatorSystemId,
-        startDate: values.startDate?.format('YYYY-MM-DD'),
-        endDate: values.endDate?.format('YYYY-MM-DD'),
-        status: project?.status,
-      };
-
-      if (USE_MOCK) {
-        // Mock 模式：直接更新本地状态
-        const selectedSystem = indicatorSystems.find(s => s.id === values.indicatorSystemId);
-        setProject(prev => prev ? {
+  // 删除人员
+  const handleDeletePerson = (person: Personnel) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除 "${person.name}" 吗？`,
+      okText: '删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => {
+        setPersonnel(prev => ({
           ...prev,
-          name: data.name,
-          keywords: data.keywords,
-          description: data.description,
-          indicatorSystemId: data.indicatorSystemId,
-          indicatorSystemName: selectedSystem?.name,
-          startDate: data.startDate,
-          endDate: data.endDate,
-        } : null);
-        message.success('保存成功（Mock 模式）');
-        setEditModalVisible(false);
-        setMappingSummary(null);
-      } else {
-        await projectService.updateProject(projectId, data);
-        message.success('保存成功');
-        setEditModalVisible(false);
-        setMappingSummary(null);
-        await loadProject();
-      }
-    } catch (error: any) {
-      message.error(error.message || '保存失败');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 添加工具
-  const handleAddTools = async () => {
-    if (!projectId || selectedToolIds.length === 0) return;
-
-    setSaving(true);
-    try {
-      if (USE_MOCK) {
-        // Mock 模式：将选中的可用工具添加到关联列表
-        const newTools: ProjectTool[] = selectedToolIds.map((toolId, index) => {
-          const availTool = availableTools.find(t => t.id === toolId);
-          return {
-            id: `pt-new-${Date.now()}-${index}`,
-            projectId: projectId!,
-            toolId: toolId,
-            sortOrder: tools.length + index + 1,
-            isRequired: 1,
-            createdAt: new Date().toISOString(),
-            toolName: availTool?.name || '',
-            toolType: availTool?.type || '表单',
-            toolTarget: availTool?.target || '',
-            toolDescription: availTool?.description || '',
-            toolStatus: 'published' as const,
-          };
-        });
-        setTools(prev => [...prev, ...newTools]);
-        // 从可用工具中移除已添加的
-        setAvailableTools(prev => prev.filter(t => !selectedToolIds.includes(t.id)));
-        message.success('添加成功（Mock 模式）');
-        setAddModalVisible(false);
-        setMappingSummary(null);
-      } else {
-        await projectToolService.batchAddProjectTools(projectId, selectedToolIds);
-        message.success('添加成功');
-        setAddModalVisible(false);
-        setMappingSummary(null);
-        await loadTools();
-      }
-    } catch (error: any) {
-      message.error(error.message || '添加失败');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 移除工具
-  const handleRemoveTool = (tool: ProjectTool) => {
-    Modal.confirm({
-      title: '确认移除',
-      icon: <ExclamationCircleOutlined />,
-      content: `确定要移除工具 "${tool.toolName}" 吗？`,
-      okText: '移除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: async () => {
-        if (!projectId) return;
-        try {
-          if (USE_MOCK) {
-            // Mock 模式：从关联列表中移除
-            setTools(prev => prev.filter(t => t.toolId !== tool.toolId));
-            // 将移除的工具添加回可用工具列表
-            const removedTool: AvailableTool = {
-              id: tool.toolId,
-              name: tool.toolName,
-              type: tool.toolType,
-              target: tool.toolTarget,
-              description: tool.toolDescription,
-              status: tool.toolStatus,
-              createdBy: '',
-              createdAt: tool.createdAt,
-            };
-            setAvailableTools(prev => [...prev, removedTool]);
-            message.success('移除成功（Mock 模式）');
-            setMappingSummary(null);
-          } else {
-            await projectToolService.removeProjectTool(projectId, tool.toolId);
-            message.success('移除成功');
-            setMappingSummary(null);
-            await loadTools();
-          }
-        } catch (error: any) {
-          message.error(error.message || '移除失败');
-        }
+          [person.role]: prev[person.role]?.filter(p => p.id !== person.id) || [],
+        }));
+        message.success('删除成功');
       },
     });
   };
 
-  // 切换必填状态
-  const handleToggleRequired = async (tool: ProjectTool) => {
-    if (!projectId) return;
-    try {
-      if (USE_MOCK) {
-        // Mock 模式：直接更新本地状态
-        setTools(prev => prev.map(t =>
-          t.toolId === tool.toolId
-            ? { ...t, isRequired: t.isRequired === 1 ? 0 : 1 }
-            : t
+  // 加载示例数据
+  const handleLoadSampleData = () => {
+    setImportData(mockImportData);
+    setImportStep('preview');
+  };
+
+  // 确认导入
+  const handleConfirmImport = () => {
+    const importableData = importData.filter(r => r.status === 'confirmed' || r.status === 'new');
+    // 这里应该调用API导入数据
+    message.success(`成功导入 ${importableData.length} 条记录`);
+    setImportModalVisible(false);
+    setImportStep('upload');
+    setImportData([]);
+  };
+
+  // 打开更多人员弹窗
+  const handleOpenMoreModal = (role: string) => {
+    setMorePersonRole(role);
+    setMorePersonModalVisible(true);
+  };
+
+  // ==================== 样本配置相关处理 ====================
+
+  // 切换区县展开
+  const toggleDistrictExpand = (districtId: string) => {
+    setExpandedDistricts(prev =>
+      prev.includes(districtId)
+        ? prev.filter(id => id !== districtId)
+        : [...prev, districtId]
+    );
+  };
+
+  // 保存样本数据对象配置
+  const handleSaveSampleConfig = () => {
+    message.success('配置保存成功');
+    setConfigSampleModalVisible(false);
+  };
+
+  // 添加样本（区/学校）
+  const handleAddSample = (values: any) => {
+    if (values.type === 'district') {
+      const newDistrict: DistrictSample = {
+        id: `d-${Date.now()}`,
+        name: values.name,
+        type: 'district',
+        schools: [],
+      };
+      setSamples(prev => [...prev, newDistrict]);
+    } else {
+      // 这里需要选择添加到哪个区
+      // 简化处理：添加到第一个区
+      if (samples.length > 0) {
+        const newSchool: SchoolSample = {
+          id: `s-${Date.now()}`,
+          name: values.name,
+          type: 'school',
+          teacherSampleMode: 'self',
+          teachers: [],
+        };
+        setSamples(prev => prev.map((d, idx) =>
+          idx === 0 ? { ...d, schools: [...d.schools, newSchool] } : d
         ));
-      } else {
-        await projectToolService.updateProjectTool(
-          projectId,
-          tool.toolId,
-          tool.isRequired !== 1
-        );
-        await loadTools();
       }
-    } catch (error: any) {
-      message.error(error.message || '更新失败');
     }
+    message.success('添加成功');
+    setAddSampleModalVisible(false);
+    addSampleForm.resetFields();
   };
 
-  // 状态流转操作
-  const handleStatusChange = async (action: 'start' | 'stop' | 'review' | 'complete' | 'restart') => {
-    if (!projectId) return;
-
-    const actionMap = {
-      start: { fn: projectService.startProject, msg: '启动填报', confirm: '确定要启动填报吗？启动后将开放数据填报。', newStatus: '填报中' as const },
-      stop: { fn: projectService.stopProject, msg: '中止项目', confirm: '确定要中止项目吗？中止后项目将暂停。', newStatus: '已中止' as const },
-      review: { fn: projectService.reviewProject, msg: '结束填报', confirm: '确定要结束填报吗？结束后将进入评审阶段。', newStatus: '评审中' as const },
-      complete: { fn: projectService.completeProject, msg: '完成项目', confirm: '确定要完成项目吗？完成后项目将归档。', newStatus: '已完成' as const },
-      restart: { fn: projectService.restartProject, msg: '重新启动', confirm: '确定要重新启动项目吗？', newStatus: '配置中' as const },
+  // 添加教师样本
+  const handleAddTeacher = (values: any) => {
+    const newTeacher: TeacherSample = {
+      id: `t-${Date.now()}`,
+      name: values.name,
+      phone: values.phone || '',
     };
 
-    const config = actionMap[action];
-
-    Modal.confirm({
-      title: config.msg,
-      icon: <ExclamationCircleOutlined />,
-      content: config.confirm,
-      okText: '确定',
-      cancelText: '取消',
-      onOk: async () => {
-        setStatusChanging(true);
-        try {
-          if (USE_MOCK) {
-            // Mock 模式：直接更新本地状态
-            setProject(prev => prev ? { ...prev, status: config.newStatus } : null);
-            message.success(`${config.msg}成功（Mock 模式）`);
-          } else {
-            await config.fn(projectId);
-            message.success(`${config.msg}成功`);
-            await loadProject();
-          }
-        } catch (error: any) {
-          message.error(error.message || `${config.msg}失败`);
-        } finally {
-          setStatusChanging(false);
-        }
-      },
-    });
-  };
-
-  // 打开映射弹窗
-  const handleOpenMappingModal = (record: DataIndicatorMapping) => {
-    setSelectedDataIndicator(record);
-    // 如果已有映射，预填选择
-    if (record.mapping) {
-      setSelectedToolId(record.mapping.toolId);
-      // 加载工具字段
-      const fields = mockToolSchemas[record.mapping.toolId] || [];
-      setToolFields(fields);
-      setSelectedFieldId(record.mapping.fieldId);
-    } else {
-      setSelectedToolId(undefined);
-      setSelectedFieldId(undefined);
-      setToolFields([]);
-    }
-    // 初始化要素关联状态
-    const extendedRecord = record as any; // 带有要素信息的扩展类型
-    if (extendedRecord.elementId) {
-      setMappingMode('element');
-      setSelectedElementLibraryId(extendedRecord.elementLibraryId);
-      // 加载对应库的要素
-      const libraryElements = mockElements.filter(
-        e => e.type === '基础要素' // 暂时只显示基础要素
-      );
-      setFilteredElements(libraryElements);
-      setSelectedElementId(extendedRecord.elementId);
-    } else {
-      setMappingMode('direct');
-      setSelectedElementLibraryId(undefined);
-      setSelectedElementId(undefined);
-      setFilteredElements([]);
-    }
-    setMappingModalVisible(true);
-  };
-
-  // 工具选择变化时加载字段
-  const handleToolChange = (toolId: string) => {
-    setSelectedToolId(toolId);
-    setSelectedFieldId(undefined);
-    if (USE_MOCK) {
-      const fields = mockToolSchemas[toolId] || [];
-      setToolFields(fields);
-    }
-  };
-
-  // 要素库选择变化
-  const handleElementLibraryChange = (libraryId: string) => {
-    setSelectedElementLibraryId(libraryId);
-    setSelectedElementId(undefined);
-    // 重置工具和字段选择
-    setSelectedToolId(undefined);
-    setSelectedFieldId(undefined);
-    setToolFields([]);
-    // 加载该库下的基础要素（派生要素不需要关联字段）
-    const libraryElements = mockElements.filter(e => e.type === '基础要素');
-    setFilteredElements(libraryElements);
-  };
-
-  // 要素选择变化 - 自动填充工具和字段
-  const handleElementChange = (elementId: string) => {
-    setSelectedElementId(elementId);
-    const element = mockElements.find(e => e.id === elementId);
-
-    if (element?.toolId && element?.fieldId) {
-      // 要素已关联工具和字段，自动填充
-      setSelectedToolId(element.toolId);
-      const fields = mockToolSchemas[element.toolId] || [];
-      setToolFields(fields);
-      setSelectedFieldId(element.fieldId);
-      message.info('已自动填充要素关联的工具和字段');
-    } else if (element?.type === '派生要素') {
-      message.warning('派生要素无需关联采集工具字段');
-      setSelectedToolId(undefined);
-      setSelectedFieldId(undefined);
-      setToolFields([]);
-    } else {
-      // 要素未关联字段，清空
-      setSelectedToolId(undefined);
-      setSelectedFieldId(undefined);
-      setToolFields([]);
-    }
-  };
-
-  // 映射模式切换
-  const handleMappingModeChange = (mode: 'direct' | 'element') => {
-    setMappingMode(mode);
-    if (mode === 'direct') {
-      // 切换到直接模式，清空要素选择
-      setSelectedElementLibraryId(undefined);
-      setSelectedElementId(undefined);
-      setFilteredElements([]);
-    } else {
-      // 切换到要素模式，加载要素库
-      const libraryElements = mockElements.filter(e => e.type === '基础要素');
-      setFilteredElements(libraryElements);
-    }
-  };
-
-  // 保存映射
-  const handleSaveMapping = async () => {
-    if (!selectedDataIndicator || !selectedToolId || !selectedFieldId) {
-      message.warning('请选择工具和字段');
-      return;
-    }
-
-    setMappingSaving(true);
-    try {
-      if (USE_MOCK) {
-        // Mock 模式：直接更新本地状态
-        const tool = tools.find(t => t.toolId === selectedToolId);
-        const field = toolFields.find(f => f.id === selectedFieldId);
-        const element = selectedElementId ? mockElements.find(e => e.id === selectedElementId) : null;
-        const elementLibrary = selectedElementLibraryId
-          ? mockElementLibraries.find(lib => lib.id === selectedElementLibraryId)
-          : null;
-
-        if (tool && field) {
-          setMappingSummary(prev => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              dataIndicators: prev.dataIndicators.map(item => {
-                if (item.id === selectedDataIndicator.id) {
-                  return {
-                    ...item,
-                    // 要素关联信息
-                    elementId: element?.id,
-                    elementCode: element?.code,
-                    elementName: element?.name,
-                    elementLibraryId: elementLibrary?.id,
-                    elementLibraryName: elementLibrary?.name,
-                    // 字段映射信息
-                    mapping: {
-                      toolId: selectedToolId,
-                      toolName: tool.toolName,
-                      fieldId: selectedFieldId,
-                      fieldLabel: field.label,
-                    },
-                    isMapped: true,
-                    mappingSource: mappingMode,
-                  };
-                }
-                return item;
-              }),
-              stats: {
-                ...prev.stats,
-                mapped: prev.stats.mapped + (selectedDataIndicator.isMapped ? 0 : 1),
-                unmapped: prev.stats.unmapped - (selectedDataIndicator.isMapped ? 0 : 1),
-              },
-            };
-          });
-          message.success('关联成功（Mock 模式）');
-        }
-      } else {
-        // 调用实际 API
-        // await toolService.addFieldMapping(selectedToolId, selectedFieldId, 'data_indicator', selectedDataIndicator.id);
-        message.success('关联成功');
-        await loadMappingSummary();
-      }
-      setMappingModalVisible(false);
-    } catch (error: any) {
-      message.error(error.message || '关联失败');
-    } finally {
-      setMappingSaving(false);
-    }
-  };
-
-  // 取消映射
-  const handleRemoveMapping = (record: DataIndicatorMapping) => {
-    Modal.confirm({
-      title: '确认取消关联',
-      icon: <ExclamationCircleOutlined />,
-      content: `确定要取消数据指标 "${record.name}" 的字段关联吗？`,
-      okText: '取消关联',
-      okType: 'danger',
-      cancelText: '返回',
-      onOk: async () => {
-        try {
-          if (USE_MOCK) {
-            // Mock 模式：直接更新本地状态
-            setMappingSummary(prev => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                dataIndicators: prev.dataIndicators.map(item => {
-                  if (item.id === record.id) {
-                    return {
-                      ...item,
-                      mapping: null,
-                      isMapped: false,
-                    };
-                  }
-                  return item;
-                }),
-                stats: {
-                  ...prev.stats,
-                  mapped: prev.stats.mapped - 1,
-                  unmapped: prev.stats.unmapped + 1,
-                },
-              };
-            });
-            message.success('已取消关联（Mock 模式）');
-          } else {
-            // 调用实际 API
-            // await toolService.deleteFieldMapping(record.mapping!.toolId, record.mapping!.fieldId);
-            message.success('已取消关联');
-            await loadMappingSummary();
-          }
-        } catch (error: any) {
-          message.error(error.message || '取消关联失败');
-        }
-      },
-    });
-  };
-
-  // 获取状态标签
-  const getStatusTag = (status: string) => {
-    const statusMap: Record<string, { color: string; text: string }> = {
-      '配置中': { color: 'default', text: '配置中' },
-      '填报中': { color: 'processing', text: '填报中' },
-      '评审中': { color: 'warning', text: '评审中' },
-      '已中止': { color: 'error', text: '已中止' },
-      '已完成': { color: 'success', text: '已完成' },
-    };
-    const config = statusMap[status] || { color: 'default', text: status };
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  // 渲染状态操作按钮
-  const renderStatusActions = () => {
-    if (!project) return null;
-
-    const status = project.status;
-    const buttons: React.ReactNode[] = [];
-
-    switch (status) {
-      case '配置中':
-        buttons.push(
-          <Button
-            key="start"
-            type="primary"
-            icon={<PlayCircleOutlined />}
-            onClick={() => handleStatusChange('start')}
-            loading={statusChanging}
-          >
-            启动填报
-          </Button>
-        );
-        buttons.push(
-          <Button
-            key="stop"
-            danger
-            icon={<PauseCircleOutlined />}
-            onClick={() => handleStatusChange('stop')}
-            loading={statusChanging}
-          >
-            中止项目
-          </Button>
-        );
-        break;
-      case '填报中':
-        buttons.push(
-          <Button
-            key="review"
-            type="primary"
-            icon={<CheckCircleOutlined />}
-            onClick={() => handleStatusChange('review')}
-            loading={statusChanging}
-          >
-            结束填报
-          </Button>
-        );
-        buttons.push(
-          <Button
-            key="stop"
-            danger
-            icon={<PauseCircleOutlined />}
-            onClick={() => handleStatusChange('stop')}
-            loading={statusChanging}
-          >
-            中止项目
-          </Button>
-        );
-        break;
-      case '评审中':
-        buttons.push(
-          <Button
-            key="complete"
-            type="primary"
-            icon={<CheckCircleOutlined />}
-            onClick={() => handleStatusChange('complete')}
-            loading={statusChanging}
-          >
-            完成项目
-          </Button>
-        );
-        buttons.push(
-          <Button
-            key="stop"
-            danger
-            icon={<PauseCircleOutlined />}
-            onClick={() => handleStatusChange('stop')}
-            loading={statusChanging}
-          >
-            中止项目
-          </Button>
-        );
-        break;
-      case '已中止':
-        buttons.push(
-          <Button
-            key="restart"
-            type="primary"
-            icon={<ReloadOutlined />}
-            onClick={() => handleStatusChange('restart')}
-            loading={statusChanging}
-          >
-            重新启动
-          </Button>
-        );
-        break;
-      case '已完成':
-        break;
-    }
-
-    return buttons;
-  };
-
-  // 工具表格列
-  const toolColumns: ColumnsType<ProjectTool> = [
-    {
-      title: '序号',
-      key: 'index',
-      width: 60,
-      render: (_, __, index) => index + 1,
-    },
-    {
-      title: '工具名称',
-      dataIndex: 'toolName',
-      key: 'toolName',
-      render: (name, record) => (
-        <div>
-          <div className={styles.toolName}>{name}</div>
-          <div className={styles.toolDesc}>{record.toolDescription}</div>
-        </div>
+    setSamples(prev => prev.map(district => ({
+      ...district,
+      schools: district.schools.map(school =>
+        school.id === selectedSchoolId
+          ? { ...school, teachers: [...school.teachers, newTeacher] }
+          : school
       ),
+    })));
+
+    message.success('添加成功');
+    setAddTeacherModalVisible(false);
+    addTeacherForm.resetFields();
+  };
+
+  // 删除样本
+  const handleDeleteSample = (type: 'district' | 'school', id: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: '确定要删除此样本吗？',
+      okText: '删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => {
+        if (type === 'district') {
+          setSamples(prev => prev.filter(d => d.id !== id));
+        } else {
+          setSamples(prev => prev.map(d => ({
+            ...d,
+            schools: d.schools.filter(s => s.id !== id),
+          })));
+        }
+        message.success('删除成功');
+      },
+    });
+  };
+
+  // 删除教师样本
+  const handleDeleteTeacher = (schoolId: string, teacherId: string) => {
+    setSamples(prev => prev.map(district => ({
+      ...district,
+      schools: district.schools.map(school =>
+        school.id === schoolId
+          ? { ...school, teachers: school.teachers.filter(t => t.id !== teacherId) }
+          : school
+      ),
+    })));
+  };
+
+  // 更新学校的教师样本模式
+  const handleTeacherModeChange = (schoolId: string, mode: 'self' | 'assigned') => {
+    setSamples(prev => prev.map(district => ({
+      ...district,
+      schools: district.schools.map(school =>
+        school.id === schoolId
+          ? { ...school, teacherSampleMode: mode }
+          : school
+      ),
+    })));
+  };
+
+  // ==================== 渲染辅助函数 ====================
+
+  // 获取角色显示名和描述
+  const getRoleInfo = (role: string): { name: string; desc: string } => {
+    const roleMap: Record<string, { name: string; desc: string }> = {
+      'system_admin': { name: '项目创建者/系统管理员', desc: '项目创建者，拥有本项目的所有权限' },
+      'project_manager': { name: '项目管理员', desc: '项目管理者，拥有本项目的所有权限' },
+      'data_collector': { name: '数据采集员', desc: '负责项目数据填报和采集' },
+      'expert': { name: '评估专家', desc: '负责项目评审和评估' },
+    };
+    return roleMap[role] || { name: role, desc: '' };
+  };
+
+  // 获取导入状态信息
+  const getImportStatusInfo = (status: ImportStatus) => {
+    const statusMap: Record<ImportStatus, { text: string; color: string; icon: string }> = {
+      'confirmed': { text: '已确认', color: 'success', icon: '✓' },
+      'new': { text: '新用户', color: 'processing', icon: '⊕' },
+      'name_conflict': { text: '重名冲突', color: 'warning', icon: '⚠' },
+      'id_conflict': { text: '身份证冲突', color: 'warning', icon: '⚠' },
+      'phone_conflict': { text: '手机冲突', color: 'warning', icon: '⚠' },
+    };
+    return statusMap[status];
+  };
+
+  // 人员表格列定义
+  const personnelColumns: ColumnsType<Personnel> = [
+    { title: '姓名', dataIndex: 'name', key: 'name', width: 100,
+      render: (name) => <span className={styles.personName}>{name}</span>
     },
+    { title: '单位', dataIndex: 'organization', key: 'organization', width: 180 },
+    { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
+    { title: '身份证件号码', dataIndex: 'idCard', key: 'idCard', width: 180 },
     {
-      title: '类型',
-      dataIndex: 'toolType',
-      key: 'toolType',
-      width: 80,
-      render: (type) => <Tag>{type}</Tag>,
-    },
-    {
-      title: '对象',
-      dataIndex: 'toolTarget',
-      key: 'toolTarget',
-      width: 100,
-    },
-    {
-      title: '必填',
-      key: 'isRequired',
+      title: '操作',
+      key: 'action',
       width: 80,
       render: (_, record) => (
-        <Switch
-          checked={record.isRequired === 1}
-          size="small"
-          onChange={() => handleToggleRequired(record)}
-          disabled={project?.status !== '配置中'}
+        <Button
+          type="text"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDeletePerson(record)}
         />
       ),
     },
-    {
-      title: '状态',
-      dataIndex: 'toolStatus',
-      key: 'toolStatus',
-      width: 80,
-      render: (status) => (
-        <Tag color={status === 'published' ? 'success' : 'default'}>
-          {status === 'published' ? '已发布' : '草稿'}
-        </Tag>
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 100,
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="编辑表单">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/home/balanced/tools/${record.toolId}/edit`)}
-            />
-          </Tooltip>
-          {project?.status === '配置中' && (
-            <Tooltip title="移除">
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleRemoveTool(record)}
-              />
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
   ];
 
-  // 可用工具表格列
-  const availableToolColumns: ColumnsType<AvailableTool> = [
-    {
-      title: '工具名称',
-      dataIndex: 'name',
-      key: 'name',
-      render: (name, record) => (
-        <div>
-          <div className={styles.toolName}>{name}</div>
-          <div className={styles.toolDesc}>{record.description}</div>
-        </div>
-      ),
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      width: 80,
-      render: (type) => <Tag>{type}</Tag>,
-    },
-    {
-      title: '对象',
-      dataIndex: 'target',
-      key: 'target',
-      width: 100,
-    },
-  ];
-
-  // 指标映射表格列
-  const mappingColumns: ColumnsType<DataIndicatorMapping> = [
-    {
-      title: '数据指标',
-      key: 'indicator',
-      render: (_, record) => (
-        <div>
-          <div className={styles.indicatorCode}>{record.code}</div>
-          <div className={styles.indicatorName}>{record.name}</div>
-        </div>
-      ),
-    },
-    {
-      title: '所属指标',
-      key: 'parent',
-      render: (_, record) => (
-        <span>{record.indicatorCode} {record.indicatorName}</span>
-      ),
-    },
-    {
-      title: '关联要素',
-      key: 'element',
-      width: 180,
-      render: (_, record) => {
-        const extendedRecord = record as any;
-        if (extendedRecord.elementId) {
-          return (
-            <div>
-              <div style={{ fontSize: 12, color: '#666' }}>{extendedRecord.elementCode}</div>
-              <div>{extendedRecord.elementName}</div>
-            </div>
-          );
-        }
-        return <span style={{ color: '#999' }}>-</span>;
-      },
-    },
-    {
-      title: '阈值',
-      dataIndex: 'threshold',
-      key: 'threshold',
-      width: 100,
-      render: (threshold) => threshold ? <Tag color="orange">{threshold}</Tag> : '-',
-    },
-    {
-      title: '关联工具',
-      key: 'tool',
-      width: 150,
-      render: (_, record) => record.mapping ? record.mapping.toolName : '-',
-    },
-    {
-      title: '关联字段',
-      key: 'field',
-      width: 150,
-      render: (_, record) => record.mapping ? record.mapping.fieldLabel : '-',
-    },
+  // 导入预览表格列定义
+  const importColumns: ColumnsType<ImportRecord> = [
     {
       title: '状态',
+      dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (_, record) => (
-        record.isMapped ? (
-          <Tag icon={<LinkOutlined />} color="success">已映射</Tag>
-        ) : (
-          <Tag icon={<DisconnectOutlined />} color="warning">未映射</Tag>
-        )
-      ),
+      render: (status: ImportStatus) => {
+        const info = getImportStatusInfo(status);
+        return (
+          <Tag color={info.color}>
+            {info.icon} {info.text}
+          </Tag>
+        );
+      },
     },
+    { title: '角色', dataIndex: 'role', key: 'role', width: 100 },
+    { title: '姓名', dataIndex: 'name', key: 'name', width: 80 },
+    { title: '单位', dataIndex: 'organization', key: 'organization', width: 150 },
+    { title: '电话', dataIndex: 'phone', key: 'phone', width: 120 },
+    { title: '身份证', dataIndex: 'idCard', key: 'idCard', width: 160 },
     {
       title: '操作',
       key: 'action',
-      width: 120,
+      width: 100,
       render: (_, record) => (
         <Space>
-          <Tooltip title={record.isMapped ? '修改关联' : '关联字段'}>
-            <Button
-              type="text"
-              icon={<LinkOutlined />}
-              onClick={() => handleOpenMappingModal(record)}
-              disabled={tools.length === 0}
-            />
-          </Tooltip>
-          {record.isMapped && (
-            <Tooltip title="取消关联">
-              <Button
-                type="text"
-                danger
-                icon={<DisconnectOutlined />}
-                onClick={() => handleRemoveMapping(record)}
-              />
-            </Tooltip>
+          {record.status !== 'confirmed' && record.status !== 'new' && (
+            <Button type="link" size="small">修正</Button>
           )}
+          <Button type="text" danger size="small">×</Button>
         </Space>
       ),
     },
   ];
 
-  // 过滤映射数据
-  const filteredMappings = mappingSummary?.dataIndicators.filter(item => {
-    if (mappingFilter === 'mapped') return item.isMapped;
-    if (mappingFilter === 'unmapped') return !item.isMapped;
+  // 过滤导入数据
+  const filteredImportData = importData.filter(record => {
+    if (importFilter === 'all') return true;
+    if (importFilter === 'confirmed') return record.status === 'confirmed';
+    if (importFilter === 'new') return record.status === 'new';
+    if (importFilter === 'conflict') return ['name_conflict', 'id_conflict', 'phone_conflict'].includes(record.status);
     return true;
-  }) || [];
+  });
+
+  // 统计导入数据
+  const importStats = {
+    total: importData.length,
+    confirmed: importData.filter(r => r.status === 'confirmed').length,
+    new: importData.filter(r => r.status === 'new').length,
+    conflict: importData.filter(r => ['name_conflict', 'id_conflict', 'phone_conflict'].includes(r.status)).length,
+  };
+
+  // ==================== 渲染 ====================
 
   if (loading) {
     return (
@@ -993,403 +562,685 @@ const ProjectConfig: React.FC = () => {
           <span className={styles.backBtn} onClick={() => navigate(-1)}>
             <ArrowLeftOutlined /> 返回
           </span>
-          <h1 className={styles.pageTitle}>项目配置</h1>
+          <h1 className={styles.pageTitle}>评估项目配置</h1>
         </div>
         <div className={styles.headerRight}>
-          <Space>
-            {renderStatusActions()}
-          </Space>
+          <Button icon={<FileTextOutlined />}>评估指标体系库</Button>
+          <Button icon={<SettingOutlined />}>评估要素库</Button>
+          <Button icon={<PaperClipOutlined />}>数据采集工具库</Button>
         </div>
       </div>
 
       {/* 项目信息卡片 */}
-      <Card
-        className={styles.projectCard}
-        extra={
-          project.status === '配置中' && (
-            <Button icon={<EditOutlined />} onClick={handleOpenEditModal}>
-              编辑
-            </Button>
-          )
-        }
-      >
-        <Descriptions column={3}>
-          <Descriptions.Item label="项目名称" span={2}>
-            {project.name}
-          </Descriptions.Item>
-          <Descriptions.Item label="状态">
-            {getStatusTag(project.status)}
-          </Descriptions.Item>
-          <Descriptions.Item label="指标体系" span={3}>
-            {project.indicatorSystemId ? (
-              <Space>
-                <span>{project.indicatorSystemName || project.indicatorSystemId}</span>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<EyeOutlined />}
-                  onClick={() => setTreeViewerVisible(true)}
-                >
-                  查看指标
-                </Button>
-              </Space>
-            ) : (
-              <span style={{ color: '#999' }}>未关联指标体系</span>
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label="项目描述" span={3}>
-            {project.description || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="开始日期">
-            {project.startDate || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="结束日期">
-            {project.endDate || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="创建时间">
-            {project.createdAt || '-'}
-          </Descriptions.Item>
-        </Descriptions>
+      <Card className={styles.projectInfoCard}>
+        <div className={styles.projectHeader}>
+          <div className={styles.projectTitleRow}>
+            <h2 className={styles.projectName}>{project.name}</h2>
+            <a href="#" className={styles.indicatorLink}>
+              {project.indicatorSystemName || '教育质量监测指标体系'}
+            </a>
+          </div>
+          <div className={styles.projectMeta}>
+            <span className={styles.projectPeriod}>
+              项目周期：{project.startDate || '2025-04-01'} 至 {project.endDate || '2025-06-30'}
+            </span>
+            <Tag color="blue" className={styles.statusTag}>配置中</Tag>
+          </div>
+        </div>
+        <div className={styles.projectDesc}>
+          {project.description || '针对和平区义务教育阶段学校进行教育质量监测'}
+        </div>
+        <div className={styles.attachmentList}>
+          <Tag icon={<FilePdfOutlined />} className={styles.attachmentTag} color="red">
+            政策文件.pdf (512.3 KB)
+          </Tag>
+          <Tag icon={<FilePdfOutlined />} className={styles.attachmentTag} color="red">
+            评估标准.pdf (1.2 MB)
+          </Tag>
+          <Tag icon={<FileWordOutlined />} className={styles.attachmentTag} color="blue">
+            评估说明.docx (245.6 KB)
+          </Tag>
+        </div>
       </Card>
 
-      {/* 采集工具和指标映射 Tabs */}
-      <Card className={styles.toolsCard}>
+      {/* 主内容区域 - Tab切换 */}
+      <Card className={styles.mainCard}>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
+          className={styles.mainTabs}
           items={[
             {
-              key: 'tools',
-              label: `采集工具 (${tools.length})`,
+              key: 'sample',
+              label: '评估样本',
               children: (
-                <>
-                  {project.status === '配置中' && (
-                    <div className={styles.tabActions}>
+                <div className={styles.sampleTab}>
+                  {/* 样本配置标题行 */}
+                  <div className={styles.sampleHeader}>
+                    <h3 className={styles.sectionTitle}>评估样本配置</h3>
+                    <div className={styles.sampleActions}>
                       <Button
                         type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={handleOpenAddModal}
+                        icon={<SettingOutlined />}
+                        onClick={() => setConfigSampleModalVisible(true)}
                       >
-                        添加工具
+                        配置样本
+                      </Button>
+                      <Button
+                        icon={<PlusOutlined />}
+                        onClick={() => setAddSampleModalVisible(true)}
+                      >
+                        添加样本
                       </Button>
                     </div>
-                  )}
-                  {tools.length === 0 ? (
-                    <Empty description="暂无关联的采集工具" />
-                  ) : (
-                    <Table
-                      rowKey="id"
-                      columns={toolColumns}
-                      dataSource={tools}
-                      pagination={false}
-                      className={styles.toolsTable}
-                    />
-                  )}
-                </>
+                  </div>
+
+                  {/* 当前数据对象配置 */}
+                  <div className={styles.dataConfigInfo}>
+                    <FileTextOutlined className={styles.configIcon} />
+                    <span className={styles.configLabel}>当前数据对象配置：</span>
+                    <div className={styles.configTags}>
+                      {sampleDataConfig.district && (
+                        <Tag color="blue" className={styles.levelTag}>
+                          <Checkbox checked disabled /> 区
+                        </Tag>
+                      )}
+                      {sampleDataConfig.school && (
+                        <Tag className={styles.levelTag}>
+                          <span className={styles.levelLine}>└─</span>
+                          <Checkbox checked disabled /> 校
+                        </Tag>
+                      )}
+                      {sampleDataConfig.teacher && (
+                        <Tag className={styles.levelTag}>
+                          <span className={styles.levelLine}>└─└─</span>
+                          <Checkbox checked disabled /> 教师
+                        </Tag>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 样本列表 */}
+                  <div className={styles.sampleList}>
+                    {samples.map(district => (
+                      <div key={district.id} className={styles.districtItem}>
+                        {/* 区县行 */}
+                        <div className={styles.districtRow}>
+                          <div className={styles.districtLeft}>
+                            <span
+                              className={styles.expandIcon}
+                              onClick={() => toggleDistrictExpand(district.id)}
+                            >
+                              {expandedDistricts.includes(district.id) ? <DownOutlined /> : <RightOutlined />}
+                            </span>
+                            <span className={styles.districtIcon}>🏛️</span>
+                            <span className={styles.districtName}>{district.name}</span>
+                            <Tag color="blue">区</Tag>
+                            <span className={styles.schoolCount}>({district.schools.length} 所学校)</span>
+                          </div>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleDeleteSample('district', district.id)}
+                          >
+                            删除
+                          </Button>
+                        </div>
+
+                        {/* 学校列表 */}
+                        {expandedDistricts.includes(district.id) && (
+                          <div className={styles.schoolList}>
+                            {district.schools.map(school => (
+                              <div key={school.id} className={styles.schoolItem}>
+                                {/* 学校行 */}
+                                <div className={styles.schoolRow}>
+                                  <div className={styles.schoolLeft}>
+                                    <span className={styles.schoolIcon}>🏫</span>
+                                    <span className={styles.schoolName}>{school.name}</span>
+                                    <Tag color="green">校</Tag>
+                                  </div>
+                                  <Button
+                                    type="text"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => handleDeleteSample('school', school.id)}
+                                  >
+                                    删除
+                                  </Button>
+                                </div>
+
+                                {/* 教师样本区域 */}
+                                <div className={styles.teacherSection}>
+                                  <div className={styles.teacherHeader}>
+                                    <span className={styles.teacherIcon}>👨‍🏫</span>
+                                    <span className={styles.teacherLabel}>教师样本</span>
+                                    <Select
+                                      value={school.teacherSampleMode}
+                                      onChange={(v) => handleTeacherModeChange(school.id, v)}
+                                      size="small"
+                                      className={styles.teacherModeSelect}
+                                    >
+                                      <Select.Option value="self">学校自行确定</Select.Option>
+                                      <Select.Option value="assigned">指定具体人员</Select.Option>
+                                    </Select>
+                                    {school.teacherSampleMode === 'assigned' && (
+                                      <Button
+                                        type="link"
+                                        size="small"
+                                        icon={<UserAddOutlined />}
+                                        onClick={() => {
+                                          setSelectedSchoolId(school.id);
+                                          setAddTeacherModalVisible(true);
+                                        }}
+                                      >
+                                        添加
+                                      </Button>
+                                    )}
+                                  </div>
+                                  {school.teacherSampleMode === 'assigned' && school.teachers.length > 0 && (
+                                    <div className={styles.teacherList}>
+                                      {school.teachers.map(teacher => (
+                                        <Tag
+                                          key={teacher.id}
+                                          closable
+                                          onClose={() => handleDeleteTeacher(school.id, teacher.id)}
+                                          className={styles.teacherTag}
+                                        >
+                                          {teacher.name} ({teacher.phone})
+                                        </Tag>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ),
             },
             {
-              key: 'mapping',
-              label: (
-                <span>
-                  指标映射
-                  {mappingSummary?.stats && (
-                    <Tag className={styles.tabTag} color={mappingSummary.stats.unmapped > 0 ? 'warning' : 'success'}>
-                      {mappingSummary.stats.mapped}/{mappingSummary.stats.total}
-                    </Tag>
-                  )}
-                </span>
-              ),
+              key: 'indicator',
+              label: '指标体系',
+              children: <Empty description="指标体系配置" />,
+            },
+            {
+              key: 'data',
+              label: '数据填报',
+              children: <Empty description="数据填报配置" />,
+            },
+            {
+              key: 'review',
+              label: '专家评审',
+              children: <Empty description="专家评审配置" />,
+            },
+            {
+              key: 'personnel',
+              label: '人员配置',
               children: (
-                <>
-                  {!project.indicatorSystemId ? (
-                    <Empty description="请先关联指标体系" />
-                  ) : !mappingSummary || !mappingSummary.stats ? (
-                    <div className={styles.loadingContainer}>
-                      <Spin tip="加载映射数据..." />
+                <div className={styles.personnelTab}>
+                  {/* 人员配置标题行 */}
+                  <div className={styles.personnelHeader}>
+                    <h3 className={styles.sectionTitle}>人员配置</h3>
+                    <div className={styles.personnelActions}>
+                      <Input
+                        placeholder="搜索人员"
+                        prefix={<SearchOutlined />}
+                        value={personnelSearch}
+                        onChange={e => setPersonnelSearch(e.target.value)}
+                        className={styles.searchInput}
+                      />
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setAddPersonModalVisible(true)}
+                      >
+                        添加人员
+                      </Button>
+                      <Button
+                        icon={<UploadOutlined />}
+                        onClick={() => setImportModalVisible(true)}
+                      >
+                        导入人员
+                      </Button>
                     </div>
-                  ) : (
-                    <>
-                      {/* 映射统计 */}
-                      <div className={styles.mappingStats}>
-                        <div className={styles.statsItem}>
-                          <span>映射完成度</span>
-                          <Progress
-                            percent={mappingSummary.stats.total > 0 ? Math.round((mappingSummary.stats.mapped / mappingSummary.stats.total) * 100) : 0}
-                            status={mappingSummary.stats.unmapped > 0 ? 'active' : 'success'}
-                            style={{ width: 200 }}
-                          />
-                        </div>
-                        <div className={styles.filterGroup}>
-                          <Select
-                            value={mappingFilter}
-                            onChange={setMappingFilter}
-                            style={{ width: 120 }}
-                          >
-                            <Select.Option value="all">全部 ({mappingSummary.stats.total})</Select.Option>
-                            <Select.Option value="mapped">已映射 ({mappingSummary.stats.mapped})</Select.Option>
-                            <Select.Option value="unmapped">未映射 ({mappingSummary.stats.unmapped})</Select.Option>
-                          </Select>
-                        </div>
-                      </div>
+                  </div>
 
-                      {/* 映射表格 */}
-                      {filteredMappings.length === 0 ? (
-                        <Empty description="暂无数据指标" />
-                      ) : (
+                  {/* 各角色人员列表 */}
+                  {['system_admin', 'project_manager', 'data_collector', 'expert'].map(role => {
+                    const roleInfo = getRoleInfo(role);
+                    const rolePersonnel = personnel[role] || [];
+                    const filteredPersonnel = personnelSearch
+                      ? rolePersonnel.filter(p =>
+                          p.name.includes(personnelSearch) ||
+                          p.organization.includes(personnelSearch) ||
+                          p.phone.includes(personnelSearch)
+                        )
+                      : rolePersonnel;
+
+                    return (
+                      <div key={role} className={styles.roleSection}>
+                        <div className={styles.roleTitleRow}>
+                          <div className={styles.roleTitle}>
+                            <span className={styles.roleName}>{roleInfo.name}</span>
+                            <span className={styles.roleDesc}>— {roleInfo.desc}</span>
+                          </div>
+                          <span className={styles.roleCount}>总人数：{rolePersonnel.length} 人</span>
+                        </div>
                         <Table
                           rowKey="id"
-                          columns={mappingColumns}
-                          dataSource={filteredMappings}
+                          columns={personnelColumns}
+                          dataSource={filteredPersonnel.slice(0, 3)}
                           pagination={false}
-                          className={styles.mappingTable}
+                          size="small"
+                          className={styles.personnelTable}
                         />
-                      )}
-
-                      <div className={styles.mappingTip}>
-                        提示：点击操作列的关联按钮可手动关联表单字段，也可在「采集工具」的表单设计器中配置「评价依据」
+                        {rolePersonnel.length > 3 && (
+                          <div className={styles.moreLink}>
+                            <Button type="link" onClick={() => handleOpenMoreModal(role)}>
+                              更多 <RightOutlined />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    </>
-                  )}
-                </>
+                    );
+                  })}
+                </div>
               ),
             },
           ]}
         />
       </Card>
 
-      {/* 添加工具弹窗 */}
+      {/* 添加人员弹窗 */}
       <Modal
-        title="添加采集工具"
-        open={addModalVisible}
-        onOk={handleAddTools}
-        onCancel={() => setAddModalVisible(false)}
-        confirmLoading={saving}
-        okText="添加"
-        cancelText="取消"
-        width={700}
-      >
-        {availableTools.length === 0 ? (
-          <Empty description="没有可添加的工具" />
-        ) : (
-          <Table
-            rowKey="id"
-            columns={availableToolColumns}
-            dataSource={availableTools}
-            pagination={false}
-            rowSelection={{
-              selectedRowKeys: selectedToolIds,
-              onChange: (keys) => setSelectedToolIds(keys as string[]),
-            }}
-            scroll={{ y: 400 }}
-          />
-        )}
-      </Modal>
-
-      {/* 编辑项目弹窗 */}
-      <Modal
-        title="编辑项目信息"
-        open={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
+        title="添加人员"
+        open={addPersonModalVisible}
+        onCancel={() => setAddPersonModalVisible(false)}
         footer={null}
-        width={560}
+        width={480}
       >
-        <Form form={form} onFinish={handleSaveProject} layout="vertical">
+        <p className={styles.modalSubtitle}>填写人员信息或从账号库/专家库中选择</p>
+        <Form form={addPersonForm} onFinish={handleAddPerson} layout="vertical">
           <Form.Item
-            label="项目名称"
-            name="name"
-            rules={[{ required: true, message: '请输入项目名称' }]}
+            label="角色类型"
+            name="role"
+            rules={[{ required: true, message: '请选择角色类型' }]}
           >
-            <Input placeholder="请输入项目名称" />
-          </Form.Item>
-          <Form.Item label="关键字" name="keywords">
-            <Input placeholder="用逗号、分号、|或空格分割" />
-          </Form.Item>
-          <Form.Item label="项目描述" name="description">
-            <Input.TextArea placeholder="请输入项目描述" rows={3} />
-          </Form.Item>
-          <Form.Item
-            label="指标体系"
-            name="indicatorSystemId"
-            rules={[{ required: true, message: '请选择评估指标体系' }]}
-          >
-            <Select placeholder="选择评估指标体系">
-              {indicatorSystems.map(sys => (
-                <Select.Option key={sys.id} value={sys.id}>{sys.name}</Select.Option>
-              ))}
+            <Select placeholder="请选择角色类型">
+              <Select.Option value="project_manager">项目管理员</Select.Option>
+              <Select.Option value="data_collector">数据采集员</Select.Option>
+              <Select.Option value="expert">评估专家</Select.Option>
             </Select>
           </Form.Item>
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Form.Item label="开始时间" name="startDate" style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} placeholder="年 / 月 / 日" />
-            </Form.Item>
-            <Form.Item label="结束时间" name="endDate" style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} placeholder="年 / 月 / 日" />
-            </Form.Item>
-          </div>
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Button style={{ marginRight: 8 }} onClick={() => setEditModalVisible(false)}>
-              取消
-            </Button>
-            <Button type="primary" htmlType="submit" loading={saving}>
-              保存
-            </Button>
+          <p className={styles.formHint}>将从账号库中选择或新建用户</p>
+          <Form.Item
+            label="姓名"
+            name="name"
+            rules={[{ required: true, message: '请输入姓名' }]}
+          >
+            <Input placeholder="输入姓名搜索" />
+          </Form.Item>
+          <Form.Item
+            label="单位"
+            name="organization"
+            rules={[{ required: true, message: '请输入单位' }]}
+          >
+            <Input placeholder="请输入单位" />
+          </Form.Item>
+          <Form.Item
+            label="电话号码（登录账号）"
+            name="phone"
+            rules={[{ required: true, message: '请输入电话号码' }]}
+          >
+            <Input placeholder="请输入电话号码" />
+          </Form.Item>
+          <Form.Item label="身份证件号码" name="idCard">
+            <Input placeholder="请输入身份证件号码" />
+          </Form.Item>
+          <Form.Item className={styles.formFooter}>
+            <Button onClick={() => setAddPersonModalVisible(false)}>取消</Button>
+            <Button type="primary" htmlType="submit">确定</Button>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* 字段映射弹窗 */}
+      {/* 导入人员弹窗 */}
       <Modal
-        title="关联表单字段"
-        open={mappingModalVisible}
-        onOk={handleSaveMapping}
-        onCancel={() => setMappingModalVisible(false)}
-        confirmLoading={mappingSaving}
-        okText="确定"
-        cancelText="取消"
-        width={600}
+        title="导入人员"
+        open={importModalVisible}
+        onCancel={() => {
+          setImportModalVisible(false);
+          setImportStep('upload');
+          setImportData([]);
+        }}
+        footer={importStep === 'preview' ? [
+          <Button key="back" onClick={() => {
+            setImportStep('upload');
+            setImportData([]);
+          }}>重新导入</Button>,
+          <Button key="cancel" onClick={() => {
+            setImportModalVisible(false);
+            setImportStep('upload');
+            setImportData([]);
+          }}>取消</Button>,
+          <Button key="submit" type="primary" onClick={handleConfirmImport}>
+            确认导入
+          </Button>,
+        ] : null}
+        width={importStep === 'preview' ? 1000 : 700}
       >
-        {selectedDataIndicator && (
-          <div>
-            <Descriptions column={1} size="small" style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="数据指标">
-                <span style={{ fontWeight: 500 }}>{selectedDataIndicator.code} {selectedDataIndicator.name}</span>
-              </Descriptions.Item>
-              <Descriptions.Item label="所属指标">
-                {selectedDataIndicator.indicatorCode} {selectedDataIndicator.indicatorName}
-              </Descriptions.Item>
-              {selectedDataIndicator.threshold && (
-                <Descriptions.Item label="阈值">
-                  <Tag color="orange">{selectedDataIndicator.threshold}</Tag>
-                </Descriptions.Item>
-              )}
-            </Descriptions>
+        <p className={styles.modalSubtitle}>批量导入人员信息，系统会自动比对账号库和专家库</p>
 
-            {/* 映射模式选择 */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>映射方式</label>
-              <Radio.Group
-                value={mappingMode}
-                onChange={e => handleMappingModeChange(e.target.value)}
-              >
-                <Radio value="direct">直接关联工具字段</Radio>
-                <Radio value="element">通过要素关联</Radio>
-              </Radio.Group>
+        {importStep === 'upload' ? (
+          <>
+            {/* 导入说明 */}
+            <div className={styles.importGuide}>
+              <h4 className={styles.guideTitle}>导入说明</h4>
+              <ul className={styles.guideList}>
+                <li>Excel文件应包含以下字段：<strong>角色类型、姓名、单位、电话号码、身份证件号码</strong></li>
+                <li>角色类型可选：<strong>项目管理员、数据采集员、评估专家、报告决策者</strong></li>
+                <li>系统会自动比对账号库（项目管理员、数据采集员、报告决策者）和专家库（评估专家）</li>
+                <li className={styles.guideItem}>
+                  <span className={styles.guideIcon}>✓</span>
+                  <strong>已确认</strong>：姓名、手机、单位、身份证全部一致
+                </li>
+                <li className={styles.guideItem}>
+                  <span className={styles.guideIconNew}>⊕</span>
+                  <strong>新用户</strong>：姓名、身份证、手机都找不到
+                </li>
+                <li className={styles.guideItem}>
+                  <span className={styles.guideIconWarn}>⚠</span>
+                  <strong>重名冲突</strong>：姓名一致，但手机、单位、身份证部分不一致
+                </li>
+                <li className={styles.guideItem}>
+                  <span className={styles.guideIconWarn}>⚠</span>
+                  <strong>身份证冲突</strong>：身份证一致，但姓名、手机、单位部分不一致
+                </li>
+                <li className={styles.guideItem}>
+                  <span className={styles.guideIconWarn}>⚠</span>
+                  <strong>手机冲突</strong>：手机一致，但姓名、身份证、单位部分不一致
+                </li>
+              </ul>
+              <p className={styles.guideNote}>
+                • 冲突记录需要人工修正确认；新用户可直接导入；已确认记录可再次修正
+              </p>
             </div>
 
-            {/* 要素模式 - 要素选择 */}
-            {mappingMode === 'element' && (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择要素库</label>
-                  <Select
-                    placeholder="请选择要素库"
-                    value={selectedElementLibraryId}
-                    onChange={handleElementLibraryChange}
-                    style={{ width: '100%' }}
-                  >
-                    {mockElementLibraries
-                      .filter(lib => lib.status === 'published')
-                      .map(lib => (
-                        <Select.Option key={lib.id} value={lib.id}>
-                          {lib.name}
-                        </Select.Option>
-                      ))}
-                  </Select>
+            {/* 下载模板 */}
+            <div className={styles.templateSection}>
+              <div className={styles.templateInfo}>
+                <h4>下载导入模板</h4>
+                <p>包含正确的字段格式和示例数据</p>
+              </div>
+              <Button icon={<UploadOutlined />}>下载模板</Button>
+            </div>
+
+            {/* 文件上传区域 */}
+            <div className={styles.uploadSection}>
+              <Upload.Dragger
+                accept=".xlsx,.xls,.csv"
+                showUploadList={false}
+                beforeUpload={() => false}
+                className={styles.uploadDragger}
+              >
+                <p className={styles.uploadIcon}>📋</p>
+                <p className={styles.uploadText}>点击选择Excel文件或拖拽文件到此处</p>
+                <div className={styles.uploadButtons}>
+                  <Button icon={<UploadOutlined />}>选择文件</Button>
+                  <Button type="primary" icon={<FileTextOutlined />} onClick={(e) => {
+                    e.stopPropagation();
+                    handleLoadSampleData();
+                  }}>加载示例数据</Button>
                 </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择要素</label>
-                  <Select
-                    placeholder={selectedElementLibraryId ? '请选择要素' : '请先选择要素库'}
-                    value={selectedElementId}
-                    onChange={handleElementChange}
-                    style={{ width: '100%' }}
-                    disabled={!selectedElementLibraryId}
-                    showSearch
-                    optionFilterProp="children"
-                  >
-                    {filteredElements.map(element => (
-                      <Select.Option key={element.id} value={element.id}>
-                        <span>{element.code} - {element.name}</span>
-                        {element.toolId && (
-                          <Tag color="green" style={{ marginLeft: 8, fontSize: 11 }}>
-                            已关联字段
-                          </Tag>
-                        )}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </div>
-              </>
-            )}
-
-            {/* 工具选择 */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-                选择采集工具
-                {mappingMode === 'element' && selectedElementId && (
-                  <span style={{ fontWeight: 400, color: '#666', marginLeft: 8 }}>
-                    （选择要素后自动填充）
-                  </span>
-                )}
-              </label>
-              <Select
-                placeholder="请选择采集工具"
-                value={selectedToolId}
-                onChange={handleToolChange}
-                style={{ width: '100%' }}
-              >
-                {tools.filter(t => t.toolType === '表单').map(tool => (
-                  <Select.Option key={tool.toolId} value={tool.toolId}>
-                    {tool.toolName}
-                  </Select.Option>
-                ))}
-              </Select>
+                <p className={styles.uploadHint}>支持 .xlsx、.xls、.csv 格式，文件大小不超过5MB</p>
+              </Upload.Dragger>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* 状态筛选 */}
+            <div className={styles.importFilter}>
+              <Space>
+                <Tag
+                  color={importFilter === 'confirmed' ? 'success' : 'default'}
+                  className={styles.filterTag}
+                  onClick={() => setImportFilter(importFilter === 'confirmed' ? 'all' : 'confirmed')}
+                >
+                  ✓ 已确认
+                </Tag>
+                <Tag
+                  color={importFilter === 'new' ? 'processing' : 'default'}
+                  className={styles.filterTag}
+                  onClick={() => setImportFilter(importFilter === 'new' ? 'all' : 'new')}
+                >
+                  ⊕ 新用户
+                </Tag>
+                <Tag
+                  color={importFilter === 'conflict' ? 'warning' : 'default'}
+                  className={styles.filterTag}
+                  onClick={() => setImportFilter(importFilter === 'conflict' ? 'all' : 'conflict')}
+                >
+                  ⚠ 信息冲突
+                </Tag>
+              </Space>
+              <Input
+                placeholder="搜索人员"
+                prefix={<SearchOutlined />}
+                style={{ width: 200 }}
+              />
             </div>
 
-            {/* 字段选择 */}
-            <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-                选择表单字段
-                {mappingMode === 'element' && selectedElementId && (
-                  <span style={{ fontWeight: 400, color: '#666', marginLeft: 8 }}>
-                    （选择要素后自动填充）
-                  </span>
-                )}
-              </label>
-              <Select
-                placeholder={selectedToolId ? '请选择表单字段' : '请先选择采集工具'}
-                value={selectedFieldId}
-                onChange={setSelectedFieldId}
-                style={{ width: '100%' }}
-                disabled={!selectedToolId}
-                showSearch
-                optionFilterProp="children"
-              >
-                {toolFields.map(field => (
-                  <Select.Option key={field.id} value={field.id}>
-                    {field.label}
-                    <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>
-                      ({field.type})
-                    </span>
-                  </Select.Option>
-                ))}
-              </Select>
+            {/* 导入预览表格 */}
+            <Table
+              rowKey="id"
+              columns={importColumns}
+              dataSource={filteredImportData}
+              pagination={false}
+              size="small"
+              scroll={{ y: 400 }}
+            />
+
+            {/* 统计信息 */}
+            <div className={styles.importStats}>
+              <span>共 {importStats.total} 条记录，</span>
+              <span className={styles.statConfirmed}>{importStats.confirmed} 条已确认</span>
+              <span className={styles.statNew}>{importStats.new} 条新用户</span>
+              <span className={styles.statConflict}>{importStats.conflict} 条冲突</span>
             </div>
-          </div>
+          </>
         )}
       </Modal>
 
-      {/* 指标树查看器 */}
-      {project.indicatorSystemId && (
-        <IndicatorTreeViewer
-          visible={treeViewerVisible}
-          onClose={() => setTreeViewerVisible(false)}
-          systemId={project.indicatorSystemId}
-          systemName={project.indicatorSystemName}
+      {/* 查看更多人员弹窗 */}
+      <Modal
+        title={getRoleInfo(morePersonRole).name}
+        open={morePersonModalVisible}
+        onCancel={() => setMorePersonModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setMorePersonModalVisible(false)}>关闭</Button>
+        ]}
+        width={800}
+      >
+        <p className={styles.modalSubtitle}>查看和管理该角色的所有人员</p>
+        <div className={styles.moreModalSearch}>
+          <Input
+            placeholder="搜索人员"
+            prefix={<SearchOutlined />}
+            style={{ width: 200 }}
+          />
+        </div>
+        <Table
+          rowKey="id"
+          columns={personnelColumns}
+          dataSource={personnel[morePersonRole] || []}
+          pagination={{
+            total: (personnel[morePersonRole] || []).length,
+            pageSize: 10,
+            showTotal: (total, range) => `共 ${total} 条记录，第 ${range[0]} / ${range[1]} 页`,
+          }}
+          size="small"
         />
-      )}
+      </Modal>
+
+      {/* 配置样本数据对象弹窗 */}
+      <Modal
+        title="配置样本数据对象"
+        open={configSampleModalVisible}
+        onOk={handleSaveSampleConfig}
+        onCancel={() => setConfigSampleModalVisible(false)}
+        okText="确定"
+        cancelText="取消"
+        width={520}
+      >
+        <p className={styles.modalSubtitle}>选择需要采集的数据对象层级，上级对象可能由下级对象计算得出。</p>
+        <div className={styles.sampleConfigList}>
+          <div className={styles.configItem}>
+            <Checkbox
+              checked={sampleDataConfig.district}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, district: e.target.checked }))}
+            />
+            <Tag color="blue">区</Tag>
+            <span>表明需要采集区相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 24 }}>
+            <Checkbox
+              checked={sampleDataConfig.school}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, school: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag color="green">校</Tag>
+            <span>表明需要采集校相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 48 }}>
+            <Checkbox
+              checked={sampleDataConfig.grade}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, grade: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag>年级</Tag>
+            <span>表明需要采集年级相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 72 }}>
+            <Checkbox
+              checked={sampleDataConfig.class}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, class: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag>班级</Tag>
+            <span>表明需要采集班级相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 96 }}>
+            <Checkbox
+              checked={sampleDataConfig.student}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, student: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag>学生</Tag>
+            <span>表明需要采集学生相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 96 }}>
+            <Checkbox
+              checked={sampleDataConfig.parent}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, parent: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag>家长</Tag>
+            <span>表明需要采集家长相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 48 }}>
+            <Checkbox
+              checked={sampleDataConfig.department}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, department: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag>部门</Tag>
+            <span>表明需要采集部门相关数据</span>
+          </div>
+          <div className={styles.configItem} style={{ marginLeft: 48 }}>
+            <Checkbox
+              checked={sampleDataConfig.teacher}
+              onChange={e => setSampleDataConfig(prev => ({ ...prev, teacher: e.target.checked }))}
+            />
+            <span className={styles.levelLine}>└─</span>
+            <Tag color="orange">教师</Tag>
+            <span>表明需要采集教师相关数据</span>
+          </div>
+        </div>
+        <div className={styles.configTip}>
+          💡 提示：可以跳过中间层级，如直接选择【校】和【学生】，表示不需要年级和班级的数据。
+        </div>
+      </Modal>
+
+      {/* 添加样本弹窗 */}
+      <Modal
+        title="添加样本"
+        open={addSampleModalVisible}
+        onCancel={() => setAddSampleModalVisible(false)}
+        footer={null}
+        width={400}
+      >
+        <p className={styles.modalSubtitle}>添加新的评估样本（区或学校）</p>
+        <Form form={addSampleForm} onFinish={handleAddSample} layout="vertical">
+          <Form.Item
+            label="样本类型"
+            name="type"
+            rules={[{ required: true, message: '请选择样本类型' }]}
+          >
+            <Select placeholder="请选择">
+              <Select.Option value="district">区</Select.Option>
+              <Select.Option value="school">学校</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="样本名称"
+            name="name"
+            rules={[{ required: true, message: '请输入样本名称' }]}
+          >
+            <Input placeholder="如：和平区" />
+          </Form.Item>
+          <Form.Item className={styles.formFooter}>
+            <Button onClick={() => setAddSampleModalVisible(false)}>取消</Button>
+            <Button type="primary" htmlType="submit">确定添加</Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 添加教师样本弹窗 */}
+      <Modal
+        title="添加教师样本"
+        open={addTeacherModalVisible}
+        onCancel={() => setAddTeacherModalVisible(false)}
+        footer={null}
+        width={400}
+      >
+        <p className={styles.modalSubtitle}>
+          为 {samples.flatMap(d => d.schools).find(s => s.id === selectedSchoolId)?.name} 添加具体人员
+        </p>
+        <Form form={addTeacherForm} onFinish={handleAddTeacher} layout="vertical">
+          <Form.Item
+            label="姓名"
+            name="name"
+            rules={[{ required: true, message: '请输入姓名' }]}
+          >
+            <Input placeholder="请输入姓名" />
+          </Form.Item>
+          <Form.Item label="电话" name="phone">
+            <Input placeholder="请输入电话号码" />
+          </Form.Item>
+          <Form.Item label="身份证号" name="idCard">
+            <Input placeholder="请输入身份证号（选填）" />
+          </Form.Item>
+          <Form.Item className={styles.formFooter}>
+            <Button onClick={() => setAddTeacherModalVisible(false)}>取消</Button>
+            <Button type="primary" htmlType="submit">确定添加</Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
