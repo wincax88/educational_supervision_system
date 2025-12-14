@@ -23,6 +23,7 @@ import {
   DatePicker,
   Tabs,
   Progress,
+  Radio,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -59,6 +60,9 @@ import {
   indicatorSystems as mockIndicatorSystems,
   toolSchemas as mockToolSchemas,
   ToolSchemaField,
+  elements as mockElements,
+  elementLibraries as mockElementLibraries,
+  Element,
 } from '../../mock/data';
 
 // ==================== Mock 模式开关 ====================
@@ -91,6 +95,11 @@ const ProjectConfig: React.FC = () => {
   const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>(undefined);
   const [toolFields, setToolFields] = useState<ToolSchemaField[]>([]);
   const [mappingSaving, setMappingSaving] = useState(false);
+  // 要素关联相关状态
+  const [mappingMode, setMappingMode] = useState<'direct' | 'element'>('direct');
+  const [selectedElementLibraryId, setSelectedElementLibraryId] = useState<string | undefined>(undefined);
+  const [selectedElementId, setSelectedElementId] = useState<string | undefined>(undefined);
+  const [filteredElements, setFilteredElements] = useState<Element[]>([]);
 
   // 加载项目信息
   const loadProject = useCallback(async () => {
@@ -429,6 +438,23 @@ const ProjectConfig: React.FC = () => {
       setSelectedFieldId(undefined);
       setToolFields([]);
     }
+    // 初始化要素关联状态
+    const extendedRecord = record as any; // 带有要素信息的扩展类型
+    if (extendedRecord.elementId) {
+      setMappingMode('element');
+      setSelectedElementLibraryId(extendedRecord.elementLibraryId);
+      // 加载对应库的要素
+      const libraryElements = mockElements.filter(
+        e => e.type === '基础要素' // 暂时只显示基础要素
+      );
+      setFilteredElements(libraryElements);
+      setSelectedElementId(extendedRecord.elementId);
+    } else {
+      setMappingMode('direct');
+      setSelectedElementLibraryId(undefined);
+      setSelectedElementId(undefined);
+      setFilteredElements([]);
+    }
     setMappingModalVisible(true);
   };
 
@@ -439,6 +465,59 @@ const ProjectConfig: React.FC = () => {
     if (USE_MOCK) {
       const fields = mockToolSchemas[toolId] || [];
       setToolFields(fields);
+    }
+  };
+
+  // 要素库选择变化
+  const handleElementLibraryChange = (libraryId: string) => {
+    setSelectedElementLibraryId(libraryId);
+    setSelectedElementId(undefined);
+    // 重置工具和字段选择
+    setSelectedToolId(undefined);
+    setSelectedFieldId(undefined);
+    setToolFields([]);
+    // 加载该库下的基础要素（派生要素不需要关联字段）
+    const libraryElements = mockElements.filter(e => e.type === '基础要素');
+    setFilteredElements(libraryElements);
+  };
+
+  // 要素选择变化 - 自动填充工具和字段
+  const handleElementChange = (elementId: string) => {
+    setSelectedElementId(elementId);
+    const element = mockElements.find(e => e.id === elementId);
+
+    if (element?.toolId && element?.fieldId) {
+      // 要素已关联工具和字段，自动填充
+      setSelectedToolId(element.toolId);
+      const fields = mockToolSchemas[element.toolId] || [];
+      setToolFields(fields);
+      setSelectedFieldId(element.fieldId);
+      message.info('已自动填充要素关联的工具和字段');
+    } else if (element?.type === '派生要素') {
+      message.warning('派生要素无需关联采集工具字段');
+      setSelectedToolId(undefined);
+      setSelectedFieldId(undefined);
+      setToolFields([]);
+    } else {
+      // 要素未关联字段，清空
+      setSelectedToolId(undefined);
+      setSelectedFieldId(undefined);
+      setToolFields([]);
+    }
+  };
+
+  // 映射模式切换
+  const handleMappingModeChange = (mode: 'direct' | 'element') => {
+    setMappingMode(mode);
+    if (mode === 'direct') {
+      // 切换到直接模式，清空要素选择
+      setSelectedElementLibraryId(undefined);
+      setSelectedElementId(undefined);
+      setFilteredElements([]);
+    } else {
+      // 切换到要素模式，加载要素库
+      const libraryElements = mockElements.filter(e => e.type === '基础要素');
+      setFilteredElements(libraryElements);
     }
   };
 
@@ -455,6 +534,10 @@ const ProjectConfig: React.FC = () => {
         // Mock 模式：直接更新本地状态
         const tool = tools.find(t => t.toolId === selectedToolId);
         const field = toolFields.find(f => f.id === selectedFieldId);
+        const element = selectedElementId ? mockElements.find(e => e.id === selectedElementId) : null;
+        const elementLibrary = selectedElementLibraryId
+          ? mockElementLibraries.find(lib => lib.id === selectedElementLibraryId)
+          : null;
 
         if (tool && field) {
           setMappingSummary(prev => {
@@ -465,6 +548,13 @@ const ProjectConfig: React.FC = () => {
                 if (item.id === selectedDataIndicator.id) {
                   return {
                     ...item,
+                    // 要素关联信息
+                    elementId: element?.id,
+                    elementCode: element?.code,
+                    elementName: element?.name,
+                    elementLibraryId: elementLibrary?.id,
+                    elementLibraryName: elementLibrary?.name,
+                    // 字段映射信息
                     mapping: {
                       toolId: selectedToolId,
                       toolName: tool.toolName,
@@ -472,6 +562,7 @@ const ProjectConfig: React.FC = () => {
                       fieldLabel: field.label,
                     },
                     isMapped: true,
+                    mappingSource: mappingMode,
                   };
                 }
                 return item;
@@ -792,10 +883,27 @@ const ProjectConfig: React.FC = () => {
       ),
     },
     {
+      title: '关联要素',
+      key: 'element',
+      width: 180,
+      render: (_, record) => {
+        const extendedRecord = record as any;
+        if (extendedRecord.elementId) {
+          return (
+            <div>
+              <div style={{ fontSize: 12, color: '#666' }}>{extendedRecord.elementCode}</div>
+              <div>{extendedRecord.elementName}</div>
+            </div>
+          );
+        }
+        return <span style={{ color: '#999' }}>-</span>;
+      },
+    },
+    {
       title: '阈值',
       dataIndex: 'threshold',
       key: 'threshold',
-      width: 120,
+      width: 100,
       render: (threshold) => threshold ? <Tag color="orange">{threshold}</Tag> : '-',
     },
     {
@@ -1139,7 +1247,7 @@ const ProjectConfig: React.FC = () => {
         confirmLoading={mappingSaving}
         okText="确定"
         cancelText="取消"
-        width={560}
+        width={600}
       >
         {selectedDataIndicator && (
           <div>
@@ -1157,8 +1265,75 @@ const ProjectConfig: React.FC = () => {
               )}
             </Descriptions>
 
+            {/* 映射模式选择 */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择采集工具</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>映射方式</label>
+              <Radio.Group
+                value={mappingMode}
+                onChange={e => handleMappingModeChange(e.target.value)}
+              >
+                <Radio value="direct">直接关联工具字段</Radio>
+                <Radio value="element">通过要素关联</Radio>
+              </Radio.Group>
+            </div>
+
+            {/* 要素模式 - 要素选择 */}
+            {mappingMode === 'element' && (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择要素库</label>
+                  <Select
+                    placeholder="请选择要素库"
+                    value={selectedElementLibraryId}
+                    onChange={handleElementLibraryChange}
+                    style={{ width: '100%' }}
+                  >
+                    {mockElementLibraries
+                      .filter(lib => lib.status === 'published')
+                      .map(lib => (
+                        <Select.Option key={lib.id} value={lib.id}>
+                          {lib.name}
+                        </Select.Option>
+                      ))}
+                  </Select>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择要素</label>
+                  <Select
+                    placeholder={selectedElementLibraryId ? '请选择要素' : '请先选择要素库'}
+                    value={selectedElementId}
+                    onChange={handleElementChange}
+                    style={{ width: '100%' }}
+                    disabled={!selectedElementLibraryId}
+                    showSearch
+                    optionFilterProp="children"
+                  >
+                    {filteredElements.map(element => (
+                      <Select.Option key={element.id} value={element.id}>
+                        <span>{element.code} - {element.name}</span>
+                        {element.toolId && (
+                          <Tag color="green" style={{ marginLeft: 8, fontSize: 11 }}>
+                            已关联字段
+                          </Tag>
+                        )}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {/* 工具选择 */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                选择采集工具
+                {mappingMode === 'element' && selectedElementId && (
+                  <span style={{ fontWeight: 400, color: '#666', marginLeft: 8 }}>
+                    （选择要素后自动填充）
+                  </span>
+                )}
+              </label>
               <Select
                 placeholder="请选择采集工具"
                 value={selectedToolId}
@@ -1173,14 +1348,24 @@ const ProjectConfig: React.FC = () => {
               </Select>
             </div>
 
+            {/* 字段选择 */}
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>选择表单字段</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                选择表单字段
+                {mappingMode === 'element' && selectedElementId && (
+                  <span style={{ fontWeight: 400, color: '#666', marginLeft: 8 }}>
+                    （选择要素后自动填充）
+                  </span>
+                )}
+              </label>
               <Select
                 placeholder={selectedToolId ? '请选择表单字段' : '请先选择采集工具'}
                 value={selectedFieldId}
                 onChange={setSelectedFieldId}
                 style={{ width: '100%' }}
                 disabled={!selectedToolId}
+                showSearch
+                optionFilterProp="children"
               >
                 {toolFields.map(field => (
                   <Select.Option key={field.id} value={field.id}>
