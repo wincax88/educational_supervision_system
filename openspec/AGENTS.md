@@ -71,5 +71,36 @@ When proposing spec changes, use:
 
 - **Frontend**: React 19 + TypeScript + Ant Design 6
 - **Backend**: Node.js + Express 5
+- **Database**: SQLite (better-sqlite3)
+- **State Management**: Zustand + React hooks
 - **Language**: Chinese UI (zh_CN locale)
 - **Routing**: React Router DOM 7
+- **Build Tools**: Vite, ESLint, Prettier
+
+## Recent Implementation Notes
+
+### Data Indicator - Element Association (2024-12)
+
+The system now supports associating data indicators with assessment elements:
+
+1. **Database**: `data_indicator_elements` table with many-to-many relationship
+2. **API**: CRUD endpoints under `/data-indicators/:id/elements`
+3. **UI Components**:
+   - `ElementAssociationDrawer` - Edit associations for a data indicator
+   - `ElementSelector` - Reusable element picker modal
+   - `IndicatorTab` - Shows element counts on data indicator nodes
+
+### Project Configuration Tabs
+
+Project configuration uses a multi-tab interface:
+- Basic Information (基本信息)
+- Indicator System (指标体系) - with element association
+- Data Entry (数据填报) - tool management with drag-sort
+- Expert Review (专家评审) - submission management
+
+### Mock Data Support
+
+Development uses mock data when `USE_MOCK = true`:
+- `indicatorTrees` - hierarchical indicator structures
+- `dataIndicatorElements` - element associations
+- Located in `/frontend/src/mock/data.ts`

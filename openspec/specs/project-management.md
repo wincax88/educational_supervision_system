@@ -109,17 +109,138 @@ The system SHALL manage project status transitions.
 
 ### Requirement: Project Configuration
 
-The system SHALL support configuring project parameters.
+The system SHALL support configuring project parameters through a multi-tab interface.
 
-#### Scenario: Configure Assessment Scope
+#### Scenario: Access Project Configuration
 
 **Given** a project in Configuring status
-**When** configuring the project
-**Then** the system SHALL allow specifying:
-- Target institutions
-- Assessment criteria
-- Data collection tools
-- Timeline and deadlines
+**When** the user clicks "Configure" button
+**Then** the system SHALL display the configuration page with tabs:
+- Basic Information (基本信息)
+- Indicator System (指标体系)
+- Data Entry (数据填报)
+- Expert Review (专家评审)
+
+### Requirement: Basic Information Tab
+
+The system SHALL display and allow editing project basic information.
+
+#### Scenario: View Basic Information
+
+**Given** a user on the project configuration page
+**When** viewing the Basic Information tab
+**Then** the system SHALL display:
+- Project name
+- Assessment year
+- Project status
+- Linked indicator system name
+- Date range (start/end)
+- Description
+
+### Requirement: Indicator System Tab
+
+The system SHALL display the linked indicator system with element association capabilities.
+
+#### Scenario: View Indicator Tree
+
+**Given** a project with a linked indicator system
+**When** viewing the Indicator System tab
+**Then** the system SHALL display:
+- Indicator system name
+- Hierarchical indicator tree (1-3 levels)
+- Data indicators attached to leaf indicators
+- Supporting materials attached to indicators
+- Mapping statistics card (total/mapped/unmapped)
+
+#### Scenario: View Data Indicator Mapping Status
+
+**Given** an indicator tree is displayed
+**When** viewing a data indicator node
+**Then** the system SHALL display:
+- Data indicator code and name
+- Threshold value (if defined)
+- Mapping status tag (已映射/未映射)
+- Element association count
+- Edit button for element association
+
+#### Scenario: Edit Element Association
+
+**Given** a data indicator in the tree
+**When** the user clicks the element association edit button
+**Then** the system SHALL open a drawer with:
+- Data indicator information (code, name, threshold)
+- Associated elements table
+- Add element button
+- Delete element button per row
+- Mapping type selector (primary/reference)
+- Description field
+
+#### Scenario: Add Element Association
+
+**Given** the element association drawer is open
+**When** the user clicks "Add Element"
+**Then** the system SHALL open the Element Selector modal
+**And** allow selecting an element from available libraries
+**And** add the selected element to the association list
+
+### Requirement: Data Entry Tab
+
+The system SHALL manage data collection tools for the project.
+
+#### Scenario: View Configured Tools
+
+**Given** a user on the Data Entry tab
+**When** viewing the tools list
+**Then** the system SHALL display:
+- Tool order (drag-sortable)
+- Tool name
+- Tool type (form/survey/interview/field)
+- Target type
+- Field count
+- Mapping count
+- Configured status
+- Action buttons (configure/delete)
+
+#### Scenario: Add Collection Tool
+
+**Given** a user on the Data Entry tab
+**When** clicking "Add Tool"
+**Then** the system SHALL display available tools from the Tool Library
+**And** allow selecting and adding tools to the project
+
+#### Scenario: Reorder Tools
+
+**Given** multiple tools configured in the project
+**When** the user drags a tool row
+**Then** the system SHALL reorder the tools and save the new order
+
+### Requirement: Expert Review Tab
+
+The system SHALL manage expert review submissions.
+
+#### Scenario: View Submissions
+
+**Given** a user on the Expert Review tab
+**When** viewing the submissions list
+**Then** the system SHALL display:
+- Review statistics (total/pending/approved/rejected)
+- Filter by status
+- Submission table with:
+  - Institution name
+  - Submission time
+  - Review status
+  - Reviewer name
+  - Review time
+  - Action buttons
+
+## Mapping Mode
+
+The system SHALL support different indicator-to-element mapping modes.
+
+| Mode | Code | Description |
+|------|------|-------------|
+| Auto Detect (自动识别) | auto | System auto-matches based on names |
+| Element Based (基于要素) | element | Manual association via element selection |
 
 ## Statistics Dashboard
 

@@ -50,5 +50,33 @@ The system SHALL provide modular supervision capabilities for different educatio
 
 - **Frontend**: React 19, TypeScript, Ant Design 6
 - **Backend**: Node.js, Express 5
-- **State Management**: React hooks
+- **Database**: SQLite (better-sqlite3)
+- **State Management**: Zustand + React hooks
 - **Routing**: React Router DOM 7
+- **Build Tools**: Vite, ESLint, Prettier
+
+## Core Data Model
+
+The system uses a hierarchical data model:
+
+```
+Element Library (要素库)
+  └── Elements (要素)
+        ├── Basic Elements (基础要素) - direct data collection
+        └── Derived Elements (派生要素) - calculated from basic elements
+
+Tool Library (采集工具库)
+  └── Tools (采集工具)
+        └── Fields (字段) - linked to elements
+
+Indicator Library (指标体系库)
+  └── Indicator Systems (指标体系)
+        └── Indicators (指标) - hierarchical structure
+              ├── Data Indicators (数据指标) - linked to elements
+              └── Supporting Materials (佐证资料)
+
+Project (评估项目)
+  ├── Linked Indicator System
+  ├── Configured Tools
+  └── Assigned Institutions
+```

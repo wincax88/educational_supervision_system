@@ -12,7 +12,8 @@ openspec/
 │   ├── tool-library.md       # 采集工具库规范
 │   ├── indicator-library.md  # 指标体系库规范
 │   └── project-management.md # 评估项目管理规范
-├── changes/                  # 变更提案（按功能组织）
+├── changes/                  # 变更记录（按功能组织）
+│   └── 2024-12-element-association/  # 数据指标-要素关联
 ├── AGENTS.md                 # AI 助手指南
 └── README.md                 # 本文件
 ```

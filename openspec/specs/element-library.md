@@ -7,7 +7,20 @@ The Assessment Element Library (要素库) manages reusable assessment data elem
 ## Element Types
 
 - **Basic Element (基础要素)**: Fundamental data points collected directly
-- **Derived Element (派生要素)**: Calculated elements based on basic elements
+- **Derived Element (派生要素)**: Calculated elements based on basic elements with formulas
+
+## Element Data Model
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Unique identifier |
+| code | string | Element code (e.g., E001) |
+| name | string | Element name |
+| elementType | enum | 基础要素 / 派生要素 |
+| dataType | string | Data type (number, text, date, etc.) |
+| formula | string | Calculation formula (derived only) |
+| libraryId | string | Parent library reference |
+| description | string | Detailed description |
 
 ## Requirements
 
@@ -76,6 +89,48 @@ The system SHALL support managing elements within a library.
 - Data type
 - Description
 **Then** the system SHALL add the element to the library
+
+### Requirement: Element Selector
+
+The system SHALL provide a reusable element selector component for associating elements.
+
+#### Scenario: Open Element Selector
+
+**Given** a context requiring element selection (e.g., data indicator association)
+**When** the element selector modal opens
+**Then** the system SHALL display:
+- Library filter dropdown (all libraries)
+- Element type filter (Basic/Derived)
+- Search input for code/name
+- Elements table with selection
+
+#### Scenario: Filter Elements by Library
+
+**Given** the element selector is open
+**When** selecting a library from the dropdown
+**Then** the system SHALL display only elements from that library
+
+#### Scenario: Filter Elements by Type
+
+**Given** the element selector is open
+**When** selecting an element type
+**Then** the system SHALL display only elements of that type
+
+#### Scenario: Search Elements
+
+**Given** the element selector is open
+**When** entering a search keyword
+**Then** the system SHALL filter elements by code or name
+
+#### Scenario: Select Element
+
+**Given** the element selector displays elements
+**When** the user clicks on an element row
+**Then** the system SHALL return the selected element with:
+- Element ID, code, name
+- Element type and data type
+- Formula (if derived)
+- Library name
 
 ## Statistics Dashboard
 
