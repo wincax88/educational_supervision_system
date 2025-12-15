@@ -1,6 +1,7 @@
 /**
  * 统计分析服务
  * 提供差异系数计算、达标率统计等核心功能
+ * 已适配 PostgreSQL 异步操作
  */
 
 /**
@@ -101,20 +102,22 @@ function checkCompliance(value, threshold) {
  * @param {string} projectId - 项目ID
  * @param {string} districtId - 区县ID
  * @param {string} schoolType - 学校类型 (小学/初中)
- * @returns {object} 差异系数分析结果
+ * @returns {Promise<object>} 差异系数分析结果
  */
-function getDistrictCVAnalysis(db, projectId, districtId, schoolType) {
+async function getDistrictCVAnalysis(db, projectId, districtId, schoolType) {
   // 获取区县信息
-  const district = db.prepare('SELECT id, name FROM districts WHERE id = ?').get(districtId);
+  const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
+  const district = districtResult.rows[0];
   if (!district) return null;
 
   // 获取该区县该类型的学校列表
   let schoolQuery = `
     SELECT s.id, s.name, s.student_count, s.teacher_count
     FROM schools s
-    WHERE s.district_id = ? AND s.status = 'active'
+    WHERE s.district_id = $1 AND s.status = 'active'
   `;
   const params = [districtId];
+  let paramIndex = 2;
 
   if (schoolType) {
     if (schoolType === '小学') {
@@ -124,7 +127,8 @@ function getDistrictCVAnalysis(db, projectId, districtId, schoolType) {
     }
   }
 
-  const schools = db.prepare(schoolQuery).all(...params);
+  const schoolsResult = await db.query(schoolQuery, params);
+  const schools = schoolsResult.rows;
 
   if (schools.length === 0) {
     return {
@@ -149,14 +153,16 @@ function getDistrictCVAnalysis(db, projectId, districtId, schoolType) {
   };
 
   // 如果有项目指标数据，从 school_indicator_data 表获取更多指标
-  const indicatorData = db.prepare(`
+  const indicatorDataResult = await db.query(`
     SELECT sid.school_id, sid.data_indicator_id, sid.value, di.code, di.name
     FROM school_indicator_data sid
     JOIN data_indicators di ON sid.data_indicator_id = di.id
-    WHERE sid.project_id = ?
-    AND sid.school_id IN (SELECT id FROM schools WHERE district_id = ?)
+    WHERE sid.project_id = $1
+    AND sid.school_id IN (SELECT id FROM schools WHERE district_id = $2)
     AND sid.value IS NOT NULL
-  `).all(projectId, districtId);
+  `, [projectId, districtId]);
+
+  const indicatorData = indicatorDataResult.rows;
 
   // 按指标分组计算差异系数
   const indicatorGroups = {};
@@ -206,39 +212,41 @@ function getDistrictCVAnalysis(db, projectId, districtId, schoolType) {
  * @param {object} db - 数据库实例
  * @param {string} projectId - 项目ID
  * @param {object} options - 筛选选项
- * @returns {object} 达标率统计结果
+ * @returns {Promise<object>} 达标率统计结果
  */
-function getComplianceStatistics(db, projectId, options = {}) {
+async function getComplianceStatistics(db, projectId, options = {}) {
   const { districtId, schoolId, indicatorCategory } = options;
 
   let query = `
     SELECT
       COUNT(*) as total,
       SUM(CASE WHEN is_compliant = 1 THEN 1 ELSE 0 END) as compliant,
-      SUM(CASE WHEN is_compliant = 0 THEN 1 ELSE 0 END) as nonCompliant,
+      SUM(CASE WHEN is_compliant = 0 THEN 1 ELSE 0 END) as "nonCompliant",
       SUM(CASE WHEN is_compliant IS NULL THEN 1 ELSE 0 END) as pending
     FROM school_indicator_data sid
-    WHERE sid.project_id = ?
+    WHERE sid.project_id = $1
   `;
   const params = [projectId];
+  let paramIndex = 2;
 
   if (schoolId) {
-    query += ' AND sid.school_id = ?';
+    query += ` AND sid.school_id = $${paramIndex++}`;
     params.push(schoolId);
   }
 
   if (districtId) {
-    query += ' AND sid.school_id IN (SELECT id FROM schools WHERE district_id = ?)';
+    query += ` AND sid.school_id IN (SELECT id FROM schools WHERE district_id = $${paramIndex++})`;
     params.push(districtId);
   }
 
-  const stats = db.prepare(query).get(...params);
+  const result = await db.query(query, params);
+  const stats = result.rows[0];
 
   return {
-    total: stats.total || 0,
-    compliant: stats.compliant || 0,
-    nonCompliant: stats.nonCompliant || 0,
-    pending: stats.pending || 0,
+    total: parseInt(stats.total) || 0,
+    compliant: parseInt(stats.compliant) || 0,
+    nonCompliant: parseInt(stats.nonCompliant) || 0,
+    pending: parseInt(stats.pending) || 0,
     complianceRate: stats.total > 0
       ? Math.round((stats.compliant / stats.total) * 10000) / 100
       : null
@@ -250,14 +258,15 @@ function getComplianceStatistics(db, projectId, options = {}) {
  * @param {object} db - 数据库实例
  * @param {string} projectId - 项目ID
  * @param {string} schoolType - 学校类型
- * @returns {Array} 区县对比数据
+ * @returns {Promise<Array>} 区县对比数据
  */
-function getDistrictComparison(db, projectId, schoolType) {
-  const districts = db.prepare('SELECT id, name, code FROM districts ORDER BY sort_order').all();
+async function getDistrictComparison(db, projectId, schoolType) {
+  const districtsResult = await db.query('SELECT id, name, code FROM districts ORDER BY sort_order');
+  const districts = districtsResult.rows;
 
-  const comparison = districts.map(district => {
-    const cvAnalysis = getDistrictCVAnalysis(db, projectId, district.id, schoolType);
-    const complianceStats = getComplianceStatistics(db, projectId, { districtId: district.id });
+  const comparison = await Promise.all(districts.map(async (district) => {
+    const cvAnalysis = await getDistrictCVAnalysis(db, projectId, district.id, schoolType);
+    const complianceStats = await getComplianceStatistics(db, projectId, { districtId: district.id });
 
     return {
       districtId: district.id,
@@ -270,7 +279,7 @@ function getDistrictComparison(db, projectId, schoolType) {
       compliantCount: complianceStats.compliant,
       totalIndicators: complianceStats.total
     };
-  });
+  }));
 
   return comparison.filter(d => d.schoolCount > 0);
 }
@@ -280,29 +289,58 @@ function getDistrictComparison(db, projectId, schoolType) {
  * @param {object} db - 数据库实例
  * @param {object} data - 指标数据
  */
-function saveSchoolIndicatorData(db, data) {
+async function saveSchoolIndicatorData(db, data) {
   const { projectId, schoolId, dataIndicatorId, value, textValue, submissionId } = data;
 
   // 获取阈值
-  const indicator = db.prepare('SELECT threshold FROM data_indicators WHERE id = ?').get(dataIndicatorId);
+  const indicatorResult = await db.query('SELECT threshold FROM data_indicators WHERE id = $1', [dataIndicatorId]);
+  const indicator = indicatorResult.rows[0];
   const isCompliant = indicator?.threshold ? checkCompliance(value, indicator.threshold) : null;
 
-  const id = 'sid-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
   const now = new Date().toISOString().split('T')[0];
 
-  db.prepare(`
-    INSERT OR REPLACE INTO school_indicator_data
-    (id, project_id, school_id, data_indicator_id, value, text_value, is_compliant, submission_id, collected_at, created_at, updated_at)
-    VALUES (
-      COALESCE((SELECT id FROM school_indicator_data WHERE project_id = ? AND school_id = ? AND data_indicator_id = ?), ?),
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )
-  `).run(
-    projectId, schoolId, dataIndicatorId, id,
-    projectId, schoolId, dataIndicatorId, value, textValue,
-    isCompliant === null ? null : (isCompliant ? 1 : 0),
-    submissionId, now, now, now
+  // 检查是否已存在
+  const existingResult = await db.query(
+    'SELECT id FROM school_indicator_data WHERE project_id = $1 AND school_id = $2 AND data_indicator_id = $3',
+    [projectId, schoolId, dataIndicatorId]
   );
+
+  if (existingResult.rows[0]) {
+    // 更新
+    await db.query(`
+      UPDATE school_indicator_data
+      SET value = $1, text_value = $2, is_compliant = $3, submission_id = $4, collected_at = $5, updated_at = $6
+      WHERE id = $7
+    `, [
+      value,
+      textValue,
+      isCompliant === null ? null : (isCompliant ? 1 : 0),
+      submissionId,
+      now,
+      now,
+      existingResult.rows[0].id
+    ]);
+  } else {
+    // 插入
+    const id = 'sid-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+    await db.query(`
+      INSERT INTO school_indicator_data
+      (id, project_id, school_id, data_indicator_id, value, text_value, is_compliant, submission_id, collected_at, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `, [
+      id,
+      projectId,
+      schoolId,
+      dataIndicatorId,
+      value,
+      textValue,
+      isCompliant === null ? null : (isCompliant ? 1 : 0),
+      submissionId,
+      now,
+      now,
+      now
+    ]);
+  }
 }
 
 /**
@@ -312,40 +350,64 @@ function saveSchoolIndicatorData(db, data) {
  * @param {string} districtId - 区县ID
  * @param {string} schoolType - 学校类型
  */
-function updateDistrictStatistics(db, projectId, districtId, schoolType) {
-  const cvAnalysis = getDistrictCVAnalysis(db, projectId, districtId, schoolType);
-  const complianceStats = getComplianceStatistics(db, projectId, { districtId });
+async function updateDistrictStatistics(db, projectId, districtId, schoolType) {
+  const cvAnalysis = await getDistrictCVAnalysis(db, projectId, districtId, schoolType);
+  const complianceStats = await getComplianceStatistics(db, projectId, { districtId });
 
   if (!cvAnalysis) return;
 
-  const id = 'ds-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
   const now = new Date().toISOString();
 
-  // 获取各维度达标率（资源配置、政府保障、教育质量、社会认可度）
-  // 这里简化处理，实际需要根据指标所属一级指标分类统计
-
-  db.prepare(`
-    INSERT OR REPLACE INTO district_statistics
-    (id, project_id, district_id, school_type, school_count, compliant_school_count,
-     cv_teacher_ratio, cv_composite, is_cv_compliant,
-     resource_compliance_rate, overall_score, calculated_at, created_at)
-    VALUES (
-      COALESCE((SELECT id FROM district_statistics WHERE project_id = ? AND district_id = ? AND school_type = ?), ?),
-      ?, ?, ?, ?, ?,
-      ?, ?, ?,
-      ?, ?, ?, ?
-    )
-  `).run(
-    projectId, districtId, schoolType, id,
-    projectId, districtId, schoolType,
-    cvAnalysis.schoolCount, 0,
-    cvAnalysis.cvIndicators.studentTeacherRatio?.cv || null,
-    cvAnalysis.cvComposite,
-    cvAnalysis.isCompliant ? 1 : 0,
-    complianceStats.complianceRate,
-    null,  // overall_score
-    now, now
+  // 检查是否已存在
+  const existingResult = await db.query(
+    'SELECT id FROM district_statistics WHERE project_id = $1 AND district_id = $2 AND school_type = $3',
+    [projectId, districtId, schoolType]
   );
+
+  if (existingResult.rows[0]) {
+    // 更新
+    await db.query(`
+      UPDATE district_statistics
+      SET school_count = $1, compliant_school_count = $2,
+          cv_teacher_ratio = $3, cv_composite = $4, is_cv_compliant = $5,
+          resource_compliance_rate = $6, overall_score = $7, calculated_at = $8
+      WHERE id = $9
+    `, [
+      cvAnalysis.schoolCount,
+      0,
+      cvAnalysis.cvIndicators.studentTeacherRatio?.cv || null,
+      cvAnalysis.cvComposite,
+      cvAnalysis.isCompliant ? 1 : 0,
+      complianceStats.complianceRate,
+      null,  // overall_score
+      now,
+      existingResult.rows[0].id
+    ]);
+  } else {
+    // 插入
+    const id = 'ds-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+    await db.query(`
+      INSERT INTO district_statistics
+      (id, project_id, district_id, school_type, school_count, compliant_school_count,
+       cv_teacher_ratio, cv_composite, is_cv_compliant,
+       resource_compliance_rate, overall_score, calculated_at, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `, [
+      id,
+      projectId,
+      districtId,
+      schoolType,
+      cvAnalysis.schoolCount,
+      0,
+      cvAnalysis.cvIndicators.studentTeacherRatio?.cv || null,
+      cvAnalysis.cvComposite,
+      cvAnalysis.isCompliant ? 1 : 0,
+      complianceStats.complianceRate,
+      null,  // overall_score
+      now,
+      now
+    ]);
+  }
 }
 
 module.exports = {

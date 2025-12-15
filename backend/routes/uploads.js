@@ -74,24 +74,24 @@ const upload = multer({
 
 module.exports = (db) => {
   // 获取填报的佐证资料列表
-  router.get('/submissions/:submissionId/materials', (req, res) => {
+  router.get('/submissions/:submissionId/materials', async (req, res) => {
     const { submissionId } = req.params;
 
     try {
-      const materials = db.prepare(`
+      const result = await db.query(`
         SELECT
           m.*,
-          sm.code as materialCode,
-          sm.name as materialName,
-          sm.file_types as allowedTypes,
-          sm.max_size as maxSize
+          sm.code as "materialCode",
+          sm.name as "materialName",
+          sm.file_types as "allowedTypes",
+          sm.max_size as "maxSize"
         FROM submission_materials m
         LEFT JOIN supporting_materials sm ON m.material_config_id = sm.id
-        WHERE m.submission_id = ?
+        WHERE m.submission_id = $1
         ORDER BY m.created_at DESC
-      `).all(submissionId);
+      `, [submissionId]);
 
-      res.json({ code: 0, data: materials });
+      res.json({ code: 0, data: result.rows });
     } catch (error) {
       console.error('获取佐证资料失败:', error);
       res.status(500).json({ code: 500, message: '获取佐证资料失败' });
@@ -99,7 +99,7 @@ module.exports = (db) => {
   });
 
   // 上传佐证资料
-  router.post('/submissions/:submissionId/materials', upload.single('file'), (req, res) => {
+  router.post('/submissions/:submissionId/materials', upload.single('file'), async (req, res) => {
     const { submissionId } = req.params;
     const { materialConfigId, indicatorId, description } = req.body;
     const file = req.file;
@@ -109,9 +109,9 @@ module.exports = (db) => {
     }
 
     try {
-      // 验证填报记录存在
-      const submission = db.prepare('SELECT id FROM submissions WHERE id = ?').get(submissionId);
-      if (!submission) {
+      // 验证填报记录存在（程序层面引用验证）
+      const submissionResult = await db.query('SELECT id FROM submissions WHERE id = $1', [submissionId]);
+      if (!submissionResult.rows[0]) {
         // 删除已上传的文件
         fs.unlinkSync(file.path);
         return res.status(404).json({ code: 404, message: '填报记录不存在' });
@@ -119,7 +119,8 @@ module.exports = (db) => {
 
       // 如果指定了资料配置，验证文件类型和大小
       if (materialConfigId) {
-        const config = db.prepare('SELECT * FROM supporting_materials WHERE id = ?').get(materialConfigId);
+        const configResult = await db.query('SELECT * FROM supporting_materials WHERE id = $1', [materialConfigId]);
+        const config = configResult.rows[0];
         if (config) {
           // 验证文件类型
           const allowedTypes = config.file_types.split(',').map((t) => t.trim().toLowerCase());
@@ -158,13 +159,13 @@ module.exports = (db) => {
       // 构建相对路径用于存储
       const relativePath = path.relative(uploadDir, file.path);
 
-      db.prepare(`
+      await db.query(`
         INSERT INTO submission_materials (
           id, submission_id, material_config_id, indicator_id,
           file_name, file_path, file_size, file_type, description,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `, [
         id,
         submissionId,
         materialConfigId || null,
@@ -176,7 +177,7 @@ module.exports = (db) => {
         description || null,
         now,
         now
-      );
+      ]);
 
       res.json({
         code: 0,
@@ -199,11 +200,12 @@ module.exports = (db) => {
   });
 
   // 删除佐证资料
-  router.delete('/materials/:id', (req, res) => {
+  router.delete('/materials/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-      const material = db.prepare('SELECT * FROM submission_materials WHERE id = ?').get(id);
+      const materialResult = await db.query('SELECT * FROM submission_materials WHERE id = $1', [id]);
+      const material = materialResult.rows[0];
       if (!material) {
         return res.status(404).json({ code: 404, message: '资料不存在' });
       }
@@ -215,7 +217,7 @@ module.exports = (db) => {
       }
 
       // 删除数据库记录
-      db.prepare('DELETE FROM submission_materials WHERE id = ?').run(id);
+      await db.query('DELETE FROM submission_materials WHERE id = $1', [id]);
 
       res.json({ code: 0, message: '删除成功' });
     } catch (error) {
@@ -225,11 +227,12 @@ module.exports = (db) => {
   });
 
   // 下载佐证资料
-  router.get('/materials/:id/download', (req, res) => {
+  router.get('/materials/:id/download', async (req, res) => {
     const { id } = req.params;
 
     try {
-      const material = db.prepare('SELECT * FROM submission_materials WHERE id = ?').get(id);
+      const materialResult = await db.query('SELECT * FROM submission_materials WHERE id = $1', [id]);
+      const material = materialResult.rows[0];
       if (!material) {
         return res.status(404).json({ code: 404, message: '资料不存在' });
       }
@@ -247,17 +250,17 @@ module.exports = (db) => {
   });
 
   // 获取数据指标的佐证资料要求
-  router.get('/data-indicators/:indicatorId/material-requirements', (req, res) => {
+  router.get('/data-indicators/:indicatorId/material-requirements', async (req, res) => {
     const { indicatorId } = req.params;
 
     try {
-      const materials = db.prepare(`
+      const result = await db.query(`
         SELECT * FROM supporting_materials
-        WHERE indicator_id = ?
+        WHERE indicator_id = $1
         ORDER BY code
-      `).all(indicatorId);
+      `, [indicatorId]);
 
-      res.json({ code: 0, data: materials });
+      res.json({ code: 0, data: result.rows });
     } catch (error) {
       console.error('获取佐证资料要求失败:', error);
       res.status(500).json({ code: 500, message: '获取佐证资料要求失败' });
@@ -265,16 +268,18 @@ module.exports = (db) => {
   });
 
   // 获取工具表单的佐证资料要求（通过字段映射）
-  router.get('/tools/:toolId/material-requirements', (req, res) => {
+  router.get('/tools/:toolId/material-requirements', async (req, res) => {
     const { toolId } = req.params;
 
     try {
       // 获取工具的字段映射中关联的数据指标
-      const mappings = db.prepare(`
-        SELECT DISTINCT fm.target_id as indicatorId
+      const mappingsResult = await db.query(`
+        SELECT DISTINCT fm.target_id as "indicatorId"
         FROM field_mappings fm
-        WHERE fm.tool_id = ? AND fm.mapping_type = 'data_indicator'
-      `).all(toolId);
+        WHERE fm.tool_id = $1 AND fm.mapping_type = 'data_indicator'
+      `, [toolId]);
+
+      const mappings = mappingsResult.rows;
 
       if (mappings.length === 0) {
         return res.json({ code: 0, data: [] });
@@ -282,18 +287,19 @@ module.exports = (db) => {
 
       // 获取这些数据指标的佐证资料要求
       const indicatorIds = mappings.map((m) => m.indicatorId);
-      const placeholders = indicatorIds.map(() => '?').join(',');
 
-      const materials = db.prepare(`
+      const materialsResult = await db.query(`
         SELECT
           sm.*,
-          di.name as indicatorName,
-          di.code as indicatorCode
+          di.name as "indicatorName",
+          di.code as "indicatorCode"
         FROM supporting_materials sm
         JOIN data_indicators di ON sm.indicator_id = di.id
-        WHERE sm.indicator_id IN (${placeholders})
+        WHERE sm.indicator_id = ANY($1)
         ORDER BY di.code, sm.code
-      `).all(...indicatorIds);
+      `, [indicatorIds]);
+
+      const materials = materialsResult.rows;
 
       // 按指标分组
       const grouped = {};

@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+
+// 数据库模块
+const db = require('./database/db');
 
 // 中间件
 const { loginRules } = require('./middleware/validate');
@@ -24,54 +26,35 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// 数据库初始化
-let db = null;
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'database', 'education.db');
+// 数据库连接状态
+let dbConnected = false;
 
-function initDatabase() {
-  // 检查数据库是否存在
-  if (!fs.existsSync(DB_PATH)) {
-    console.log('Database not found. Please run: npm run init-db');
-    console.log('Starting with in-memory database for development...');
+// 初始化数据库连接
+async function initDatabase() {
+  try {
+    dbConnected = await db.testConnection();
 
-    // 使用内存数据库作为后备
-    const Database = require('better-sqlite3');
-    db = new Database(':memory:');
+    if (dbConnected) {
+      console.log('Database connected successfully');
 
-    // 创建表结构
-    const schemaPath = path.join(__dirname, 'database', 'schema.sql');
-    if (fs.existsSync(schemaPath)) {
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      db.exec(schema);
-      console.log('In-memory database initialized with schema.');
+      // 注入数据库模块到路由（兼容旧路由模式）
+      // 注意：路由文件需要逐步修改为直接使用 db 模块
+      setIndicatorDb(db);
+      setToolDb(db);
+      setSubmissionDb(db);
+      setProjectToolDb(db);
+      setDistrictDb(db);
+      setSchoolDb(db);
+      setStatisticsDb(db);
+      setComplianceDb(db);
+    } else {
+      console.error('Database connection failed');
     }
-  } else {
-    const Database = require('better-sqlite3');
-    db = new Database(DB_PATH);
-    console.log('Connected to database:', DB_PATH);
+  } catch (error) {
+    console.error('Database initialization error:', error.message);
   }
 
-  db.pragma('foreign_keys = ON');
-
-  // 注入数据库到路由模块
-  setIndicatorDb(db);
-  setToolDb(db);
-  setSubmissionDb(db);
-  setProjectToolDb(db);
-  setDistrictDb(db);
-  setSchoolDb(db);
-  setStatisticsDb(db);
-  setComplianceDb(db);
-
-  return db;
-}
-
-// 初始化数据库
-try {
-  initDatabase();
-} catch (error) {
-  console.error('Database initialization failed:', error.message);
-  console.log('API will work with mock data as fallback.');
+  return dbConnected;
 }
 
 // API 路由
@@ -83,10 +66,8 @@ app.use('/api', districtRoutes);
 app.use('/api', schoolRoutes);
 app.use('/api', statisticsRoutes);
 app.use('/api', complianceRoutes);
-// 文件上传路由需要在数据库初始化后注册
-if (db) {
-  app.use('/api', uploadsRouteFactory(db));
-}
+// 文件上传路由
+app.use('/api', uploadsRouteFactory(db));
 
 // 登录接口
 app.post('/api/login', loginRules, (req, res) => {
@@ -125,19 +106,19 @@ app.get('/api/health', (req, res) => {
   res.json({
     code: 200,
     status: 'ok',
-    database: db ? 'connected' : 'not connected',
+    database: dbConnected ? 'connected' : 'not connected',
     timestamp: new Date().toISOString(),
   });
 });
 
 // 统计数据
-app.get('/api/stats', (req, res) => {
-  if (!db) {
+app.get('/api/stats', async (req, res) => {
+  if (!dbConnected) {
     return res.json({ code: 200, data: {} });
   }
 
   try {
-    const indicatorSystemStats = db.prepare(`
+    const indicatorSystemStats = (await db.query(`
       SELECT
         COUNT(*) as total,
         SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
@@ -145,27 +126,27 @@ app.get('/api/stats', (req, res) => {
         SUM(CASE WHEN type = '达标类' THEN 1 ELSE 0 END) as standard,
         SUM(CASE WHEN type = '评分类' THEN 1 ELSE 0 END) as scoring
       FROM indicator_systems
-    `).get();
+    `)).rows[0];
 
-    const elementLibraryStats = db.prepare(`
+    const elementLibraryStats = (await db.query(`
       SELECT
         COUNT(*) as total,
         SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
-        (SELECT COUNT(*) FROM elements) as elementCount
+        (SELECT COUNT(*) FROM elements) as elementcount
       FROM element_libraries
-    `).get();
+    `)).rows[0];
 
-    const toolStats = db.prepare(`
+    const toolStats = (await db.query(`
       SELECT
         COUNT(*) as total,
         SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
         SUM(CASE WHEN status = 'editing' THEN 1 ELSE 0 END) as editing,
         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft
       FROM data_tools
-    `).get();
+    `)).rows[0];
 
-    const projectStats = db.prepare(`
+    const projectStats = (await db.query(`
       SELECT
         SUM(CASE WHEN status = '配置中' THEN 1 ELSE 0 END) as configuring,
         SUM(CASE WHEN status = '填报中' THEN 1 ELSE 0 END) as filling,
@@ -173,7 +154,7 @@ app.get('/api/stats', (req, res) => {
         SUM(CASE WHEN status = '已中止' THEN 1 ELSE 0 END) as stopped,
         SUM(CASE WHEN status = '已完成' THEN 1 ELSE 0 END) as completed
       FROM projects
-    `).get();
+    `)).rows[0];
 
     res.json({
       code: 200,
@@ -207,27 +188,43 @@ app.use((req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log('Available endpoints:');
-  console.log('  GET  /api/health');
-  console.log('  GET  /api/stats');
-  console.log('  POST /api/login');
-  console.log('  GET  /api/indicator-systems');
-  console.log('  GET  /api/indicator-systems/:id/tree');
-  console.log('  GET  /api/tools');
-  console.log('  GET  /api/element-libraries');
-  console.log('  GET  /api/projects');
-  console.log('  GET  /api/submissions');
-  console.log('  GET  /api/districts');
-  console.log('  GET  /api/schools');
+async function startServer() {
+  // 初始化数据库连接
+  await initDatabase();
+
+  // 启动 HTTP 服务
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log('Available endpoints:');
+    console.log('  GET  /api/health');
+    console.log('  GET  /api/stats');
+    console.log('  POST /api/login');
+    console.log('  GET  /api/indicator-systems');
+    console.log('  GET  /api/indicator-systems/:id/tree');
+    console.log('  GET  /api/tools');
+    console.log('  GET  /api/element-libraries');
+    console.log('  GET  /api/projects');
+    console.log('  GET  /api/submissions');
+    console.log('  GET  /api/districts');
+    console.log('  GET  /api/schools');
+  });
+}
+
+// 启动服务器
+startServer().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 // 优雅关闭
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nShutting down...');
-  if (db) {
-    db.close();
-  }
+  await db.close();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\nShutting down...');
+  await db.close();
   process.exit(0);
 });

@@ -1,17 +1,19 @@
 -- 教育督导评估系统数据库Schema
--- SQLite数据库
+-- PostgreSQL数据库
+-- 注意：外键约束通过程序层面的 referenceService.js 和 cascadeService.js 实现
+-- 注意：枚举约束通过程序层面的 enums.js 和 validate.js 实现
 
 -- 指标体系表
 CREATE TABLE IF NOT EXISTS indicator_systems (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('达标类', '评分类')),
+  type TEXT NOT NULL,                -- 枚举值由程序验证：达标类 | 评分类
   target TEXT NOT NULL,
   tags TEXT,
   description TEXT,
   indicator_count INTEGER DEFAULT 0,
   attachments TEXT,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'editing', 'published')),
+  status TEXT DEFAULT 'draft',       -- 枚举值由程序验证：draft | editing | published
   created_by TEXT,
   created_at TEXT,
   updated_by TEXT,
@@ -21,25 +23,23 @@ CREATE TABLE IF NOT EXISTS indicator_systems (
 -- 指标表（扁平存储，通过parent_id维护树结构）
 CREATE TABLE IF NOT EXISTS indicators (
   id TEXT PRIMARY KEY,
-  system_id TEXT NOT NULL,
-  parent_id TEXT,
+  system_id TEXT NOT NULL,           -- 关联 indicator_systems.id，由程序验证
+  parent_id TEXT,                    -- 关联 indicators.id（自引用），由程序验证
   code TEXT NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
-  level INTEGER NOT NULL CHECK (level IN (1, 2, 3)),
+  level INTEGER NOT NULL,            -- 枚举值由程序验证：1 | 2 | 3
   is_leaf INTEGER DEFAULT 0,
   weight REAL,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (system_id) REFERENCES indicator_systems(id) ON DELETE CASCADE,
-  FOREIGN KEY (parent_id) REFERENCES indicators(id) ON DELETE CASCADE
+  updated_at TEXT
 );
 
 -- 数据指标表（末级指标关联的数据指标）
 CREATE TABLE IF NOT EXISTS data_indicators (
   id TEXT PRIMARY KEY,
-  indicator_id TEXT NOT NULL,
+  indicator_id TEXT NOT NULL,        -- 关联 indicators.id，由程序验证
   code TEXT NOT NULL,
   name TEXT NOT NULL,
   threshold TEXT,
@@ -47,14 +47,13 @@ CREATE TABLE IF NOT EXISTS data_indicators (
   data_source TEXT,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (indicator_id) REFERENCES indicators(id) ON DELETE CASCADE
+  updated_at TEXT
 );
 
 -- 佐证资料配置表
 CREATE TABLE IF NOT EXISTS supporting_materials (
   id TEXT PRIMARY KEY,
-  indicator_id TEXT NOT NULL,
+  indicator_id TEXT NOT NULL,        -- 关联 indicators.id，由程序验证
   code TEXT NOT NULL,
   name TEXT NOT NULL,
   file_types TEXT,
@@ -63,19 +62,18 @@ CREATE TABLE IF NOT EXISTS supporting_materials (
   required INTEGER DEFAULT 0,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (indicator_id) REFERENCES indicators(id) ON DELETE CASCADE
+  updated_at TEXT
 );
 
 -- 采集工具表
 CREATE TABLE IF NOT EXISTS data_tools (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('表单', '问卷')),
+  type TEXT NOT NULL,                -- 枚举值由程序验证：表单 | 问卷
   target TEXT,
   description TEXT,
   schema TEXT,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'editing', 'published')),
+  status TEXT DEFAULT 'draft',       -- 枚举值由程序验证：draft | editing | published
   created_by TEXT,
   created_at TEXT,
   updated_by TEXT,
@@ -88,7 +86,7 @@ CREATE TABLE IF NOT EXISTS element_libraries (
   name TEXT NOT NULL,
   description TEXT,
   element_count INTEGER DEFAULT 0,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  status TEXT DEFAULT 'draft',       -- 枚举值由程序验证：draft | published
   created_by TEXT,
   created_at TEXT,
   updated_by TEXT,
@@ -98,16 +96,15 @@ CREATE TABLE IF NOT EXISTS element_libraries (
 -- 要素表
 CREATE TABLE IF NOT EXISTS elements (
   id TEXT PRIMARY KEY,
-  library_id TEXT NOT NULL,
+  library_id TEXT NOT NULL,          -- 关联 element_libraries.id，由程序验证
   code TEXT NOT NULL,
   name TEXT NOT NULL,
-  element_type TEXT NOT NULL CHECK (element_type IN ('基础要素', '派生要素')),
+  element_type TEXT NOT NULL,        -- 枚举值由程序验证：基础要素 | 派生要素
   data_type TEXT NOT NULL,
   formula TEXT,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (library_id) REFERENCES element_libraries(id) ON DELETE CASCADE
+  updated_at TEXT
 );
 
 -- 项目表
@@ -116,41 +113,38 @@ CREATE TABLE IF NOT EXISTS projects (
   name TEXT NOT NULL,
   keywords TEXT,
   description TEXT,
-  indicator_system_id TEXT,
+  indicator_system_id TEXT,          -- 关联 indicator_systems.id，由程序验证
   start_date TEXT,
   end_date TEXT,
-  status TEXT DEFAULT '配置中' CHECK (status IN ('配置中', '填报中', '评审中', '已中止', '已完成')),
+  status TEXT DEFAULT '配置中',       -- 枚举值由程序验证：配置中 | 填报中 | 评审中 | 已中止 | 已完成
   created_by TEXT,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (indicator_system_id) REFERENCES indicator_systems(id)
+  updated_at TEXT
 );
 
 -- 填报记录表
 CREATE TABLE IF NOT EXISTS submissions (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,
-  form_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,          -- 关联 projects.id，由程序验证
+  form_id TEXT NOT NULL,             -- 关联 data_tools.id，由程序验证
   submitter_id TEXT,
   submitter_name TEXT,
   submitter_org TEXT,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'approved', 'rejected')),
+  status TEXT DEFAULT 'draft',       -- 枚举值由程序验证：draft | submitted | approved | rejected
   data TEXT,
   reject_reason TEXT,
   created_at TEXT,
   updated_at TEXT,
   submitted_at TEXT,
-  approved_at TEXT,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (form_id) REFERENCES data_tools(id)
+  approved_at TEXT
 );
 
 -- 佐证资料上传记录表
 CREATE TABLE IF NOT EXISTS submission_materials (
   id TEXT PRIMARY KEY,
-  submission_id TEXT NOT NULL,
-  material_config_id TEXT,
-  indicator_id TEXT,
+  submission_id TEXT NOT NULL,       -- 关联 submissions.id，由程序验证
+  material_config_id TEXT,           -- 关联 supporting_materials.id，由程序验证
+  indicator_id TEXT,                 -- 关联 data_indicators.id，由程序验证
   file_name TEXT NOT NULL,
   file_path TEXT NOT NULL,
   file_size INTEGER,
@@ -158,35 +152,29 @@ CREATE TABLE IF NOT EXISTS submission_materials (
   description TEXT,
   uploaded_by TEXT,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE,
-  FOREIGN KEY (material_config_id) REFERENCES supporting_materials(id),
-  FOREIGN KEY (indicator_id) REFERENCES data_indicators(id)
+  updated_at TEXT
 );
 
 -- 项目与采集工具关联表
 CREATE TABLE IF NOT EXISTS project_tools (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,
-  tool_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,          -- 关联 projects.id，由程序验证
+  tool_id TEXT NOT NULL,             -- 关联 data_tools.id，由程序验证
   sort_order INTEGER DEFAULT 0,
   is_required INTEGER DEFAULT 1,
   created_at TEXT,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (tool_id) REFERENCES data_tools(id) ON DELETE CASCADE,
   UNIQUE(project_id, tool_id)
 );
 
 -- 表单字段映射表（字段与数据指标/要素的映射关系）
 CREATE TABLE IF NOT EXISTS field_mappings (
   id TEXT PRIMARY KEY,
-  tool_id TEXT NOT NULL,
+  tool_id TEXT NOT NULL,             -- 关联 data_tools.id，由程序验证
   field_id TEXT NOT NULL,
-  mapping_type TEXT NOT NULL CHECK (mapping_type IN ('data_indicator', 'element')),
+  mapping_type TEXT NOT NULL,        -- 枚举值由程序验证：data_indicator | element
   target_id TEXT NOT NULL,
   created_at TEXT,
   updated_at TEXT,
-  FOREIGN KEY (tool_id) REFERENCES data_tools(id) ON DELETE CASCADE,
   UNIQUE(tool_id, field_id)
 );
 
@@ -215,7 +203,7 @@ CREATE TABLE IF NOT EXISTS districts (
   id TEXT PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,              -- 区县代码 (如 210106)
   name TEXT NOT NULL,                     -- 区县名称 (如 铁西区)
-  type TEXT DEFAULT '市辖区',              -- 类型: 市辖区 | 县 | 县级市
+  type TEXT DEFAULT '市辖区',              -- 类型: 市辖区 | 县 | 县级市，由程序验证
   parent_code TEXT,                       -- 上级代码 (市级)
   sort_order INTEGER DEFAULT 0,           -- 排序
   created_at TEXT,
@@ -227,19 +215,18 @@ CREATE TABLE IF NOT EXISTS schools (
   id TEXT PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,              -- 学校代码
   name TEXT NOT NULL,                     -- 学校名称
-  district_id TEXT NOT NULL,              -- 所属区县
-  school_type TEXT NOT NULL,              -- 类型: 小学 | 初中 | 九年一贯制 | 完全中学
-  school_category TEXT DEFAULT '公办',    -- 办学性质: 公办 | 民办
-  urban_rural TEXT DEFAULT '城区',         -- 城乡类型: 城区 | 镇区 | 乡村
+  district_id TEXT NOT NULL,              -- 关联 districts.id，由程序验证
+  school_type TEXT NOT NULL,              -- 类型，由程序验证: 小学 | 初中 | 九年一贯制 | 完全中学
+  school_category TEXT DEFAULT '公办',    -- 办学性质，由程序验证: 公办 | 民办
+  urban_rural TEXT DEFAULT '城区',         -- 城乡类型，由程序验证: 城区 | 镇区 | 乡村
   address TEXT,                           -- 地址
   principal TEXT,                         -- 校长姓名
   contact_phone TEXT,                     -- 联系电话
   student_count INTEGER DEFAULT 0,        -- 学生数
   teacher_count INTEGER DEFAULT 0,        -- 教师数
-  status TEXT DEFAULT 'active',           -- 状态: active | inactive
+  status TEXT DEFAULT 'active',           -- 状态，由程序验证: active | inactive
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (district_id) REFERENCES districts(id)
+  updated_at TEXT
 );
 
 -- 评估年度表
@@ -249,16 +236,16 @@ CREATE TABLE IF NOT EXISTS evaluation_years (
   name TEXT NOT NULL,                     -- 名称 (如 "2024-2025学年")
   start_date TEXT,                        -- 开始日期
   end_date TEXT,                          -- 结束日期
-  status TEXT DEFAULT 'active',           -- 状态: active | archived
+  status TEXT DEFAULT 'active',           -- 状态，由程序验证: active | archived
   created_at TEXT
 );
 
 -- 学校指标数据表 (存储每所学校的指标采集数据)
 CREATE TABLE IF NOT EXISTS school_indicator_data (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,               -- 评估项目ID
-  school_id TEXT NOT NULL,                -- 学校ID
-  data_indicator_id TEXT NOT NULL,        -- 数据指标ID
+  project_id TEXT NOT NULL,               -- 关联 projects.id，由程序验证
+  school_id TEXT NOT NULL,                -- 关联 schools.id，由程序验证
+  data_indicator_id TEXT NOT NULL,        -- 关联 data_indicators.id，由程序验证
   value REAL,                             -- 采集值 (数值型)
   text_value TEXT,                        -- 采集值 (文本型)
   is_compliant INTEGER,                   -- 是否达标: 1=达标, 0=未达标, NULL=未评估
@@ -266,17 +253,14 @@ CREATE TABLE IF NOT EXISTS school_indicator_data (
   collected_at TEXT,                      -- 采集时间
   created_at TEXT,
   updated_at TEXT,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
-  FOREIGN KEY (data_indicator_id) REFERENCES data_indicators(id) ON DELETE CASCADE,
   UNIQUE (project_id, school_id, data_indicator_id)
 );
 
 -- 区县统计快照表 (定期计算存储)
 CREATE TABLE IF NOT EXISTS district_statistics (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,               -- 评估项目ID
-  district_id TEXT NOT NULL,              -- 区县ID
+  project_id TEXT NOT NULL,               -- 关联 projects.id，由程序验证
+  district_id TEXT NOT NULL,              -- 关联 districts.id，由程序验证
   school_type TEXT NOT NULL,              -- 学校类型: 小学 | 初中
 
   -- 学校统计
@@ -306,8 +290,6 @@ CREATE TABLE IF NOT EXISTS district_statistics (
   calculated_at TEXT,                     -- 计算时间
   created_at TEXT,
 
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
   UNIQUE (project_id, district_id, school_type)
 );
 
@@ -329,15 +311,13 @@ CREATE INDEX IF NOT EXISTS idx_district_stats_district ON district_statistics(di
 -- 数据指标-评估要素关联表 (支持多对多关联)
 CREATE TABLE IF NOT EXISTS data_indicator_elements (
   id TEXT PRIMARY KEY,
-  data_indicator_id TEXT NOT NULL,        -- 数据指标ID
-  element_id TEXT NOT NULL,               -- 评估要素ID
-  mapping_type TEXT DEFAULT 'primary',    -- 关联类型: primary=主要关联, reference=参考关联
+  data_indicator_id TEXT NOT NULL,        -- 关联 data_indicators.id，由程序验证
+  element_id TEXT NOT NULL,               -- 关联 elements.id，由程序验证
+  mapping_type TEXT DEFAULT 'primary',    -- 关联类型，由程序验证: primary | reference
   description TEXT,                       -- 关联说明
   created_by TEXT,                        -- 创建人
   created_at TEXT,
   updated_at TEXT,
-  FOREIGN KEY (data_indicator_id) REFERENCES data_indicators(id) ON DELETE CASCADE,
-  FOREIGN KEY (element_id) REFERENCES elements(id) ON DELETE CASCADE,
   UNIQUE (data_indicator_id, element_id)
 );
 
@@ -355,50 +335,46 @@ CREATE TABLE IF NOT EXISTS compliance_rules (
   id TEXT PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,                -- 规则代码 (如 RULE_001)
   name TEXT NOT NULL,                       -- 规则名称
-  rule_type TEXT NOT NULL CHECK (rule_type IN ('threshold', 'conditional', 'validation', 'aggregation')),
-  indicator_id TEXT,                        -- 关联的数据指标ID (可选)
-  element_id TEXT,                          -- 关联的要素ID (可选)
+  rule_type TEXT NOT NULL,                  -- 规则类型，由程序验证: threshold | conditional | validation | aggregation
+  indicator_id TEXT,                        -- 关联 data_indicators.id，由程序验证 (可选)
+  element_id TEXT,                          -- 关联 elements.id，由程序验证 (可选)
   enabled INTEGER DEFAULT 1,                -- 是否启用: 1=启用, 0=禁用
   priority INTEGER DEFAULT 0,               -- 优先级 (数字越大优先级越高)
   description TEXT,                         -- 规则描述
   created_by TEXT,
   created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (indicator_id) REFERENCES data_indicators(id) ON DELETE SET NULL,
-  FOREIGN KEY (element_id) REFERENCES elements(id) ON DELETE SET NULL
+  updated_at TEXT
 );
 
 -- 规则条件表 (定义规则何时适用)
 CREATE TABLE IF NOT EXISTS rule_conditions (
   id TEXT PRIMARY KEY,
-  rule_id TEXT NOT NULL,                    -- 所属规则ID
+  rule_id TEXT NOT NULL,                    -- 关联 compliance_rules.id，由程序验证
   field TEXT NOT NULL,                      -- 条件字段 (如 institution_type, school_type)
   operator TEXT NOT NULL,                   -- 操作符: equals, not_equals, in, not_in, greater_than, less_than, between, etc.
   value TEXT NOT NULL,                      -- 条件值 (JSON格式，支持数组)
   logical_operator TEXT DEFAULT 'AND',      -- 逻辑运算符: AND, OR
-  sort_order INTEGER DEFAULT 0,             -- 排序顺序
-  FOREIGN KEY (rule_id) REFERENCES compliance_rules(id) ON DELETE CASCADE
+  sort_order INTEGER DEFAULT 0              -- 排序顺序
 );
 
 -- 规则动作表 (定义规则的执行动作)
 CREATE TABLE IF NOT EXISTS rule_actions (
   id TEXT PRIMARY KEY,
-  rule_id TEXT NOT NULL,                    -- 所属规则ID
-  action_type TEXT NOT NULL CHECK (action_type IN ('compare', 'validate', 'calculate', 'aggregate')),
+  rule_id TEXT NOT NULL,                    -- 关联 compliance_rules.id，由程序验证
+  action_type TEXT NOT NULL,                -- 动作类型，由程序验证: compare | validate | calculate | aggregate
   config TEXT NOT NULL,                     -- 动作配置 (JSON格式)
   result_field TEXT,                        -- 结果存储字段
   pass_message TEXT,                        -- 通过时的消息
   fail_message TEXT,                        -- 失败时的消息
-  sort_order INTEGER DEFAULT 0,             -- 排序顺序
-  FOREIGN KEY (rule_id) REFERENCES compliance_rules(id) ON DELETE CASCADE
+  sort_order INTEGER DEFAULT 0              -- 排序顺序
 );
 
 -- 达标判定结果表
 CREATE TABLE IF NOT EXISTS compliance_results (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL,                 -- 评估项目ID
-  rule_id TEXT NOT NULL,                    -- 规则ID
-  entity_type TEXT NOT NULL,                -- 实体类型: school, district, county
+  project_id TEXT NOT NULL,                 -- 关联 projects.id，由程序验证
+  rule_id TEXT NOT NULL,                    -- 关联 compliance_rules.id，由程序验证
+  entity_type TEXT NOT NULL,                -- 实体类型，由程序验证: school | district | county
   entity_id TEXT NOT NULL,                  -- 实体ID (学校ID或区县ID)
   indicator_id TEXT,                        -- 数据指标ID (可选)
   actual_value TEXT,                        -- 实际值
@@ -406,15 +382,13 @@ CREATE TABLE IF NOT EXISTS compliance_results (
   is_compliant INTEGER,                     -- 是否达标: 1=达标, 0=未达标
   message TEXT,                             -- 结果消息
   details TEXT,                             -- 详细信息 (JSON格式)
-  calculated_at TEXT,                       -- 计算时间
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (rule_id) REFERENCES compliance_rules(id) ON DELETE CASCADE
+  calculated_at TEXT                        -- 计算时间
 );
 
 -- 数据校验规则配置表 (用于表单字段校验)
 CREATE TABLE IF NOT EXISTS validation_configs (
   id TEXT PRIMARY KEY,
-  target_type TEXT NOT NULL,                -- 目标类型: field, element, indicator
+  target_type TEXT NOT NULL,                -- 目标类型，由程序验证: field | element | indicator
   target_id TEXT NOT NULL,                  -- 目标ID
   validation_type TEXT NOT NULL,            -- 校验类型: required, range, precision, regex, enum, unique
   config TEXT NOT NULL,                     -- 校验配置 (JSON格式)
@@ -427,17 +401,16 @@ CREATE TABLE IF NOT EXISTS validation_configs (
 -- 阈值标准表 (存储各指标的阈值标准)
 CREATE TABLE IF NOT EXISTS threshold_standards (
   id TEXT PRIMARY KEY,
-  indicator_id TEXT NOT NULL,               -- 数据指标ID
+  indicator_id TEXT NOT NULL,               -- 关联 data_indicators.id，由程序验证
   institution_type TEXT NOT NULL,           -- 机构类型: primary, middle, nine_year, complete
   threshold_operator TEXT NOT NULL,         -- 比较运算符: >=, >, <=, <, ==, between
   threshold_value TEXT NOT NULL,            -- 阈值 (数值或JSON格式的区间)
-  unit TEXT,                                -- 单位 (如 ㎡, 元, %)
+  unit TEXT,                                -- 单位 (如 m2, 元, %)
   source TEXT,                              -- 标准来源 (如 "国家标准")
   effective_date TEXT,                      -- 生效日期
   expiry_date TEXT,                         -- 失效日期
   created_at TEXT,
   updated_at TEXT,
-  FOREIGN KEY (indicator_id) REFERENCES data_indicators(id) ON DELETE CASCADE,
   UNIQUE (indicator_id, institution_type)
 );
 
