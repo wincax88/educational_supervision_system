@@ -96,6 +96,13 @@ interface DynamicListChildField {
   options?: { label: string; value: string }[];
 }
 
+// showWhen 条件显示配置
+interface ShowWhenCondition {
+  field: string;
+  value?: string | string[];
+  condition?: 'filled' | 'empty' | 'equals';
+}
+
 // 表单字段定义
 interface FormField {
   id: string;
@@ -103,7 +110,7 @@ interface FormField {
   label: string;
   placeholder?: string;
   helpText?: string;
-  width: '25%' | '50%' | '75%' | '100%';
+  width: '25%' | '33%' | '50%' | '75%' | '100%';
   required: boolean;
   options?: { label: string; value: string }[];
   optionLayout?: 'horizontal' | 'vertical';
@@ -128,6 +135,8 @@ interface FormField {
   mappings?: FieldMappingInfo[];  // 多个映射关联
   // 映射信息（兼容旧格式）
   mapping?: FieldMappingInfo | null;
+  // 条件显示
+  showWhen?: ShowWhenCondition;
 }
 
 // 控件库配置
@@ -239,6 +248,8 @@ const FormToolEdit: React.FC = () => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   // 动态列表预览数据
   const [dynamicListData, setDynamicListData] = useState<Record<string, Record<string, any>[]>>({});
+  // 表单预览值状态（用于条件显示）
+  const [previewFormValues, setPreviewFormValues] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (id) {
@@ -661,6 +672,37 @@ const FormToolEdit: React.FC = () => {
     setPendingImportFields([]);
   };
 
+  // 检查字段是否应该显示（基于 showWhen 条件）
+  const checkShowWhen = (field: FormField, formValues: Record<string, any>): boolean => {
+    if (!field.showWhen) return true;
+
+    const { field: targetField, value, condition } = field.showWhen;
+    const targetValue = formValues[targetField];
+
+    // 如果是 condition 类型
+    if (condition === 'filled') {
+      return targetValue !== undefined && targetValue !== null && targetValue !== '';
+    }
+    if (condition === 'empty') {
+      return targetValue === undefined || targetValue === null || targetValue === '';
+    }
+
+    // 如果是 value 匹配
+    if (value !== undefined) {
+      if (Array.isArray(value)) {
+        return value.includes(targetValue);
+      }
+      return targetValue === value;
+    }
+
+    return true;
+  };
+
+  // 更新预览表单值
+  const updatePreviewFormValue = (fieldId: string, value: any) => {
+    setPreviewFormValues(prev => ({ ...prev, [fieldId]: value }));
+  };
+
   // 初始化动态列表预览数据
   const initDynamicListData = (fieldId: string, fields: DynamicListChildField[] | undefined, minRows: number = 1) => {
     if (!dynamicListData[fieldId]) {
@@ -958,7 +1000,12 @@ const FormToolEdit: React.FC = () => {
   };
 
   // 渲染预览表单中的字段
-  const renderPreviewFormField = (field: FormField) => {
+  const renderPreviewFormField = (field: FormField): React.ReactNode => {
+    // 检查条件显示
+    if (!checkShowWhen(field, previewFormValues)) {
+      return null;
+    }
+
     const fieldStyle = { width: field.width };
 
     switch (field.type) {
@@ -969,7 +1016,11 @@ const FormToolEdit: React.FC = () => {
               {field.label}
               {field.required && <span className={styles.previewRequiredMark}>*</span>}
             </div>
-            <Input placeholder={field.placeholder || '请输入'} />
+            <Input
+              placeholder={field.placeholder || '请输入'}
+              value={previewFormValues[field.id] || ''}
+              onChange={e => updatePreviewFormValue(field.id, e.target.value)}
+            />
           </div>
         );
 
@@ -980,7 +1031,12 @@ const FormToolEdit: React.FC = () => {
               {field.label}
               {field.required && <span className={styles.previewRequiredMark}>*</span>}
             </div>
-            <Input.TextArea placeholder={field.placeholder || '请输入'} rows={3} />
+            <Input.TextArea
+              placeholder={field.placeholder || '请输入'}
+              rows={3}
+              value={previewFormValues[field.id] || ''}
+              onChange={e => updatePreviewFormValue(field.id, e.target.value)}
+            />
           </div>
         );
 
@@ -996,6 +1052,8 @@ const FormToolEdit: React.FC = () => {
               placeholder={field.placeholder || '请输入数字'}
               addonAfter={field.unit || null}
               style={{ width: '100%' }}
+              value={previewFormValues[field.id]}
+              onChange={value => updatePreviewFormValue(field.id, value)}
               precision={
                 field.decimalPlaces === '1位小数'
                   ? 1
@@ -1017,6 +1075,8 @@ const FormToolEdit: React.FC = () => {
             <Select
               placeholder="请选择"
               style={{ width: '100%' }}
+              value={previewFormValues[field.id]}
+              onChange={value => updatePreviewFormValue(field.id, value)}
               options={field.options?.map(opt => ({ label: opt.label, value: opt.value }))}
             />
           </div>
@@ -1114,6 +1174,7 @@ const FormToolEdit: React.FC = () => {
       case 'divider':
         return (
           <div key={field.id} className={styles.previewDivider} style={{ width: '100%' }}>
+            {field.label && <div className={styles.previewDividerLabel}>{field.label}</div>}
             <div className={styles.previewDividerLine} />
           </div>
         );
@@ -1123,7 +1184,7 @@ const FormToolEdit: React.FC = () => {
           <div key={field.id} className={styles.previewGroup} style={{ width: '100%' }}>
             <div className={styles.previewGroupTitle}>{field.label}</div>
             <div className={styles.previewGroupContent}>
-              {field.children?.map(childField => renderPreviewFormField(childField))}
+              {field.children?.map(childField => renderPreviewFormField(childField)).filter(Boolean)}
             </div>
           </div>
         );
@@ -1359,7 +1420,11 @@ const FormToolEdit: React.FC = () => {
               <Button icon={<DeleteOutlined />} danger onClick={handleClearForm}>
                 清除数据
               </Button>
-              <Button icon={<EyeOutlined />} onClick={() => setPreviewModalVisible(true)}>预览</Button>
+              <Button icon={<EyeOutlined />} onClick={() => {
+                setPreviewFormValues({});
+                setDynamicListData({});
+                setPreviewModalVisible(true);
+              }}>预览</Button>
             </div>
           </div>
 
@@ -1974,7 +2039,7 @@ const FormToolEdit: React.FC = () => {
           <p className={styles.previewDescription}>{tool.description}</p>
           <div className={styles.previewFormName}>{tool.name}</div>
           <div className={styles.previewFormFields}>
-            {formFields.map(field => renderPreviewFormField(field))}
+            {formFields.map(field => renderPreviewFormField(field)).filter(Boolean)}
           </div>
         </div>
       </Modal>

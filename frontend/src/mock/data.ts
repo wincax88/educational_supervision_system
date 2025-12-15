@@ -1,4 +1,5 @@
 // Mock data for the educational supervision system
+import schoolSchema from './schema-school.json';
 
 export interface ElementLibrary {
   id: string;
@@ -2465,7 +2466,7 @@ export const toolSchemas: { [toolId: string]: ToolSchemaField[] } = {
 // 完整表单 Schema（用于 FormToolEdit 初始化）
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const formSchemas: { [toolId: string]: any[] } = {
-  '6': [], // 优质均衡采集表-学校，通过导入 JSON 文件初始化
+  '6': schoolSchema, // 优质均衡采集表-学校
   '7': [], // 优质均衡采集表-区县，通过导入 JSON 文件初始化
   '8': [
     {
