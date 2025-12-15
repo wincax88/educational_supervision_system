@@ -375,22 +375,35 @@ router.get('/element-libraries/:id', async (req, res) => {
       const elementIds = elements.map(el => el.id);
       let mappingRows = [];
       if (elementIds.length > 0) {
-        const mappingsResult = await db.query(
-          `
-          SELECT tool_id as "toolId", field_id as "fieldId", target_id as "targetId"
-          FROM field_mappings
-          WHERE mapping_type = 'element'
-            AND target_id = ANY($1)
-          `,
-          [elementIds]
-        );
-        mappingRows = mappingsResult.rows || [];
+        try {
+          const mappingsResult = await db.query(
+            `
+            SELECT tool_id as "toolId", field_id as "fieldId", field_label as "fieldLabel", target_id as "targetId"
+            FROM field_mappings
+            WHERE mapping_type = 'element'
+              AND target_id = ANY($1)
+            `,
+            [elementIds]
+          );
+          mappingRows = mappingsResult.rows || [];
+        } catch (e) {
+          const mappingsResult = await db.query(
+            `
+            SELECT tool_id as "toolId", field_id as "fieldId", target_id as "targetId"
+            FROM field_mappings
+            WHERE mapping_type = 'element'
+              AND target_id = ANY($1)
+            `,
+            [elementIds]
+          );
+          mappingRows = mappingsResult.rows || [];
+        }
       }
 
       const mappingByTarget = {};
       for (const m of mappingRows) {
         if (!mappingByTarget[m.targetId]) {
-          mappingByTarget[m.targetId] = { toolId: m.toolId, fieldId: m.fieldId };
+          mappingByTarget[m.targetId] = { toolId: m.toolId, fieldId: m.fieldId, fieldLabel: m.fieldLabel };
         }
       }
 
@@ -437,7 +450,7 @@ router.post('/element-libraries', async (req, res) => {
 // 更新要素库
 router.put('/element-libraries/:id', async (req, res) => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, status, elements } = req.body;
 
     // 程序层面枚举验证
     if (status) {
@@ -449,6 +462,235 @@ router.put('/element-libraries/:id', async (req, res) => {
     }
 
     const timestamp = now();
+
+    // elements 全量覆盖（可选）：先做参数校验与删除可行性检查，避免中途更新导致状态不一致
+    if (elements !== undefined) {
+      if (!Array.isArray(elements)) {
+        return res.status(400).json({ code: 400, message: 'elements 必须为数组' });
+      }
+
+      // 确认要素库存在
+      const { data: lib, error: libErr } = await db
+        .from('element_libraries')
+        .select('id')
+        .eq('id', req.params.id)
+        .maybeSingle();
+      if (libErr) throw libErr;
+      if (!lib) {
+        return res.status(404).json({ code: 404, message: '要素库不存在' });
+      }
+
+      // 查出当前库下要素ID
+      const { data: existingElements, error: exErr } = await db
+        .from('elements')
+        .select('id')
+        .eq('library_id', req.params.id);
+      if (exErr) throw exErr;
+      const existingIds = new Set((existingElements || []).map(e => e.id));
+
+      // 计算需要删除的要素（差集）
+      const incomingIds = new Set(
+        (elements || []).map(e => e && typeof e === 'object' ? e.id : undefined).filter(Boolean)
+      );
+      const toDeleteIds = Array.from(existingIds).filter(id => !incomingIds.has(id));
+
+      // 若要删除的要素被数据指标引用，则拒绝覆盖删除（避免破坏引用关系）
+      if (toDeleteIds.length > 0) {
+        const { count: refCount, error: refErr } = await db
+          .from('data_indicator_elements')
+          .select('id', { count: 'exact', head: true })
+          .in('element_id', toDeleteIds);
+        if (refErr) throw refErr;
+        if ((refCount || 0) > 0) {
+          return res.status(400).json({
+            code: 400,
+            message: `全量覆盖失败：有 ${refCount} 个要素已被数据指标引用，无法删除`
+          });
+        }
+      }
+
+      // 先更新要素库基础信息（若传入）
+      const libUpdates = {
+        ...(name !== undefined ? { name } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(status !== undefined ? { status } : {}),
+        updated_by: 'admin',
+        updated_at: timestamp,
+      };
+
+      const { data: libUpd, error: libUpdErr } = await db
+        .from('element_libraries')
+        .update(libUpdates)
+        .eq('id', req.params.id)
+        .select('id');
+      if (libUpdErr) throw libUpdErr;
+      if (!libUpd || libUpd.length === 0) {
+        return res.status(404).json({ code: 404, message: '要素库不存在' });
+      }
+
+      // 删除差集要素 + 清理 field_mappings/compliance_rules
+      if (toDeleteIds.length > 0) {
+        // SET NULL：compliance_rules.element_id
+        const { error: setNullErr } = await db
+          .from('compliance_rules')
+          .update({ element_id: null, updated_at: timestamp })
+          .in('element_id', toDeleteIds);
+        if (setNullErr) throw setNullErr;
+
+        // 清理 field_mappings
+        const { error: fmErr } = await db
+          .from('field_mappings')
+          .delete()
+          .eq('mapping_type', 'element')
+          .in('target_id', toDeleteIds);
+        if (fmErr) throw fmErr;
+
+        // 删除 elements
+        const { error: delErr } = await db
+          .from('elements')
+          .delete()
+          .in('id', toDeleteIds);
+        if (delErr) throw delErr;
+      }
+
+      // 全量写入（按顺序设置 sort_order）
+      const processedElements = [];
+      for (let index = 0; index < elements.length; index++) {
+        const el = elements[index] || {};
+        const elId = el.id || generateId();
+
+        // 基本字段校验
+        if (!el.code || !el.name || !el.elementType || !el.dataType) {
+          return res.status(400).json({ code: 400, message: `elements[${index}] 参数不完整` });
+        }
+        try {
+          validateEnum('ELEMENT_TYPE', el.elementType, `elements[${index}].elementType`);
+        } catch (e) {
+          return res.status(400).json({ code: 400, message: e.message });
+        }
+
+        const baseRecord = {
+          code: el.code,
+          name: el.name,
+          element_type: el.elementType,
+          data_type: el.dataType,
+          formula: el.elementType === '派生要素' ? (el.formula || null) : null,
+          sort_order: index,
+          updated_at: timestamp,
+        };
+
+        // 新库字段：tool/field/label（旧库无列时回退）
+        const extendedRecord = {
+          ...baseRecord,
+          tool_id: el.elementType === '基础要素' ? (el.toolId || null) : null,
+          field_id: el.elementType === '基础要素' ? (el.fieldId || null) : null,
+          field_label: el.elementType === '基础要素' ? (el.fieldLabel || null) : null,
+        };
+
+        processedElements.push({
+          id: elId,
+          elementType: el.elementType,
+          toolId: el.toolId,
+          fieldId: el.fieldId,
+          fieldLabel: el.fieldLabel,
+        });
+
+        if (existingIds.has(elId)) {
+          // update
+          try {
+            const { error } = await db
+              .from('elements')
+              .update(extendedRecord)
+              .eq('id', elId);
+            if (error) throw error;
+          } catch (e) {
+            const { error } = await db
+              .from('elements')
+              .update(baseRecord)
+              .eq('id', elId);
+            if (error) throw error;
+          }
+        } else {
+          // insert
+          try {
+            const { error } = await db
+              .from('elements')
+              .insert({
+                id: elId,
+                library_id: req.params.id,
+                created_at: timestamp,
+                ...extendedRecord,
+              });
+            if (error) throw error;
+          } catch (e) {
+            const { error } = await db
+              .from('elements')
+              .insert({
+                id: elId,
+                library_id: req.params.id,
+                created_at: timestamp,
+                ...baseRecord,
+              });
+            if (error) throw error;
+          }
+          existingIds.add(elId);
+        }
+      }
+
+      // 兼容旧库：同步维护 field_mappings（mapping_type='element'），用于 GET 回显 toolId/fieldId/fieldLabel
+      // 先清理本次最终列表对应的旧映射（target_id 维度）
+      const finalIds = processedElements.map(p => p.id);
+      if (finalIds.length > 0) {
+        const { error: delMapErr } = await db
+          .from('field_mappings')
+          .delete()
+          .eq('mapping_type', 'element')
+          .in('target_id', finalIds);
+        if (delMapErr) throw delMapErr;
+      }
+
+      const mappingRecords = processedElements
+        .filter(p => p.elementType === '基础要素' && p.toolId && p.fieldId)
+        .map(p => ({
+          id: generateId(),
+          tool_id: p.toolId,
+          field_id: p.fieldId,
+          field_label: p.fieldLabel || null,
+          mapping_type: 'element',
+          target_id: p.id,
+          created_at: timestamp,
+          updated_at: timestamp,
+        }));
+
+      if (mappingRecords.length > 0) {
+        // 如果 field_label 列不存在，回退只插入必要字段（tool_id/field_id/mapping_type/target_id）
+        try {
+          const { error: insMapErr } = await db.from('field_mappings').insert(mappingRecords);
+          if (insMapErr) throw insMapErr;
+        } catch (e) {
+          const fallbackRecords = mappingRecords.map(r => ({
+            id: r.id,
+            tool_id: r.tool_id,
+            field_id: r.field_id,
+            mapping_type: r.mapping_type,
+            target_id: r.target_id,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+          }));
+          const { error: insMapErr } = await db.from('field_mappings').insert(fallbackRecords);
+          if (insMapErr) throw insMapErr;
+        }
+      }
+
+      // 重置 element_count
+      const { error: updCountErr } = await db
+        .from('element_libraries')
+        .update({ element_count: elements.length, updated_at: timestamp })
+        .eq('id', req.params.id);
+      if (updCountErr) throw updCountErr;
+
+      return res.json({ code: 200, message: '更新成功' });
+    }
 
     const updates = {
       ...(name !== undefined ? { name } : {}),
@@ -630,6 +872,113 @@ router.post('/element-libraries/:id/elements', async (req, res) => {
     if (updCountErr) throw updCountErr;
 
     return res.json({ code: 200, data: { id: inserted?.[0]?.id || id }, message: '添加成功' });
+  } catch (error) {
+    return res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
+// 批量导入要素
+router.post('/element-libraries/:id/elements/import', async (req, res) => {
+  try {
+    const { elements, mode = 'append' } = req.body; // mode: 'append' | 'replace'
+    const libraryId = req.params.id;
+    const timestamp = now();
+
+    if (!Array.isArray(elements) || elements.length === 0) {
+      return res.status(400).json({ code: 400, message: '要素列表不能为空' });
+    }
+
+    // 验证要素库是否存在
+    const libraryResult = await db.query('SELECT id FROM element_libraries WHERE id = $1', [libraryId]);
+    if (!libraryResult.rows[0]) {
+      return res.status(404).json({ code: 404, message: '要素库不存在' });
+    }
+
+    // 如果是替换模式，先删除现有要素
+    if (mode === 'replace') {
+      const { error: delErr } = await db
+        .from('elements')
+        .delete()
+        .eq('library_id', libraryId);
+      if (delErr) throw delErr;
+    }
+
+    // 获取当前最大排序号
+    const maxOrderResult = await db.query('SELECT MAX(sort_order) as "maxOrder" FROM elements WHERE library_id = $1', [libraryId]);
+    let sortOrder = mode === 'replace' ? 0 : (maxOrderResult.rows[0]?.maxOrder ?? -1) + 1;
+
+    // 批量插入要素
+    const insertedIds = [];
+    const errors = [];
+
+    for (const element of elements) {
+      try {
+        // 验证必填字段
+        if (!element.code || !element.name || !element.elementType || !element.dataType) {
+          errors.push({ code: element.code, error: '缺少必填字段' });
+          continue;
+        }
+
+        // 验证要素类型
+        try {
+          validateEnum('ELEMENT_TYPE', element.elementType, 'elementType');
+        } catch (e) {
+          errors.push({ code: element.code, error: e.message });
+          continue;
+        }
+
+        const id = generateId();
+
+        const { error: insErr } = await db
+          .from('elements')
+          .insert({
+            id,
+            library_id: libraryId,
+            code: element.code,
+            name: element.name,
+            element_type: element.elementType,
+            data_type: element.dataType,
+            tool_id: element.toolId || null,
+            field_id: element.fieldId || null,
+            field_label: element.fieldLabel || null,
+            formula: element.formula || null,
+            sort_order: sortOrder++,
+            created_at: timestamp,
+            updated_at: timestamp,
+          });
+
+        if (insErr) {
+          errors.push({ code: element.code, error: insErr.message });
+        } else {
+          insertedIds.push({ id, code: element.code });
+        }
+      } catch (e) {
+        errors.push({ code: element.code, error: e.message });
+      }
+    }
+
+    // 重新计算 element_count
+    const { count, error: countErr } = await db
+      .from('elements')
+      .select('id', { count: 'exact', head: true })
+      .eq('library_id', libraryId);
+    if (countErr) throw countErr;
+
+    const { error: updCountErr } = await db
+      .from('element_libraries')
+      .update({ element_count: count || 0, updated_at: timestamp })
+      .eq('id', libraryId);
+    if (updCountErr) throw updCountErr;
+
+    return res.json({
+      code: 200,
+      data: {
+        imported: insertedIds.length,
+        failed: errors.length,
+        errors: errors.length > 0 ? errors : undefined,
+      },
+      message: `成功导入 ${insertedIds.length} 个要素${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+    });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }

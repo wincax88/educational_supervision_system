@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS field_mappings (
   id TEXT PRIMARY KEY,
   tool_id TEXT NOT NULL,             -- 关联 data_tools.id，由程序验证
   field_id TEXT NOT NULL,
+  field_label TEXT,                  -- 字段展示名称/路径（用于回显）
   mapping_type TEXT NOT NULL,        -- 枚举值由程序验证：data_indicator | element
   target_id TEXT NOT NULL,
   created_at TEXT,

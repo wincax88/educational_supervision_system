@@ -172,6 +172,24 @@ export async function deleteElement(id: string): Promise<void> {
   return del(`/elements/${id}`);
 }
 
+// 批量导入要素
+export interface ImportElementsResult {
+  imported: number;
+  failed: number;
+  errors?: Array<{ code: string; error: string }>;
+}
+
+export async function importElements(
+  libraryId: string,
+  elements: Array<Partial<Element>>,
+  mode: 'append' | 'replace' = 'append'
+): Promise<ImportElementsResult> {
+  return post<ImportElementsResult>(`/element-libraries/${libraryId}/elements/import`, {
+    elements,
+    mode,
+  });
+}
+
 // ==================== 字段映射 API ====================
 
 // 字段映射目标信息类型

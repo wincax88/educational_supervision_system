@@ -30,6 +30,7 @@ ALTER TABLE data_indicator_elements ADD COLUMN IF NOT EXISTS updated_at TEXT;
 -- ==================== field_mappings ====================
 -- 将 field_key 改名为 field_id（如果需要）
 ALTER TABLE field_mappings RENAME COLUMN field_key TO field_id;
+ALTER TABLE field_mappings ADD COLUMN IF NOT EXISTS field_label TEXT;
 ALTER TABLE field_mappings ADD COLUMN IF NOT EXISTS updated_at TEXT;
 
 -- ==================== elements ====================

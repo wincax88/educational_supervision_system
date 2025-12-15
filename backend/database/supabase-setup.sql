@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS field_mappings (
   id TEXT PRIMARY KEY,
   tool_id TEXT NOT NULL,
   field_id TEXT NOT NULL,
+  field_label TEXT,
   mapping_type TEXT NOT NULL,
   target_id TEXT NOT NULL,
   created_at TEXT,

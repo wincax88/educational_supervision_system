@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Button, Tag, Modal, Form, Input, Select, message, Radio } from 'antd';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Button, Tag, Modal, Form, Input, Select, message, Radio, Upload } from 'antd';
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -10,6 +10,7 @@ import {
   LinkOutlined,
   FormOutlined,
   ThunderboltOutlined,
+  ImportOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './index.module.css';
@@ -99,6 +100,13 @@ const IndicatorEdit: React.FC = () => {
   // 弹窗状态
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+
+  // 导入相关状态
+  const [importMode, setImportMode] = useState<'append' | 'replace'>('append');
+  const [importData, setImportData] = useState<any>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 筛选状态: 'all' | 'unlinked' | 'linked'
   const [filterType, setFilterType] = useState<'all' | 'unlinked' | 'linked'>('all');
@@ -421,6 +429,18 @@ const IndicatorEdit: React.FC = () => {
       await toolService.updateElementLibrary(id, {
         name: library.name,
         description: library.description,
+        // 全量覆盖：将当前页面 elements 一并提交
+        elements: library.elements.map(el => ({
+          id: el.id,
+          code: el.code,
+          name: el.name,
+          elementType: el.elementType,
+          dataType: el.dataType,
+          formula: el.formula,
+          toolId: el.toolId,
+          fieldId: el.fieldId,
+          fieldLabel: el.fieldLabel,
+        })),
       });
       message.success('要素库保存成功');
     } catch (error) {
@@ -537,6 +557,99 @@ const IndicatorEdit: React.FC = () => {
     );
   };
 
+  // 打开导入弹窗
+  const handleOpenImport = () => {
+    setImportData(null);
+    setImportMode('append');
+    setImportModalVisible(true);
+  };
+
+  // 处理文件选择
+  const handleFileSelect = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+
+        // 验证数据格式
+        if (data.elements && Array.isArray(data.elements)) {
+          setImportData(data);
+          message.success(`已解析 ${data.elements.length} 个要素`);
+        } else if (Array.isArray(data)) {
+          setImportData({ elements: data });
+          message.success(`已解析 ${data.length} 个要素`);
+        } else {
+          message.error('JSON格式不正确，需要包含 elements 数组');
+        }
+      } catch (error) {
+        message.error('JSON解析失败，请检查文件格式');
+        console.error('Parse error:', error);
+      }
+    };
+    reader.readAsText(file);
+    return false; // 阻止默认上传行为
+  };
+
+  // 执行导入
+  const handleImport = async () => {
+    if (!library || !id || !importData?.elements) return;
+
+    setImporting(true);
+    try {
+      const result = await toolService.importElements(id, importData.elements, importMode);
+
+      // 重新加载要素库数据
+      const libraryData = await toolService.getElementLibrary(id);
+      const mappedLibrary: ElementLibrary = {
+        id: libraryData.id,
+        name: libraryData.name,
+        description: libraryData.description || '',
+        status: libraryData.status === 'published' ? '已发布' : '未发布',
+        elementCount: libraryData.elements?.length || 0,
+        elements: (libraryData.elements || []).map(el => ({
+          id: el.id,
+          code: el.code,
+          name: el.name,
+          elementType: el.elementType,
+          dataType: el.dataType,
+          formula: el.formula,
+          toolId: el.toolId,
+          fieldId: el.fieldId,
+          fieldLabel: el.fieldLabel,
+        })),
+      };
+      setLibrary(mappedLibrary);
+      setSelectedElement(null);
+
+      setImportModalVisible(false);
+
+      if (result.failed > 0 && result.errors) {
+        Modal.warning({
+          title: '部分导入失败',
+          content: (
+            <div>
+              <p>成功导入 {result.imported} 个，失败 {result.failed} 个</p>
+              <ul style={{ maxHeight: 200, overflow: 'auto' }}>
+                {result.errors.slice(0, 10).map((e, i) => (
+                  <li key={i}>{e.code}: {e.error}</li>
+                ))}
+                {result.errors.length > 10 && <li>... 等共 {result.errors.length} 个错误</li>}
+              </ul>
+            </div>
+          ),
+        });
+      } else {
+        message.success(`成功导入 ${result.imported} 个要素`);
+      }
+    } catch (error) {
+      console.error('导入失败:', error);
+      message.error('导入失败');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (!library) {
     return <div className={styles.elementEditPage}>加载中...</div>;
   }
@@ -590,6 +703,9 @@ const IndicatorEdit: React.FC = () => {
               </Radio.Group>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
+              <Button icon={<ImportOutlined />} onClick={handleOpenImport}>
+                导入
+              </Button>
               <Button icon={<ThunderboltOutlined />} onClick={handleAutoLink}>
                 自动关联
               </Button>
@@ -1014,6 +1130,85 @@ const IndicatorEdit: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 导入要素弹窗 */}
+      <Modal
+        title="导入要素"
+        open={importModalVisible}
+        onCancel={() => setImportModalVisible(false)}
+        footer={null}
+        width={520}
+        className={styles.elementModal}
+      >
+        <p className={styles.modalSubtitle}>从JSON文件批量导入评估要素</p>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 8, fontWeight: 500 }}>导入模式</div>
+          <Radio.Group value={importMode} onChange={(e) => setImportMode(e.target.value)}>
+            <Radio value="append">追加模式（保留现有要素）</Radio>
+            <Radio value="replace">替换模式（清空后导入）</Radio>
+          </Radio.Group>
+          {importMode === 'replace' && (
+            <div style={{ color: '#faad14', fontSize: 12, marginTop: 4 }}>
+              注意：替换模式会删除现有所有要素
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 8, fontWeight: 500 }}>选择文件</div>
+          <Upload.Dragger
+            accept=".json"
+            showUploadList={false}
+            beforeUpload={handleFileSelect}
+            style={{ padding: '20px 0' }}
+          >
+            <p className="ant-upload-drag-icon">
+              <ImportOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+            </p>
+            <p className="ant-upload-text">点击或拖拽 JSON 文件到此区域</p>
+            <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>
+              支持 .json 格式，文件需包含 elements 数组
+            </p>
+          </Upload.Dragger>
+        </div>
+
+        {importData && (
+          <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
+            <div style={{ fontWeight: 500, marginBottom: 8 }}>
+              {importData.name || '要素列表'}
+            </div>
+            <div style={{ color: '#666', fontSize: 13 }}>
+              {importData.description && <div>{importData.description}</div>}
+              <div>共 {importData.elements?.length || 0} 个要素待导入</div>
+              {importData.elements?.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <span style={{ marginRight: 16 }}>
+                    基础要素: {importData.elements.filter((e: any) => e.elementType === '基础要素').length}
+                  </span>
+                  <span>
+                    派生要素: {importData.elements.filter((e: any) => e.elementType === '派生要素').length}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{ textAlign: 'right', marginTop: 24 }}>
+          <Button style={{ marginRight: 8 }} onClick={() => setImportModalVisible(false)}>
+            取消
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleImport}
+            loading={importing}
+            disabled={!importData?.elements?.length}
+          >
+            确认导入
+          </Button>
+        </div>
       </Modal>
     </div>
   );
