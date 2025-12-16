@@ -87,11 +87,19 @@ const ProjectPage: React.FC = () => {
   const handleCreate = async (values: any) => {
     setSaving(true);
     try {
+      const indicatorSystemIds: string[] = Array.isArray(values.indicatorSystemIds)
+        ? values.indicatorSystemIds
+        : (values.indicatorSystemIds ? [values.indicatorSystemIds] : []);
+      const indicatorSystemId: string | undefined = indicatorSystemIds[0];
+
       const data = {
         name: values.name,
         keywords: values.keywords ? values.keywords.split(/[,，;；|\s]+/).filter(Boolean) : [],
         description: values.description || '',
-        indicatorSystemId: values.indicatorSystemId,
+        // 向后兼容：后端目前仍以 indicatorSystemId（单选）为主
+        indicatorSystemId,
+        // 预留：未来支持项目绑定多个指标体系时可直接启用
+        indicatorSystemIds,
         startDate: values.startDate?.format('YYYY-MM-DD'),
         endDate: values.endDate?.format('YYYY-MM-DD'),
       };
@@ -307,10 +315,24 @@ const ProjectPage: React.FC = () => {
           </Form.Item>
           <Form.Item
             label="指标体系"
-            name="indicatorSystemId"
-            rules={[{ required: true, message: '请选择评估指标体系' }]}
+            name="indicatorSystemIds"
+            rules={[
+              {
+                validator: async (_, v) => {
+                  if (Array.isArray(v) && v.length > 0) return;
+                  throw new Error('请选择评估指标体系');
+                }
+              }
+            ]}
           >
-            <Select placeholder="选择评估指标体系">
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="选择评估指标体系（可多选）"
+              optionFilterProp="children"
+              maxTagCount="responsive"
+            >
               {indicatorSystems.map(sys => (
                 <Select.Option key={sys.id} value={sys.id}>{sys.name}</Select.Option>
               ))}

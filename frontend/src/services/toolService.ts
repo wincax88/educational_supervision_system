@@ -65,6 +65,35 @@ export interface ElementLibrary {
   elements?: Element[];
 }
 
+// 聚合方式类型
+export type AggregationMethod =
+  | 'sum'      // 求和
+  | 'avg'      // 平均值
+  | 'count'    // 计数
+  | 'max'      // 最大值
+  | 'min'      // 最小值
+  | 'median'   // 中位数
+  | 'stddev'   // 标准差
+  | 'range'    // 极差 (max - min)
+  | 'cv';      // 差异系数 (标准差 / 平均值)
+
+// 聚合范围配置
+export interface AggregationScope {
+  level: 'all' | 'district' | 'school_type' | 'custom';  // 聚合层级
+  filter?: {                             // 可选过滤条件
+    field: string;
+    operator: 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in';
+    value: any;
+  };
+}
+
+// 聚合配置
+export interface AggregationConfig {
+  enabled: boolean;                    // 是否启用聚合
+  method: AggregationMethod;           // 聚合方式
+  scope?: AggregationScope;            // 聚合范围
+}
+
 // 要素类型
 export interface Element {
   id: string;
@@ -76,6 +105,8 @@ export interface Element {
   toolId?: string;
   fieldId?: string;
   fieldLabel?: string;
+  // 多填报汇总配置
+  aggregation?: AggregationConfig;
 }
 
 // ==================== 采集工具 API ====================

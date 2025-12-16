@@ -404,95 +404,152 @@ export const SampleConfigModal: React.FC<SampleConfigModalProps> = ({
   onChange,
   onOk,
   onCancel,
-}) => (
-  <Modal
-    title="配置样本数据对象"
-    open={visible}
-    onOk={onOk}
-    onCancel={onCancel}
-    okText="确定"
-    cancelText="取消"
-    width={520}
-  >
-    <p className={styles.modalSubtitle}>选择需要采集的数据对象层级，上级对象可能由下级对象计算得出。</p>
-    <div className={styles.sampleConfigList}>
-      <div className={styles.configItem}>
-        <Checkbox
-          checked={config.district}
-          onChange={e => onChange({ ...config, district: e.target.checked })}
-        />
-        <Tag color="blue">区</Tag>
-        <span>表明需要采集区相关数据</span>
+}) => {
+  type SampleKey = keyof SampleDataConfig;
+
+  type SampleNode = {
+    key: SampleKey;
+    label: string;
+    desc: string;
+    level: number;
+    parent?: SampleKey;
+    tagColor?: 'blue' | 'green' | 'orange';
+  };
+
+  const nodes: SampleNode[] = React.useMemo(() => ([
+    { key: 'district', label: '区', desc: '表明需要采集区相关数据', level: 0, tagColor: 'blue' },
+    { key: 'school', label: '校', desc: '表明需要采集校相关数据', level: 1, parent: 'district', tagColor: 'green' },
+    { key: 'grade', label: '年级', desc: '表明需要采集年级相关数据', level: 2, parent: 'school' },
+    { key: 'class', label: '班级', desc: '表明需要采集班级相关数据', level: 3, parent: 'grade' },
+    { key: 'student', label: '学生', desc: '表明需要采集学生相关数据', level: 3, parent: 'grade' },
+    { key: 'parent', label: '家长', desc: '表明需要采集家长相关数据', level: 3, parent: 'grade' },
+    { key: 'department', label: '部门', desc: '表明需要采集部门相关数据', level: 2, parent: 'school' },
+    { key: 'teacher', label: '教师', desc: '表明需要采集教师相关数据', level: 3, parent: 'department', tagColor: 'orange' },
+  ]), []);
+
+  const nodeByKey = React.useMemo(() => {
+    const map = new Map<SampleKey, SampleNode>();
+    nodes.forEach(n => map.set(n.key, n));
+    return map;
+  }, [nodes]);
+
+  const descendantsByKey = React.useMemo(() => {
+    const children = new Map<SampleKey, SampleKey[]>();
+    nodes.forEach(n => {
+      if (!n.parent) return;
+      const arr = children.get(n.parent) || [];
+      arr.push(n.key);
+      children.set(n.parent, arr);
+    });
+
+    const memo = new Map<SampleKey, SampleKey[]>();
+    const dfs = (k: SampleKey): SampleKey[] => {
+      if (memo.has(k)) return memo.get(k)!;
+      const direct = children.get(k) || [];
+      const all = [...direct];
+      direct.forEach(c => all.push(...dfs(c)));
+      memo.set(k, all);
+      return all;
+    };
+
+    const out = new Map<SampleKey, SampleKey[]>();
+    (nodes.map(n => n.key) as SampleKey[]).forEach(k => out.set(k, dfs(k)));
+    return out;
+  }, [nodes]);
+
+  const ensureParentsChecked = React.useCallback((next: SampleDataConfig, key: SampleKey) => {
+    let cur = nodeByKey.get(key)?.parent;
+    while (cur) {
+      next = { ...next, [cur]: true };
+      cur = nodeByKey.get(cur)?.parent;
+    }
+    return next;
+  }, [nodeByKey]);
+
+  const clearDescendants = React.useCallback((next: SampleDataConfig, key: SampleKey) => {
+    const desc = descendantsByKey.get(key) || [];
+    if (!desc.length) return next;
+    const patch: Partial<SampleDataConfig> = {};
+    desc.forEach(d => { patch[d] = false; });
+    return { ...next, ...patch };
+  }, [descendantsByKey]);
+
+  const handleToggle = React.useCallback((key: SampleKey, checked: boolean) => {
+    let next: SampleDataConfig = { ...config, [key]: checked };
+    if (checked) {
+      next = ensureParentsChecked(next, key);
+    } else {
+      next = clearDescendants(next, key);
+    }
+    onChange(next);
+  }, [clearDescendants, config, ensureParentsChecked, onChange]);
+
+  const renderBadgePrefix = (level: number) => {
+    if (level <= 0) return null;
+    return (
+      <span className={styles.sampleLevelPrefix}>
+        {'└'.repeat(level + 1)}
+      </span>
+    );
+  };
+
+  const renderLevelBadge = (node: SampleNode) => {
+    const checked = config[node.key];
+    return (
+      <span className={styles.sampleLevelBadge}>
+        {renderBadgePrefix(node.level)}
+        <span className={checked ? styles.sampleLevelCheck : styles.sampleLevelCheckPlaceholder}>
+          ✓
+        </span>
+        <Tag color={node.tagColor} className={styles.sampleLevelTag}>
+          {node.label}
+        </Tag>
+      </span>
+    );
+  };
+
+  const isNodeDisabled = (node: SampleNode) => {
+    // 允许跨层级直接选择：点击子节点会自动补齐父级勾选
+    return false;
+  };
+
+  return (
+    <Modal
+      title="配置样本数据对象"
+      open={visible}
+      onOk={onOk}
+      onCancel={onCancel}
+      okText="确定"
+      cancelText="取消"
+      width={520}
+    >
+      <p className={styles.modalSubtitle}>选择需要采集的数据对象层级，上级对象可能由下级对象计算得出。</p>
+      <div className={styles.sampleConfigList}>
+        {nodes.map(node => {
+          const disabled = isNodeDisabled(node);
+          return (
+            <div
+              key={node.key}
+              className={styles.sampleConfigRow}
+              style={{ marginLeft: node.level * 24 }}
+            >
+              <Checkbox
+                checked={config[node.key]}
+                disabled={disabled}
+                onChange={e => handleToggle(node.key, e.target.checked)}
+              />
+              {renderLevelBadge(node)}
+              <span className={styles.sampleConfigDesc}>{node.desc}</span>
+            </div>
+          );
+        })}
       </div>
-      <div className={styles.configItem} style={{ marginLeft: 24 }}>
-        <Checkbox
-          checked={config.school}
-          onChange={e => onChange({ ...config, school: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag color="green">校</Tag>
-        <span>表明需要采集校相关数据</span>
+      <div className={styles.configTip}>
+        💡 提示：可以跳过中间层级，如直接选择【校】和【学生】，表示不需要年级和班级的数据。
       </div>
-      <div className={styles.configItem} style={{ marginLeft: 48 }}>
-        <Checkbox
-          checked={config.grade}
-          onChange={e => onChange({ ...config, grade: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag>年级</Tag>
-        <span>表明需要采集年级相关数据</span>
-      </div>
-      <div className={styles.configItem} style={{ marginLeft: 72 }}>
-        <Checkbox
-          checked={config.class}
-          onChange={e => onChange({ ...config, class: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag>班级</Tag>
-        <span>表明需要采集班级相关数据</span>
-      </div>
-      <div className={styles.configItem} style={{ marginLeft: 96 }}>
-        <Checkbox
-          checked={config.student}
-          onChange={e => onChange({ ...config, student: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag>学生</Tag>
-        <span>表明需要采集学生相关数据</span>
-      </div>
-      <div className={styles.configItem} style={{ marginLeft: 96 }}>
-        <Checkbox
-          checked={config.parent}
-          onChange={e => onChange({ ...config, parent: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag>家长</Tag>
-        <span>表明需要采集家长相关数据</span>
-      </div>
-      <div className={styles.configItem} style={{ marginLeft: 48 }}>
-        <Checkbox
-          checked={config.department}
-          onChange={e => onChange({ ...config, department: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag>部门</Tag>
-        <span>表明需要采集部门相关数据</span>
-      </div>
-      <div className={styles.configItem} style={{ marginLeft: 48 }}>
-        <Checkbox
-          checked={config.teacher}
-          onChange={e => onChange({ ...config, teacher: e.target.checked })}
-        />
-        <span className={styles.levelLine}>└─</span>
-        <Tag color="orange">教师</Tag>
-        <span>表明需要采集教师相关数据</span>
-      </div>
-    </div>
-    <div className={styles.configTip}>
-      💡 提示：可以跳过中间层级，如直接选择【校】和【学生】，表示不需要年级和班级的数据。
-    </div>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 // ==================== 添加样本弹窗 ====================
 
