@@ -1,7 +1,7 @@
 {
   "name": "义务教育优质均衡评估要素库",
-  "description": "基于《县域义务教育优质均衡发展督导评估办法》的评估要素，包含基础数据采集要素和派生计算指标",
-  "version": "1.0",
+  "description": "基于《县域义务教育优质均衡发展督导评估》相关表格与计算公式整理，包含基础数据采集要素与派生计算要素。已参考 doc/义务教育优质均衡督导评估指标体系.json 对齐资源配置7项指标、政府保障、教育质量、社会认可度等关键口径；县域层字段优先映射 doc/schema-区县优质均衡.json，缺失字段以占位方式标注待补充。",
+  "version": "1.1",
   "elements": [
     {
       "code": "E001",
@@ -82,6 +82,24 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_master_degree_teacher_count",
+      "category": "资源配置",
+      "unit": "人"
+    },
+    {
+      "code": "E014",
+      "name": "小学博士及以上学历教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "primary_doctor_degree_teacher_count",
+      "category": "资源配置",
+      "unit": "人"
+    },
+    {
+      "code": "E007",
+      "name": "初中博士及以上学历教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "junior_doctor_degree_teacher_count",
       "category": "资源配置",
       "unit": "人"
     },
@@ -1269,6 +1287,373 @@
       "description": "5个文件，单个文件大小不超过20M"
     },
     {
+      "code": "E151",
+      "name": "上年度义务教育学校教师年平均工资收入水平（不含民办学校）",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_avg_salary",
+      "category": "政府保障",
+      "unit": "万元",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E152",
+      "name": "上年度公务员年平均工资收入水平",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "civil_servant_avg_salary",
+      "category": "政府保障",
+      "unit": "万元",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E153",
+      "name": "符合交流轮岗条件教师总数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "exchange_eligible_teacher_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E154",
+      "name": "实际交流轮岗教师数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "actual_exchange_teacher_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E155",
+      "name": "实际交流骨干教师数量",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "actual_exchange_backbone_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E156",
+      "name": "优质高中招生计划总人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "quality_high_school_enrollment_plan",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E157",
+      "name": "优质高中招生分配指标数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "quality_high_school_quota_allocation",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E158",
+      "name": "优质高中招生向农村学校分配指标数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "quality_high_school_rural_quota",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E159",
+      "name": "符合条件的随迁子女总人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "eligible_migrant_children_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E160",
+      "name": "在县域内公办学校就读的随迁子女人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "migrant_in_public_school_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E161",
+      "name": "在政府购买服务的县域内民办学校就读的随迁子女人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "migrant_in_private_school_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E162",
+      "name": "小学就近划片入学比例",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "primary_nearby_enrollment_rate",
+      "category": "政府保障",
+      "unit": "%",
+      "description": "区县填报（doc/schema-区县优质均衡.json）。指标体系口径为小学=100%。"
+    },
+    {
+      "code": "E163",
+      "name": "初中就近划片入学比例",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "junior_nearby_enrollment_rate",
+      "category": "政府保障",
+      "unit": "%",
+      "description": "区县填报（doc/schema-区县优质均衡.json）。指标体系口径为初中>=95%。"
+    },
+    {
+      "code": "E164",
+      "name": "适龄残疾儿童少年人口总数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "disabled_children_population",
+      "category": "教育质量",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E165",
+      "name": "适龄残疾儿童少年入学总人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "disabled_children_enrollment",
+      "category": "教育质量",
+      "unit": "人",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E166",
+      "name": "国家义务教育质量监测语文学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "chinese_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E167",
+      "name": "语文校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "chinese_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E168",
+      "name": "国家义务教育质量监测数学学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "math_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E169",
+      "name": "数学校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "math_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E170",
+      "name": "国家义务教育质量监测科学学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "science_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E171",
+      "name": "科学校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "science_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E172",
+      "name": "国家义务教育质量监测体育学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "pe_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E173",
+      "name": "体育校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "pe_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E174",
+      "name": "国家义务教育质量监测艺术学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "art_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E175",
+      "name": "艺术校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "art_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E176",
+      "name": "国家义务教育质量监测德育学业水平",
+      "elementType": "基础要素",
+      "dataType": "文本",
+      "fieldId": "moral_achievement_level",
+      "category": "教育质量",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E177",
+      "name": "德育校际差异率",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "moral_difference_rate",
+      "category": "教育质量",
+      "unit": "%",
+      "description": "区县填报/国家出数（doc/schema-区县优质均衡.json），指标口径为 <0.15"
+    },
+    {
+      "code": "E178",
+      "name": "社会认可度达到85％以上",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "social_recognition_over_85",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E179",
+      "name": "存在以考试方式招生",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_exam_enrollment",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E180",
+      "name": "存在违规择校行为",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_illegal_school_choice",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E181",
+      "name": "存在重点学校或重点班",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_key_school_or_class",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E182",
+      "name": "存在“有编不补”或长期聘用编外教师的情况",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_unfilled_positions",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E183",
+      "name": "教育系统存在重大安全责任事故和严重违纪违规事件/弄虚作假",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_major_incident",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E184",
+      "name": "规范治理校外培训机构及减轻中小学课外负担不力",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_training_regulation_failure",
+      "category": "社会认可度",
+      "description": "区县填报（doc/schema-区县优质均衡.json），可作为“一票否决/风险”类要素"
+    },
+    {
+      "code": "E185",
+      "name": "规定的小学生均公用经费标准",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "primary_public_funding_standard",
+      "category": "政府保障",
+      "unit": "元",
+      "description": "指标体系口径：小学>=1150。当前 doc/schema-区县优质均衡.json 未配置该字段，需要在区县表单补充。"
+    },
+    {
+      "code": "E186",
+      "name": "规定的初中生均公用经费标准",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "junior_public_funding_standard",
+      "category": "政府保障",
+      "unit": "元",
+      "description": "指标体系口径：初中>=1350。当前 doc/schema-区县优质均衡.json 未配置该字段，需要在区县表单补充。"
+    },
+    {
+      "code": "E187",
+      "name": "特殊教育学校经费总额",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "special_education_funding_total",
+      "category": "政府保障",
+      "unit": "元",
+      "description": "用于计算特殊教育学校生均公用经费>=8000。当前 doc/schema-区县优质均衡.json 未配置该字段，需要在区县表单补充。"
+    },
+    {
+      "code": "E188",
+      "name": "特殊教育学校学生人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "special_education_student_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "用于计算特殊教育学校生均公用经费>=8000。当前 doc/schema-区县优质均衡.json 未配置该字段，需要在区县表单补充。"
+    },
+    {
       "code": "D001",
       "name": "师生比（小学）",
       "elementType": "派生要素",
@@ -1291,9 +1676,9 @@
       "name": "每百名学生拥有高于规定学历教师数（小学）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "(E012 + E013) / E002 * 100",
+      "formula": "(E011 + E012 + E013 + E014) / E002 * 100",
       "standard": "≥4.2人",
-      "description": "小学要求专科及以上学历，高于规定即本科及以上",
+      "description": "口径对齐指标体系：小学为“大专及以上”（含博士及以上）。",
       "category": "资源配置"
     },
     {
@@ -1301,9 +1686,9 @@
       "name": "每百名学生拥有高于规定学历教师数（初中）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "(E015 + E016) / E003 * 100",
+      "formula": "(E015 + E016 + E007) / E003 * 100",
       "standard": "≥5.3人",
-      "description": "初中要求本科及以上学历，高于规定即硕士及以上",
+      "description": "初中要求本科及以上学历，高于规定即硕士及以上（含博士及以上）",
       "category": "资源配置"
     },
     {
@@ -1311,9 +1696,10 @@
       "name": "生均教学及辅助用房面积（小学）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "E021 / E002",
-      "standard": "≥9.75平方米",
+      "formula": "(E021 - E117) / E002",
+      "standard": "≥4.5平方米",
       "unit": "平方米",
+      "description": "口径对齐指标体系：生均教学及辅助用房面积=(教学及辅助用房面积-室内体育用房面积)/学生数。对一贯制/完全中学需先按拆分规则得到小学部用房面积及对应的室内体育用房面积。",
       "category": "资源配置"
     },
     {
@@ -1321,9 +1707,10 @@
       "name": "生均教学及辅助用房面积（初中）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "E022 / E003",
-      "standard": "≥7.5平方米",
+      "formula": "(E022 - E117) / E003",
+      "standard": "≥5.8平方米",
       "unit": "平方米",
+      "description": "口径对齐指标体系：生均教学及辅助用房面积=(教学及辅助用房面积-室内体育用房面积)/学生数。对一贯制/完全中学需先按拆分规则得到初中部用房面积及对应的室内体育用房面积。",
       "category": "资源配置"
     },
     {
@@ -1332,8 +1719,9 @@
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E024 / E002",
-      "standard": "≥1.55平方米",
+      "standard": "≥7.5平方米",
       "unit": "平方米",
+      "description": "口径对齐指标体系：小学>=7.5㎡。体育运动场馆面积可包含体育馆、校内体育场、室内体育用房、校内其他专用运动场地；中心城区学校可加计校外周边租赁场馆。",
       "category": "资源配置"
     },
     {
@@ -1342,8 +1730,9 @@
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E025 / E003",
-      "standard": "≥2.0平方米",
+      "standard": "≥10.2平方米",
       "unit": "平方米",
+      "description": "口径对齐指标体系：初中>=10.2㎡。体育运动场馆面积口径同 D007。",
       "category": "资源配置"
     },
     {
@@ -1352,8 +1741,9 @@
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E027 * 10000 / E002",
-      "standard": "≥7000元",
+      "standard": "≥2000元",
       "unit": "元",
+      "description": "口径对齐指标体系：账面原值口径，且小学>=2000元/生。",
       "category": "资源配置"
     },
     {
@@ -1362,9 +1752,122 @@
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E028 * 10000 / E003",
-      "standard": "≥12000元",
+      "standard": "≥2500元",
       "unit": "元",
+      "description": "口径对齐指标体系：账面原值口径，且初中>=2500元/生。",
       "category": "资源配置"
+    },
+    {
+      "code": "D028",
+      "name": "每百名学生拥有网络多媒体教室数（小学）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E034 / E002 * 100",
+      "standard": "≥2.3间",
+      "unit": "间/百名学生",
+      "category": "资源配置"
+    },
+    {
+      "code": "D029",
+      "name": "每百名学生拥有网络多媒体教室数（初中）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E035 / E003 * 100",
+      "standard": "≥2.4间",
+      "unit": "间/百名学生",
+      "category": "资源配置"
+    },
+    {
+      "code": "D030",
+      "name": "每百名学生拥有县级及以上骨干教师数（小学）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E018 / E002 * 100",
+      "standard": "≥1人",
+      "unit": "人/百名学生",
+      "category": "资源配置"
+    },
+    {
+      "code": "D031",
+      "name": "每百名学生拥有县级及以上骨干教师数（初中）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E019 / E003 * 100",
+      "standard": "≥1人",
+      "unit": "人/百名学生",
+      "category": "资源配置"
+    },
+    {
+      "code": "D032",
+      "name": "每百名学生拥有体育、艺术（美术、音乐）专任教师数（小学）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "(E040 + E041 + E042) / E002 * 100",
+      "standard": "≥0.9人",
+      "unit": "人/百名学生",
+      "description": "对50-100人乡村小规模学校可加计交流轮岗/走教教师（当前 schema 未配置到校教师字段，需补字段后纳入）。",
+      "category": "资源配置"
+    },
+    {
+      "code": "D033",
+      "name": "每百名学生拥有体育、艺术（美术、音乐）专任教师数（初中）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "(E043 + E044 + E045) / E003 * 100",
+      "standard": "≥0.9人",
+      "unit": "人/百名学生",
+      "description": "对50-100人乡村小规模学校可加计交流轮岗/走教教师（当前 schema 未配置到校教师字段，需补字段后纳入）。",
+      "category": "资源配置"
+    },
+    {
+      "code": "D034",
+      "name": "教师交流轮岗比例（县域）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E154 / E153 * 100",
+      "standard": "≥10%",
+      "unit": "%",
+      "category": "政府保障"
+    },
+    {
+      "code": "D035",
+      "name": "交流轮岗骨干教师占比（县域）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E155 / E154 * 100",
+      "standard": "≥20%",
+      "unit": "%",
+      "category": "政府保障"
+    },
+    {
+      "code": "D036",
+      "name": "优质高中名额分配比例（县域）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E157 / E156 * 100",
+      "standard": "≥50%",
+      "unit": "%",
+      "category": "政府保障"
+    },
+    {
+      "code": "D037",
+      "name": "随迁子女就读比例（县域）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "((E160 + E161) / E159) * 100",
+      "standard": "≥85%",
+      "unit": "%",
+      "category": "政府保障"
+    },
+    {
+      "code": "D038",
+      "name": "残疾儿童少年入学率（县域）",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "E165 / E164 * 100",
+      "standard": "≥95%",
+      "unit": "%",
+      "category": "教育质量"
     },
     {
       "code": "D011",

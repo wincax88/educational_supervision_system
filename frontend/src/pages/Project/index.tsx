@@ -11,6 +11,9 @@ import {
   DeleteOutlined,
   BarChartOutlined,
   CheckCircleOutlined,
+  SendOutlined,
+  StopOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import * as projectService from '../../services/projectService';
@@ -124,6 +127,26 @@ const ProjectPage: React.FC = () => {
       await loadProjects();
     } catch (error: any) {
       message.error(error.message || '删除失败');
+    }
+  };
+
+  const handlePublish = async (project: Project) => {
+    try {
+      await projectService.publishProject(project.id);
+      message.success('发布成功');
+      await loadProjects();
+    } catch (error: any) {
+      message.error(error.message || '发布失败');
+    }
+  };
+
+  const handleUnpublish = async (project: Project) => {
+    try {
+      await projectService.unpublishProject(project.id);
+      message.success('取消发布成功');
+      await loadProjects();
+    } catch (error: any) {
+      message.error(error.message || '取消发布失败');
     }
   };
 
@@ -246,6 +269,11 @@ const ProjectPage: React.FC = () => {
                 <div className={styles.projectHeader}>
                   <h4>{project.name}</h4>
                   {getStatusTag(project.status)}
+                  {project.isPublished ? (
+                    <Tag color="green">已发布</Tag>
+                  ) : (
+                    <Tag color="default">未发布</Tag>
+                  )}
                 </div>
                 <p>{project.description || '暂无描述'}</p>
                 <div className={styles.projectMeta}>
@@ -253,17 +281,68 @@ const ProjectPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles.projectActions}>
-                {permissions.canConfigProject && (
-                  <Button
-                    type="primary"
-                    icon={<SettingOutlined />}
-                    onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
-                  >
-                    配置
-                  </Button>
-                )}
-                {['填报中', '评审中', '已完成'].includes(project.status) && (
+                {/* 未发布状态：配置 + 发布 + 删除 */}
+                {!project.isPublished && (
                   <>
+                    {permissions.canConfigProject && (
+                      <Button
+                        type="primary"
+                        icon={<SettingOutlined />}
+                        onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
+                      >
+                        配置
+                      </Button>
+                    )}
+                    {permissions.canConfigProject && (
+                      <Popconfirm
+                        title="确认发布"
+                        description={`确定要发布项目 "${project.name}" 吗？`}
+                        onConfirm={() => handlePublish(project)}
+                        okText="发布"
+                        cancelText="取消"
+                      >
+                        <Button type="primary" ghost icon={<SendOutlined />}>
+                          发布
+                        </Button>
+                      </Popconfirm>
+                    )}
+                    {permissions.canConfigProject && (
+                      <Popconfirm
+                        title="确认删除"
+                        description={`确定要删除项目 "${project.name}" 吗？`}
+                        onConfirm={() => handleDelete(project)}
+                        okText="删除"
+                        cancelText="取消"
+                      >
+                        <Button danger icon={<DeleteOutlined />}>
+                          删除
+                        </Button>
+                      </Popconfirm>
+                    )}
+                  </>
+                )}
+                {/* 已发布状态：取消发布 + 详情 + 差异系数 + 达标率 */}
+                {project.isPublished && (
+                  <>
+                    {permissions.canConfigProject && project.status === '配置中' && (
+                      <Popconfirm
+                        title="确认取消发布"
+                        description={`确定要取消发布项目 "${project.name}" 吗？`}
+                        onConfirm={() => handleUnpublish(project)}
+                        okText="确定"
+                        cancelText="取消"
+                      >
+                        <Button icon={<StopOutlined />}>
+                          取消发布
+                        </Button>
+                      </Popconfirm>
+                    )}
+                    <Button
+                      icon={<EyeOutlined />}
+                      onClick={() => navigate(`/home/balanced/project/${project.id}/detail`)}
+                    >
+                      详情
+                    </Button>
                     <Button
                       icon={<BarChartOutlined />}
                       onClick={() => navigate(`/home/balanced/project/${project.id}/cv-analysis`)}
@@ -277,19 +356,6 @@ const ProjectPage: React.FC = () => {
                       达标率
                     </Button>
                   </>
-                )}
-                {project.status === '配置中' && permissions.canConfigProject && (
-                  <Popconfirm
-                    title="确认删除"
-                    description={`确定要删除项目 "${project.name}" 吗？`}
-                    onConfirm={() => handleDelete(project)}
-                    okText="删除"
-                    cancelText="取消"
-                  >
-                    <Button danger icon={<DeleteOutlined />}>
-                      删除
-                    </Button>
-                  </Popconfirm>
                 )}
               </div>
             </div>

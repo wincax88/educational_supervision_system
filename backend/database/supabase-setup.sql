@@ -206,6 +206,7 @@ CREATE TABLE IF NOT EXISTS projects (
   start_date TEXT,
   end_date TEXT,
   status TEXT DEFAULT '配置中',
+  is_published BOOLEAN DEFAULT false,
   created_by TEXT,
   created_at TEXT,
   updated_at TEXT

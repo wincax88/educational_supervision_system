@@ -17,6 +17,9 @@ import {
   Row,
   Col,
   Tooltip,
+  Modal,
+  Select,
+  Space,
   message,
 } from 'antd';
 import {
@@ -34,6 +37,7 @@ import {
 import type { DataNode } from 'antd/es/tree';
 import * as indicatorService from '../../../services/indicatorService';
 import type { Indicator, DataIndicator, SupportingMaterial, DataIndicatorWithElements } from '../../../services/indicatorService';
+import * as toolService from '../../../services/toolService';
 import ElementAssociationDrawer from './ElementAssociationDrawer';
 import styles from '../index.module.css';
 
@@ -51,11 +55,44 @@ interface IndicatorTabProps {
   disabled?: boolean; // 是否禁用编辑（非配置中状态）
 }
 
+type AutoLinkResult = {
+  linked: number;
+  skippedAlreadyAssociated: number;
+  skippedNoMatch: number;
+  failed: number;
+};
+
 // 要素关联统计
 interface ElementAssociationStats {
   total: number;      // 数据指标总数
   associated: number; // 已关联要素的数据指标数
   unassociated: number; // 未关联要素的数据指标数
+}
+
+const normalizeText = (value?: string): string => {
+  if (!value) return '';
+  // 统一大小写、去空白、去常见分隔符，提升名称匹配命中率
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-_—–·•/\\()（）【】[\]{}<>《》"'“”‘’,，.。:：;；!?！？]+/g, '');
+};
+
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<void>
+): Promise<void> {
+  const concurrency = Math.max(1, limit);
+  let idx = 0;
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (idx < items.length) {
+      const current = items[idx++];
+      await worker(current);
+    }
+  });
+  await Promise.all(runners);
 }
 
 const IndicatorTab: React.FC<IndicatorTabProps> = ({
@@ -76,6 +113,11 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
   // 要素关联统计
   const [stats, setStats] = useState<ElementAssociationStats>({ total: 0, associated: 0, unassociated: 0 });
+
+  // 自动关联要素（按要素库）
+  const [autoLinkModalVisible, setAutoLinkModalVisible] = useState(false);
+  const [autoLinking, setAutoLinking] = useState(false);
+  const [elementLibraries, setElementLibraries] = useState<toolService.ElementLibrary[]>([]);
 
   // 加载指标体系树和要素关联
   const loadData = useCallback(async () => {
@@ -147,6 +189,112 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
       setLoading(false);
     }
   }, [indicatorSystemId]);
+
+  // 收集全部数据指标（包含所在指标名称）
+  const collectDataIndicators = useCallback((): Array<{ di: DataIndicator; indicatorName: string }> => {
+    const result: Array<{ di: DataIndicator; indicatorName: string }> = [];
+    const walk = (list: Indicator[]) => {
+      list.forEach(ind => {
+        if (ind.dataIndicators?.length) {
+          ind.dataIndicators.forEach(di => {
+            result.push({ di, indicatorName: ind.name });
+          });
+        }
+        if (ind.children?.length) walk(ind.children);
+      });
+    };
+    walk(indicators);
+    return result;
+  }, [indicators]);
+
+  const loadElementLibraries = useCallback(async () => {
+    try {
+      const libs = await toolService.getElementLibraries();
+      setElementLibraries(libs);
+    } catch (error) {
+      console.error('加载要素库失败:', error);
+      message.error('加载要素库失败');
+    }
+  }, []);
+
+  const handleOpenAutoLink = async () => {
+    if (disabled) {
+      message.warning('当前为只读状态，无法自动关联要素');
+      return;
+    }
+    if (!indicatorSystemId) {
+      message.warning('请先关联指标体系');
+      return;
+    }
+    if (USE_MOCK) {
+      message.warning('Mock 模式下不支持自动关联要素（无后端持久化）');
+      return;
+    }
+    await loadElementLibraries();
+    setAutoLinkModalVisible(true);
+  };
+
+  const autoLinkByLibrary = useCallback(
+    async (libraryId: string): Promise<AutoLinkResult> => {
+      const allDataIndicators = collectDataIndicators();
+      if (allDataIndicators.length === 0) {
+        return { linked: 0, skippedAlreadyAssociated: 0, skippedNoMatch: 0, failed: 0 };
+      }
+
+      const elements = await toolService.getElements({ libraryId });
+      const codeMap = new Map<string, toolService.ElementWithLibrary>();
+      const nameMap = new Map<string, toolService.ElementWithLibrary[]>();
+      elements.forEach(el => {
+        if (el.code) codeMap.set(normalizeText(el.code), el);
+        const nk = normalizeText(el.name);
+        if (!nk) return;
+        const prev = nameMap.get(nk) || [];
+        prev.push(el);
+        nameMap.set(nk, prev);
+      });
+
+      let linked = 0;
+      let skippedAlreadyAssociated = 0;
+      let skippedNoMatch = 0;
+      let failed = 0;
+
+      const tasks = allDataIndicators.map(({ di }) => di);
+
+      await runWithConcurrency(tasks, 5, async (di) => {
+        try {
+          const existing = elementAssociations.get(di.id)?.elements || [];
+          if (existing.length > 0) {
+            skippedAlreadyAssociated++;
+            return;
+          }
+
+          const byCode = codeMap.get(normalizeText(di.code));
+          let matched: toolService.ElementWithLibrary | undefined = byCode;
+
+          if (!matched) {
+            const candidates = nameMap.get(normalizeText(di.name)) || [];
+            if (candidates.length === 1) matched = candidates[0];
+          }
+
+          if (!matched) {
+            skippedNoMatch++;
+            return;
+          }
+
+          await indicatorService.saveDataIndicatorElements(di.id, [
+            { elementId: matched.id, mappingType: 'primary', description: '' },
+          ]);
+          linked++;
+        } catch (e) {
+          failed++;
+          console.error('自动关联失败:', di, e);
+        }
+      });
+
+      return { linked, skippedAlreadyAssociated, skippedNoMatch, failed };
+    },
+    [collectDataIndicators, elementAssociations]
+  );
 
   // 打开要素关联编辑抽屉
   const handleEditElementAssociation = (di: DataIndicator, indicatorName: string) => {
@@ -371,13 +519,22 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             查看完整体系
           </Button>
         </div>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={loadData}
-          loading={loading}
-        >
-          刷新
-        </Button>
+        <Space>
+          <Button
+            icon={<DatabaseOutlined />}
+            onClick={handleOpenAutoLink}
+            disabled={disabled || loading}
+          >
+            自动关联要素
+          </Button>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={loadData}
+            loading={loading}
+          >
+            刷新
+          </Button>
+        </Space>
       </div>
 
       {/* 要素关联统计卡片 */}
@@ -450,6 +607,56 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         indicatorName={selectedIndicatorName}
         onSaved={loadData}
       />
+
+      {/* 自动关联要素 - 选择要素库 */}
+      <Modal
+        title="自动关联评估要素"
+        open={autoLinkModalVisible}
+        onCancel={() => {
+          if (!autoLinking) setAutoLinkModalVisible(false);
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <div style={{ color: '#595959', marginBottom: 12, lineHeight: '22px' }}>
+          选择要素库后将自动为<strong>未关联</strong>的“数据指标”匹配并关联要素（优先按编码匹配，其次按名称匹配）。
+        </div>
+        <Select
+          placeholder="选择要素库后开始自动关联"
+          style={{ width: '100%' }}
+          showSearch
+          optionFilterProp="label"
+          disabled={autoLinking}
+          options={elementLibraries.map(lib => ({
+            value: lib.id,
+            label: lib.name,
+          }))}
+          onChange={async (libraryId) => {
+            if (!libraryId) return;
+            setAutoLinking(true);
+            const hide = message.loading('正在自动关联要素，请稍候...', 0);
+            try {
+              const res = await autoLinkByLibrary(libraryId);
+              await loadData();
+              setAutoLinkModalVisible(false);
+              message.success(
+                `自动关联完成：成功关联 ${res.linked} 项，已有关联跳过 ${res.skippedAlreadyAssociated} 项，未匹配 ${res.skippedNoMatch} 项，失败 ${res.failed} 项`
+              );
+            } catch (error) {
+              console.error('自动关联要素失败:', error);
+              message.error('自动关联要素失败');
+            } finally {
+              hide();
+              setAutoLinking(false);
+            }
+          }}
+        />
+        <div style={{ marginTop: 12, textAlign: 'right' }}>
+          <Button onClick={() => setAutoLinkModalVisible(false)} disabled={autoLinking}>
+            关闭
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

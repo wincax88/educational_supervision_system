@@ -13,6 +13,7 @@ export interface Project {
   startDate?: string;
   endDate?: string;
   status: '配置中' | '填报中' | '评审中' | '已中止' | '已完成';
+  isPublished?: boolean;
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -108,6 +109,16 @@ export async function completeProject(id: string): Promise<void> {
 // 重新启动（已中止 → 配置中）
 export async function restartProject(id: string): Promise<void> {
   return post(`/projects/${id}/restart`, {});
+}
+
+// 发布项目
+export async function publishProject(id: string): Promise<void> {
+  return post(`/projects/${id}/publish`, {});
+}
+
+// 取消发布项目
+export async function unpublishProject(id: string): Promise<void> {
+  return post(`/projects/${id}/unpublish`, {});
 }
 
 // 获取项目的指标映射汇总

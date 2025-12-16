@@ -22,6 +22,7 @@ router.get('/projects', async (req, res) => {
     let sql = `
       SELECT p.id, p.name, p.keywords, p.description, p.indicator_system_id as "indicatorSystemId",
              p.start_date as "startDate", p.end_date as "endDate", p.status,
+             p.is_published as "isPublished",
              p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
              i.name as "indicatorSystemName"
       FROM projects p
@@ -61,6 +62,7 @@ router.get('/projects/:id', async (req, res) => {
     const result = await db.query(`
       SELECT p.id, p.name, p.keywords, p.description, p.indicator_system_id as "indicatorSystemId",
              p.start_date as "startDate", p.end_date as "endDate", p.status,
+             p.is_published as "isPublished",
              p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
              i.name as "indicatorSystemName"
       FROM projects p
@@ -177,10 +179,13 @@ router.put('/projects/:id', async (req, res) => {
 router.post('/projects/:id/start', async (req, res) => {
   try {
     // 检查项目当前状态
-    const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
+    const projectResult = await db.query('SELECT status, is_published FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];
     if (!project) {
       return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+    if (!project.is_published) {
+      return res.status(400).json({ code: 400, message: '只有已发布的项目可以启动填报' });
     }
     if (project.status !== '配置中') {
       return res.status(400).json({ code: 400, message: '只有配置中的项目可以启动填报' });
@@ -314,6 +319,68 @@ router.post('/projects/:id/restart', async (req, res) => {
     }
 
     return res.json({ code: 200, message: '项目已重新启动' });
+  } catch (error) {
+    return res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
+// 发布项目
+router.post('/projects/:id/publish', async (req, res) => {
+  try {
+    const projectResult = await db.query('SELECT status, is_published FROM projects WHERE id = $1', [req.params.id]);
+    const project = projectResult.rows[0];
+    if (!project) {
+      return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+    if (project.is_published) {
+      return res.status(400).json({ code: 400, message: '项目已经是发布状态' });
+    }
+
+    const timestamp = now().split('T')[0];
+    const { data, error } = await db
+      .from('projects')
+      .update({ is_published: true, updated_at: timestamp })
+      .eq('id', req.params.id)
+      .select('id');
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+
+    return res.json({ code: 200, message: '项目已发布' });
+  } catch (error) {
+    return res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
+// 取消发布项目
+router.post('/projects/:id/unpublish', async (req, res) => {
+  try {
+    const projectResult = await db.query('SELECT status, is_published FROM projects WHERE id = $1', [req.params.id]);
+    const project = projectResult.rows[0];
+    if (!project) {
+      return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+    if (!project.is_published) {
+      return res.status(400).json({ code: 400, message: '项目已经是未发布状态' });
+    }
+    // 只有配置中状态的项目可以取消发布
+    if (project.status !== '配置中') {
+      return res.status(400).json({ code: 400, message: '只有配置中的项目可以取消发布' });
+    }
+
+    const timestamp = now().split('T')[0];
+    const { data, error } = await db
+      .from('projects')
+      .update({ is_published: false, updated_at: timestamp })
+      .eq('id', req.params.id)
+      .select('id');
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+
+    return res.json({ code: 200, message: '项目已取消发布' });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }
