@@ -9,23 +9,26 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "student_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E002",
-      "name": "小学部学生人数",
+      "name": "小学学生人数（在校人数）",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_student_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E003",
-      "name": "初中部学生人数",
+      "name": "初中学生人数（在校人数）",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_student_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E004",
@@ -33,103 +36,72 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "full_time_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人",
+      "description": "当前 schema 未配置该字段（用于派生要素公式引用），如需计算请在表单中补充对应字段"
     },
     {
       "code": "E005",
-      "name": "小学部专任教师总人数",
+      "name": "小学专任教师总人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_full_time_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E006",
-      "name": "初中部专任教师总人数",
+      "name": "初中专任教师总人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_full_time_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E007",
-      "name": "专科学历教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "college_degree_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E008",
-      "name": "本科学历教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "bachelor_degree_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E009",
-      "name": "硕士研究生毕业学历教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "master_degree_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E010",
-      "name": "博士研究生毕业学历教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "doctor_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E011",
-      "name": "小学部专科学历教师人数",
+      "name": "小学专科学历教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_college_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E012",
-      "name": "小学部本科学历教师人数",
+      "name": "小学本科学历教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_bachelor_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E013",
-      "name": "小学部硕士研究生学历教师人数",
+      "name": "小学硕士研究生学历教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_master_degree_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E014",
-      "name": "初中部专科学历教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "junior_college_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E015",
-      "name": "初中部本科学历教师人数",
+      "name": "初中本科学历教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_bachelor_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E016",
-      "name": "初中部硕士研究生学历教师人数",
+      "name": "初中硕士研究生学历教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_master_degree_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E017",
@@ -137,23 +109,27 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "county_backbone_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人",
+      "description": "当前 schema 未配置该字段（用于派生要素公式引用），如需计算请在表单中补充对应字段"
     },
     {
       "code": "E018",
-      "name": "小学部县级及以上骨干教师人数",
+      "name": "小学县级及以上骨干教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_county_backbone_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E019",
-      "name": "初中部县级及以上骨干教师人数",
+      "name": "初中县级及以上骨干教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_county_backbone_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E020",
@@ -161,26 +137,28 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "teaching_auxiliary_area",
-      "unit": "平方米",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "平方米"
     },
     {
       "code": "E021",
-      "name": "小学部教学及辅助用房面积",
+      "name": "小学教学及辅助用房面积",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_teaching_auxiliary_area",
+      "category": "资源配置",
       "unit": "平方米",
-      "category": "资源配置"
+      "description": "根据学校总面积按学生人数加权比例自动拆分"
     },
     {
       "code": "E022",
-      "name": "初中部教学及辅助用房面积",
+      "name": "初中教学及辅助用房面积",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_teaching_auxiliary_area",
+      "category": "资源配置",
       "unit": "平方米",
-      "category": "资源配置"
+      "description": "根据学校总面积按学生人数加权比例自动拆分"
     },
     {
       "code": "E023",
@@ -188,53 +166,58 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "sports_venue_total_area",
+      "category": "资源配置",
       "unit": "平方米",
-      "category": "资源配置"
+      "description": "包含运动场地、校内其他专用运动场地、室内体育用房、就近便利到达的校外周边体育场馆面积之和"
     },
     {
       "code": "E024",
-      "name": "小学部体育运动场馆面积",
+      "name": "小学体育运动场馆面积",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_sports_venue_area",
+      "category": "资源配置",
       "unit": "平方米",
-      "category": "资源配置"
+      "description": "根据学校总面积按学生人数加权比例自动拆分"
     },
     {
       "code": "E025",
-      "name": "初中部体育运动场馆面积",
+      "name": "初中体育运动场馆面积",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_sports_venue_area",
+      "category": "资源配置",
       "unit": "平方米",
-      "category": "资源配置"
+      "description": "根据学校总面积按学生人数加权比例自动拆分"
     },
     {
       "code": "E026",
-      "name": "教学仪器设备资产值",
+      "name": "教学仪器设备资产值（账面原值）",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "teaching_equipment_value",
-      "unit": "万元",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "万元"
     },
     {
       "code": "E027",
-      "name": "小学部教学仪器设备资产值",
+      "name": "小学教学仪器设备资产值",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_teaching_equipment_value",
+      "category": "资源配置",
       "unit": "万元",
-      "category": "资源配置"
+      "description": "根据学校总资产值按学生人数加权比例自动拆分"
     },
     {
       "code": "E028",
-      "name": "初中部教学仪器设备资产值",
+      "name": "初中教学仪器设备资产值",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_teaching_equipment_value",
+      "category": "资源配置",
       "unit": "万元",
-      "category": "资源配置"
+      "description": "根据学校总资产值按学生人数加权比例自动拆分"
     },
     {
       "code": "E029",
@@ -242,26 +225,26 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "computer_total_count",
-      "unit": "台",
-      "category": "资源配置"
+      "category": "基本指标",
+      "unit": "台"
     },
     {
       "code": "E030",
-      "name": "小学部计算机总台数",
+      "name": "小学计算机总台数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_computer_count",
-      "unit": "台",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "台"
     },
     {
       "code": "E031",
-      "name": "初中部计算机总台数",
+      "name": "初中计算机总台数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_computer_count",
-      "unit": "台",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "台"
     },
     {
       "code": "E032",
@@ -269,8 +252,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "library_books_count",
-      "unit": "册",
-      "category": "资源配置"
+      "category": "基本指标",
+      "unit": "册"
     },
     {
       "code": "E033",
@@ -278,106 +261,82 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "multimedia_classroom_count",
-      "unit": "间",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "间"
     },
     {
       "code": "E034",
-      "name": "小学部网络多媒体教室间数",
+      "name": "小学网络多媒体教室间数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_multimedia_classroom_count",
+      "category": "资源配置",
       "unit": "间",
-      "category": "资源配置"
+      "description": "根据学校总间数按学生人数加权比例自动拆分"
     },
     {
       "code": "E035",
-      "name": "初中部网络多媒体教室间数",
+      "name": "初中网络多媒体教室间数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_multimedia_classroom_count",
+      "category": "资源配置",
       "unit": "间",
-      "category": "资源配置"
-    },
-    {
-      "code": "E036",
-      "name": "体育专任教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "pe_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E037",
-      "name": "音乐专任教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "music_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E038",
-      "name": "美术专任教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "art_teacher_count",
-      "category": "资源配置"
-    },
-    {
-      "code": "E039",
-      "name": "艺术专任教师人数",
-      "elementType": "基础要素",
-      "dataType": "数字",
-      "fieldId": "arts_teacher_count",
-      "category": "资源配置"
+      "description": "根据学校总间数按学生人数加权比例自动拆分"
     },
     {
       "code": "E040",
-      "name": "小学部体育专任教师人数",
+      "name": "小学体育专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_pe_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E041",
-      "name": "小学部音乐专任教师人数",
+      "name": "小学音乐专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_music_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E042",
-      "name": "小学部美术专任教师人数",
+      "name": "小学美术专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_art_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E043",
-      "name": "初中部体育专任教师人数",
+      "name": "初中体育专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_pe_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E044",
-      "name": "初中部音乐专任教师人数",
+      "name": "初中音乐专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_music_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E045",
-      "name": "初中部美术专任教师人数",
+      "name": "初中美术专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_art_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E046",
@@ -385,39 +344,43 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "certified_teacher_count",
-      "category": "资源配置"
+      "category": "资源配置",
+      "unit": "人",
+      "description": "当前 schema 未配置该字段（用于派生要素公式引用），如需计算请在表单中补充对应字段"
     },
     {
       "code": "E047",
-      "name": "小学部班级数",
+      "name": "小学班级数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_class_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "个"
     },
     {
       "code": "E048",
-      "name": "初中部班级数",
+      "name": "初中班级数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_class_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "个"
     },
     {
       "code": "E049",
-      "name": "小学部班级人数列表",
+      "name": "小学班级人数",
       "elementType": "基础要素",
       "dataType": "数组",
       "fieldId": "primary_class_student_list",
-      "category": "政府保障"
+      "category": "资源配置"
     },
     {
       "code": "E050",
-      "name": "初中部班级人数列表",
+      "name": "初中班级人数",
       "elementType": "基础要素",
       "dataType": "数组",
       "fieldId": "junior_class_student_list",
-      "category": "政府保障"
+      "category": "资源配置"
     },
     {
       "code": "E051",
@@ -425,7 +388,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "migrant_student_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E052",
@@ -433,7 +397,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "migrant_worker_student_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E053",
@@ -441,7 +406,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "inclusive_student_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E054",
@@ -449,7 +415,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "home_teaching_student_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E055",
@@ -457,7 +424,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "special_education_student_count",
-      "category": "政府保障"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E056",
@@ -465,8 +433,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "special_education_funding",
-      "unit": "元",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "元"
     },
     {
       "code": "E057",
@@ -474,7 +442,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_total_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E058",
@@ -482,7 +451,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_quota",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E059",
@@ -490,7 +460,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_position_total",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E060",
@@ -498,7 +469,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_in_quota_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E061",
@@ -506,7 +478,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_in_quota_on_post_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E062",
@@ -514,7 +487,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "staff_in_quota_teacher_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E063",
@@ -522,7 +496,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "trained_teacher_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E064",
@@ -530,11 +505,12 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "local_student_count",
-      "category": "政府保障"
+      "category": "政府保障",
+      "unit": "人"
     },
     {
       "code": "E065",
-      "name": "音乐教室面积列表",
+      "name": "音乐教室面积",
       "elementType": "基础要素",
       "dataType": "数组",
       "fieldId": "music_classroom_list",
@@ -542,7 +518,7 @@
     },
     {
       "code": "E066",
-      "name": "美术教室面积列表",
+      "name": "美术教室面积",
       "elementType": "基础要素",
       "dataType": "数组",
       "fieldId": "art_classroom_list",
@@ -554,23 +530,26 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "graduate_count",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "人"
     },
     {
       "code": "E068",
-      "name": "小学部毕业学生人数",
+      "name": "小学毕业学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "primary_graduate_count",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E069",
-      "name": "初中部毕业学生人数",
+      "name": "初中毕业学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_graduate_count",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E070",
@@ -578,15 +557,17 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "grade7_student_count_3years_ago",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "人"
     },
     {
       "code": "E071",
-      "name": "初中部毕业年级三年前初一时在校学生人数",
+      "name": "初中毕业年级三年前初一时在校学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_grade7_student_count_3years_ago",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E072",
@@ -594,15 +575,17 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "transfer_in_count_3years",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "人"
     },
     {
       "code": "E073",
-      "name": "初中部毕业年级三年转入学生人数",
+      "name": "初中毕业年级三年转入学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_transfer_in_count_3years",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E074",
@@ -610,15 +593,17 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "transfer_out_count_3years",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "人"
     },
     {
       "code": "E075",
-      "name": "初中部毕业年级三年转出学生人数",
+      "name": "初中毕业年级三年转出学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_transfer_out_count_3years",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E076",
@@ -626,15 +611,17 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "deceased_count_3years",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "人"
     },
     {
       "code": "E077",
-      "name": "初中部毕业年级三年死亡学生人数",
+      "name": "初中毕业年级三年死亡学生人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "junior_deceased_count_3years",
-      "category": "教育质量"
+      "category": "资源配置",
+      "unit": "人"
     },
     {
       "code": "E078",
@@ -642,7 +629,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "health_test_student_count",
-      "category": "教育质量"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E079",
@@ -650,7 +638,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "health_excellent_count",
-      "category": "教育质量"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E080",
@@ -658,7 +647,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "health_good_count",
-      "category": "教育质量"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E081",
@@ -666,7 +656,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "health_pass_count",
-      "category": "教育质量"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E082",
@@ -674,7 +665,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "health_fail_count",
-      "category": "教育质量"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E083",
@@ -682,8 +674,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "public_funding_total",
-      "unit": "万元",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "万元"
     },
     {
       "code": "E084",
@@ -691,8 +683,9 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "public_funding_budget",
+      "category": "教育质量",
       "unit": "万元",
-      "category": "教育质量"
+      "description": "用于计算生均公用经费"
     },
     {
       "code": "E085",
@@ -700,8 +693,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "public_funding_settlement",
-      "unit": "万元",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "万元"
     },
     {
       "code": "E086",
@@ -709,8 +702,9 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "teacher_training_budget",
+      "category": "教育质量",
       "unit": "万元",
-      "category": "教育质量"
+      "description": "用于计算教师培训经费占比（培训经费预算÷公用经费预算×100%≥5%）"
     },
     {
       "code": "E087",
@@ -718,8 +712,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "teacher_training_funding",
-      "unit": "万元",
-      "category": "教育质量"
+      "category": "教育质量",
+      "unit": "万元"
     },
     {
       "code": "E088",
@@ -751,7 +745,7 @@
       "elementType": "基础要素",
       "dataType": "日期",
       "fieldId": "founding_year",
-      "category": "基本信息"
+      "category": "基本指标"
     },
     {
       "code": "E092",
@@ -759,24 +753,26 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "building_area",
-      "unit": "平方米",
-      "category": "基本信息"
+      "category": "基本指标",
+      "unit": "平方米"
     },
     {
       "code": "E093",
-      "name": "正高级专任教师人数",
+      "name": "高中部正高级专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "senior_positive_teacher_count",
-      "category": "其他"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E094",
-      "name": "副高级专任教师人数",
+      "name": "高中部副高级专任教师人数",
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "senior_deputy_teacher_count",
-      "category": "其他"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E095",
@@ -784,7 +780,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "intermediate_teacher_count",
-      "category": "其他"
+      "category": "其他",
+      "unit": "人"
     },
     {
       "code": "E096",
@@ -792,7 +789,8 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "government_purchased_seats",
-      "category": "其他"
+      "category": "其他",
+      "unit": "个"
     },
     {
       "code": "E097",
@@ -800,7 +798,475 @@
       "elementType": "基础要素",
       "dataType": "数字",
       "fieldId": "migrant_worker_seats",
+      "category": "其他",
+      "unit": "个"
+    },
+    {
+      "code": "E098",
+      "name": "生均公用经费",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "special_edu_funding_per_student",
+      "category": "基本信息",
+      "unit": "元"
+    },
+    {
+      "code": "E099",
+      "name": "是否设有康复训练室",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "special_edu_rehabilitation_room",
+      "category": "基本信息"
+    },
+    {
+      "code": "E100",
+      "name": "是否设有资源教室",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "special_edu_resource_room",
+      "category": "基本信息"
+    },
+    {
+      "code": "E101",
+      "name": "特殊教育专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "special_edu_teacher_count",
+      "category": "基本信息",
+      "unit": "人"
+    },
+    {
+      "code": "E102",
+      "name": "是否50人及以上但不足100人的乡村小规模学校和教学点",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "is_rural_small_school",
+      "category": "基本指标"
+    },
+    {
+      "code": "E103",
+      "name": "是否人口密度过高的大城市中心城区学校",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "is_high_density_city_school",
+      "category": "基本指标"
+    },
+    {
+      "code": "E104",
+      "name": "是否最大班额低于30人的农村小规模学校",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "is_small_class_rural_school",
+      "category": "基本指标"
+    },
+    {
+      "code": "E105",
+      "name": "理化生实验室教室间数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "physics_chemistry_biology_lab_count",
+      "category": "基本指标",
+      "unit": "间"
+    },
+    {
+      "code": "E106",
+      "name": "理化生实验室辅房间数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "physics_chemistry_biology_lab_auxiliary_count",
+      "category": "基本指标",
+      "unit": "间"
+    },
+    {
+      "code": "E107",
+      "name": "综合实践活动室（科技教室）套数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "comprehensive_practice_room_count",
+      "category": "基本指标",
+      "unit": "套"
+    },
+    {
+      "code": "E108",
+      "name": "个别心理辅导室面积是否在10~15平方米",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "counseling_room_individual_area_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E109",
+      "name": "心理辅导室团体活动室面积≥20平方米",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "counseling_room_group_area_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E110",
+      "name": "心理辅导室办公接待区面积是否≥15平方米",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "counseling_room_office_area_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E111",
+      "name": "校园网计算机网络接入传输速率≥10M",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "network_speed_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E112",
+      "name": "网络信息点覆盖全校所有场所，网络到桌面传输速率≥100M",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "network_coverage_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E113",
+      "name": "安防监控室面积≥32平方米",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "security_room_area_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E114",
+      "name": "监控系统在重要场所和出入口无盲点；人防、技防、物防达到省定标准；工作制度健全，制度上墙",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "security_system_qualified",
+      "category": "基本指标"
+    },
+    {
+      "code": "E115",
+      "name": "运动场地面积",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "sports_field_area",
+      "category": "资源配置",
+      "unit": "平方米",
+      "description": "明细项，用于汇总到体育运动场馆总面积"
+    },
+    {
+      "code": "E116",
+      "name": "校内其他专用运动场地面积",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "other_sports_field_area",
+      "category": "资源配置",
+      "unit": "平方米",
+      "description": "明细项，用于汇总到体育运动场馆总面积"
+    },
+    {
+      "code": "E117",
+      "name": "室内体育用房面积",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "indoor_sports_area",
+      "category": "资源配置",
+      "unit": "平方米",
+      "description": "明细项，用于汇总到体育运动场馆总面积"
+    },
+    {
+      "code": "E118",
+      "name": "就近便利到达的校外周边体育场馆面积",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "nearby_sports_venue_area",
+      "category": "资源配置",
+      "unit": "平方米",
+      "description": "明细项，用于汇总到体育运动场馆总面积"
+    },
+    {
+      "code": "E119",
+      "name": "初中理化生实验室教室间数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "junior_physics_chemistry_biology_lab_count",
+      "category": "资源配置",
+      "unit": "间"
+    },
+    {
+      "code": "E120",
+      "name": "是否填报高中部数据",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "has_senior_section",
+      "category": "资源配置",
+      "description": "高中部数据非必填，仅用于扩展；义务教育评估只汇总小学/初中数据"
+    },
+    {
+      "code": "E121",
+      "name": "高中部学生人数（在校人数）",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "senior_student_count",
+      "category": "资源配置",
+      "unit": "人"
+    },
+    {
+      "code": "E122",
+      "name": "高中部班级数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "senior_class_count",
+      "category": "资源配置",
+      "unit": "个"
+    },
+    {
+      "code": "E123",
+      "name": "高中部专任教师总人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "senior_full_time_teacher_count",
+      "category": "资源配置",
+      "unit": "人"
+    },
+    {
+      "code": "E124",
+      "name": "高中部教学及辅助用房面积",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "senior_teaching_auxiliary_area",
+      "category": "资源配置",
+      "unit": "平方米"
+    },
+    {
+      "code": "E125",
+      "name": "进城务工人员随迁子女在校学生占比是否＞50%",
+      "elementType": "基础要素",
+      "dataType": "逻辑",
+      "fieldId": "migrant_student_over_50_percent",
+      "category": "政府保障"
+    },
+    {
+      "code": "E126",
+      "name": "在编行政、教辅、工勤等其他人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "staff_in_quota_other_count",
+      "category": "政府保障",
+      "unit": "人"
+    },
+    {
+      "code": "E127",
+      "name": "在编不在校（岗）人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "staff_in_quota_off_post_count",
+      "category": "政府保障",
+      "unit": "人"
+    },
+    {
+      "code": "E128",
+      "name": "在编不在校（岗）专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "staff_in_quota_off_post_teacher_count",
+      "category": "政府保障",
+      "unit": "人"
+    },
+    {
+      "code": "E129",
+      "name": "在编不在校（岗）行政、教辅、工勤等其他人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "staff_in_quota_off_post_other_count",
+      "category": "政府保障",
+      "unit": "人"
+    },
+    {
+      "code": "E130",
+      "name": "在校（岗）不在编人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "staff_on_post_off_quota_count",
+      "category": "政府保障",
+      "unit": "人"
+    },
+    {
+      "code": "E131",
+      "name": "在编不在校（岗）情况说明",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "staff_in_quota_off_post_explanation",
+      "category": "政府保障",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E132",
+      "name": "在校（岗）不在编情况说明",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "staff_on_post_off_quota_explanation",
+      "category": "政府保障",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E133",
+      "name": "24岁以下专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_under_24",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E134",
+      "name": "25-29岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_25_29",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E135",
+      "name": "30-34岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_30_34",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E136",
+      "name": "35-39岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_35_39",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E137",
+      "name": "40-44岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_40_44",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E138",
+      "name": "45-49岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_45_49",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E139",
+      "name": "50-54岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_50_54",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E140",
+      "name": "55-59岁专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_55_59",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E141",
+      "name": "60岁以上专任教师人数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_age_over_60",
+      "category": "其他",
+      "unit": "人"
+    },
+    {
+      "code": "E142",
+      "name": "各年级在校人数",
+      "elementType": "基础要素",
+      "dataType": "数组",
+      "fieldId": "grade_student_list",
       "category": "其他"
+    },
+    {
+      "code": "E143",
+      "name": "数字终端数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "digital_terminal_count",
+      "category": "其他",
+      "unit": "个"
+    },
+    {
+      "code": "E144",
+      "name": "教师终端数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "teacher_terminal_count",
+      "category": "其他",
+      "unit": "个"
+    },
+    {
+      "code": "E145",
+      "name": "学生终端数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "student_terminal_count",
+      "category": "其他",
+      "unit": "个"
+    },
+    {
+      "code": "E146",
+      "name": "所有学校制定章程，实现学校管理与教学信息化",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "school_charter_material",
+      "category": "其他",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E147",
+      "name": "教师能熟练运用信息化手段组织教学，设施设备利用率达到较高水平",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "teacher_it_skill_material",
+      "category": "其他",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E148",
+      "name": "所有学校德育工作、校园文化建设水平达到良好以上",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "moral_education_material",
+      "category": "其他",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E149",
+      "name": "课程开齐开足，教学秩序规范，综合实践活动有效开展",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "curriculum_material",
+      "category": "其他",
+      "description": "5个文件，单个文件大小不超过20M"
+    },
+    {
+      "code": "E150",
+      "name": "无过重课业负担",
+      "elementType": "基础要素",
+      "dataType": "附件",
+      "fieldId": "workload_material",
+      "category": "其他",
+      "description": "5个文件，单个文件大小不超过20M"
     },
     {
       "code": "D001",
@@ -1029,7 +1495,7 @@
     },
     {
       "code": "D024",
-      "name": "小学部骨干教师占比",
+      "name": "小学骨干教师占比",
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E018 / E005 * 100",
@@ -1038,7 +1504,7 @@
     },
     {
       "code": "D025",
-      "name": "初中部骨干教师占比",
+      "name": "初中骨干教师占比",
       "elementType": "派生要素",
       "dataType": "数字",
       "formula": "E019 / E006 * 100",
