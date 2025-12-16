@@ -1,0 +1,278 @@
+.importModal {
+  .modalContent {
+    padding: 20px 0;
+  }
+
+  .templateSection {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  .uploadSection {
+    margin-bottom: 24px;
+
+    .sectionLabel {
+      font-size: 14px;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 12px;
+
+      .requiredAsterisk {
+        color: #ff4d4f;
+        margin-right: 4px;
+      }
+    }
+
+    .uploadDragger {
+      border-radius: 8px;
+      background: #fafafa;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #40a9ff;
+        background: #f0f9ff;
+      }
+
+      &.ant-upload-drag-hover {
+        border-color: #1890ff;
+        background: #e6f7ff;
+      }
+
+      .uploadContent {
+        padding: 40px 20px;
+        text-align: center;
+
+        .uploadIcon {
+          font-size: 48px;
+          color: #bfbfbf;
+          margin-bottom: 16px;
+        }
+
+        .uploadText {
+          margin-bottom: 8px;
+
+          .clickText {
+            color: #1890ff;
+            font-size: 16px;
+            font-weight: 500;
+          }
+
+          .separator {
+            color: #bfbfbf;
+            margin: 0 8px;
+          }
+
+          .dragText {
+            color: #8c8c8c;
+            font-size: 16px;
+          }
+        }
+
+        .uploadHint {
+          color: #8c8c8c;
+          font-size: 12px;
+        }
+      }
+    }
+
+    .uploadingArea {
+      border: 2px dashed #d9d9d9;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 40px 20px;
+      text-align: center;
+
+      .uploadingContent {
+        .fileIcon {
+          font-size: 48px;
+          color: #1890ff;
+          margin-bottom: 16px;
+        }
+
+        .fileName {
+          font-size: 16px;
+          color: #1890ff;
+          font-weight: 500;
+          margin-bottom: 8px;
+        }
+
+        .uploadingText {
+          color: #8c8c8c;
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .resultArea {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+    border-radius: 8px;
+
+    .resultTitle {
+      font-size: 14px;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 12px;
+    }
+
+    .resultContent {
+      .resultFile {
+        margin-bottom: 12px;
+
+        .resultLink {
+          color: #1890ff;
+          font-size: 14px;
+          text-decoration: none;
+
+          &:hover {
+            color: #40a9ff;
+            text-decoration: none;
+          }
+        }
+      }
+
+      .resultStats {
+        display: flex;
+        gap: 24px;
+
+        .successCount {
+          display: flex;
+          align-items: center;
+          color: #52c41a;
+          font-size: 14px;
+          font-weight: 500;
+
+          .successIcon {
+            margin-right: 6px;
+            font-size: 16px;
+          }
+        }
+
+        .failureCount {
+          display: flex;
+          align-items: center;
+          color: #ff4d4f;
+          font-size: 14px;
+          font-weight: 500;
+
+          .failureIcon {
+            margin-right: 6px;
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  .cancelButton {
+    border: 1px solid #d9d9d9;
+    color: #595959;
+    background: #fff;
+    border-radius: 6px;
+    height: 36px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    &:hover {
+      border-color: #40a9ff;
+      color: #40a9ff;
+    }
+  }
+
+  .submitButton {
+    background: #1890ff;
+    border-color: #1890ff;
+    border-radius: 6px;
+    height: 36px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    &:hover:not(:disabled) {
+      background: #40a9ff;
+      border-color: #40a9ff;
+    }
+
+    &:disabled {
+      background: #f5f5f5;
+      border-color: #d9d9d9;
+      color: #bfbfbf;
+    }
+  }
+}
+
+// 全局样式覆盖
+:global {
+  .ant-modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 24px;
+
+    .ant-modal-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #262626;
+    }
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  .ant-modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 10px 16px;
+    text-align: right;
+  }
+
+  .ant-upload-drag {
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    background: #fafafa;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #40a9ff;
+      background: #f0f9ff;
+    }
+
+    &.ant-upload-drag-hover {
+      border-color: #1890ff;
+      background: #e6f7ff;
+    }
+  }
+
+  .ant-upload-disabled .ant-upload-drag {
+    background: #f5f5f5;
+    border-color: #d9d9d9;
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: #d9d9d9;
+      background: #f5f5f5;
+    }
+  }
+
+  .ant-btn {
+    border-radius: 6px;
+    font-weight: 500;
+
+    &.ant-btn-primary {
+      background: #1890ff;
+      border-color: #1890ff;
+
+      &:hover:not(:disabled) {
+        background: #40a9ff;
+        border-color: #40a9ff;
+      }
+
+      &:disabled {
+        background: #f5f5f5;
+        border-color: #d9d9d9;
+        color: #bfbfbf;
+      }
+    }
+  }
+}
