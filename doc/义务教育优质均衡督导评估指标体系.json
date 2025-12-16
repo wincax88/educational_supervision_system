@@ -1,5 +1,5 @@
 {
-  "name": "沈阳市义务教育优质均衡督导评估指标体系",
+  "name": "沈阳市义务教育优质均衡督导评估指标体系（重构版）",
   "type": "达标类",
   "target": "区县（市）",
   "tags": [
@@ -8,13 +8,13 @@
     "沈阳市",
     "督导评估"
   ],
-  "description": "参考《沈阳市义务教育优质均衡督导评估指标体系》整理。指标总分100分，分为资源配置（约40分）、政府保障程度（约20分）、教育质量（约30分）和社会认可度（约10分）四个方面。末级指标包含“数据指标 + 佐证资料”，可直接用于 /api/indicator-systems/:id/tree 的保存接口（取 tree 字段）。",
+  "description": "依据《义务教育优质均衡发展县（市、区）督导评估》相关表格与计算公式（见 doc/文档/优质均衡涉及.xlsx、doc/文档/优质均衡指标计算公式.xlsx）重构。四大维度：资源配置（学校7项资源指标 + 校际差异系数约束）、政府保障程度（15项均达标）、教育质量（9项均达标）、社会认可度（达标）。末级指标包含“数据指标 + 佐证资料”，可直接用于 /api/indicator-systems/:id/tree 的保存接口（取 tree 字段）。",
   "tree": [
     {
       "id": "SY-YZJH-1",
       "code": "1",
-      "name": "资源配置",
-      "description": "约40分。重点评估办学条件与资源配置达标及均衡情况。",
+      "name": "资源配置（需计算差异系数）",
+      "description": "7个学校指标：每所学校至少有6项指标达到要求，余项不得低于要求的85%；同时所有指标的校际差异系数：小学均≤0.50、初中均≤0.45。对九年一贯制/十二年一贯制/完全中学，教学及辅助用房面积、体育运动场馆面积、教学仪器设备值、网络多媒体教室数等按学生人数加权比例拆分（见“优质均衡指标计算公式.xlsx”备注）。",
       "level": 1,
       "isLeaf": false,
       "weight": 40,
@@ -23,7 +23,7 @@
           "id": "SY-YZJH-1-1",
           "code": "1.1",
           "name": "每百名学生拥有高于规定学历教师数",
-          "description": "计算：高于规定学历教师数 ÷ 学生总数 × 100。小学≥4.2人；初中≥5.3人（专任教师口径，包括在编及聘任制）。",
+          "description": "小学、初中分别达到4.2人以上、5.3人以上。小学口径为“大专及以上”，初中口径为“本科及以上”。（资源配置指标 L1）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
@@ -31,8 +31,13 @@
               "id": "SY-YZJH-1-1-D1",
               "code": "1.1-D1",
               "name": "每百名学生拥有高于规定学历教师数（小学）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
               "threshold": ">= 4.2",
-              "description": "高于规定学历教师数 ÷ 学生总数 × 100",
+              "description": "小学：(（大专+本科+硕士+博士及以上专任教师数）÷ 小学学生人数) × 100",
+              "calculationMethod": "((大专+本科+硕士+博士及以上专任教师数)/小学学生人数)*100",
+              "dataSource": "学校填报（教师学历结构、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "小学"
@@ -41,8 +46,13 @@
               "id": "SY-YZJH-1-1-D2",
               "code": "1.1-D2",
               "name": "每百名学生拥有高于规定学历教师数（初中）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
               "threshold": ">= 5.3",
-              "description": "高于规定学历教师数 ÷ 学生总数 × 100",
+              "description": "初中：(（本科+硕士+博士及以上专任教师数）÷ 初中学生人数) × 100",
+              "calculationMethod": "((本科+硕士+博士及以上专任教师数)/初中学生人数)*100",
+              "dataSource": "学校填报（教师学历结构、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "初中"
@@ -54,8 +64,8 @@
               "code": "1.1-M1",
               "name": "教师学历统计及证明材料",
               "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "10MB",
-              "description": "提供教师学历结构统计表、教师名册及学历证书（或学信网截图）等佐证。",
+              "maxSize": "20MB",
+              "description": "提供教师名册、学历结构统计表、学历证书/学信网截图等佐证，说明统计口径（专任教师）。",
               "required": true
             }
           ]
@@ -63,17 +73,22 @@
         {
           "id": "SY-YZJH-1-2",
           "code": "1.2",
-          "name": "生均教学及辅助用房面积",
-          "description": "小学≥9.75㎡；初中≥7.5㎡。",
+          "name": "每百名学生拥有县级及以上骨干教师数",
+          "description": "小学、初中均达到1人以上。（资源配置指标 L2）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-2-D1",
               "code": "1.2-D1",
-              "name": "生均教学及辅助用房面积（小学）",
-              "threshold": ">= 9.75",
-              "description": "教学及辅助用房总面积 ÷ 学生总数（单位：㎡/生）",
+              "name": "每百名学生拥有县级及以上骨干教师数（小学）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
+              "threshold": ">= 1",
+              "description": "(县级及以上骨干教师数 ÷ 小学学生人数) × 100",
+              "calculationMethod": "(骨干教师数/学生数)*100",
+              "dataSource": "学校填报 + 区县认定口径",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "小学"
@@ -81,9 +96,14 @@
             {
               "id": "SY-YZJH-1-2-D2",
               "code": "1.2-D2",
-              "name": "生均教学及辅助用房面积（初中）",
-              "threshold": ">= 7.5",
-              "description": "教学及辅助用房总面积 ÷ 学生总数（单位：㎡/生）",
+              "name": "每百名学生拥有县级及以上骨干教师数（初中）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
+              "threshold": ">= 1",
+              "description": "(县级及以上骨干教师数 ÷ 初中学生人数) × 100",
+              "calculationMethod": "(骨干教师数/学生数)*100",
+              "dataSource": "学校填报 + 区县认定口径",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "初中"
@@ -93,10 +113,10 @@
             {
               "id": "SY-YZJH-1-2-M1",
               "code": "1.2-M1",
-              "name": "校舍及用房面积证明材料",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "10MB",
-              "description": "提供校舍建筑面积统计表、房产/不动产权证、竣工验收资料或平面图等佐证。",
+              "name": "骨干教师认定及统计材料",
+              "fileTypes": "PDF,Word,Excel",
+              "maxSize": "20MB",
+              "description": "提供县级及以上骨干教师认定文件/名单及学校统计表，说明认定依据与口径。",
               "required": true
             }
           ]
@@ -104,17 +124,22 @@
         {
           "id": "SY-YZJH-1-3",
           "code": "1.3",
-          "name": "生均体育运动场馆面积",
-          "description": "小学≥1.55㎡；初中≥2.0㎡。",
+          "name": "每百名学生拥有体育、艺术（美术、音乐）专任教师数",
+          "description": "小学、初中均达到0.9人以上；对50人及以上但不足100人的乡村小规模学校和教学点，可包含交流轮岗、兼职、走教的体育和艺术教师。（资源配置指标 L3）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-3-D1",
               "code": "1.3-D1",
-              "name": "生均体育运动场馆面积（小学）",
-              "threshold": ">= 1.55",
-              "description": "体育运动场馆面积 ÷ 学生总数（单位：㎡/生）",
+              "name": "每百名学生拥有体育、艺术专任教师数（小学）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
+              "threshold": ">= 0.9",
+              "description": "非小规模学校：（体育+音乐+美术+艺术专任教师数）÷ 小学学生人数 × 100；小规模学校可加计交流轮岗/走教等到校教师数。",
+              "calculationMethod": "（体育+音乐+美术+艺术教师数）/学生数*100（小规模学校可加计到校教师）",
+              "dataSource": "学校填报（教师类别、学生人数、特殊情形标记）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "小学"
@@ -122,9 +147,14 @@
             {
               "id": "SY-YZJH-1-3-D2",
               "code": "1.3-D2",
-              "name": "生均体育运动场馆面积（初中）",
-              "threshold": ">= 2.0",
-              "description": "体育运动场馆面积 ÷ 学生总数（单位：㎡/生）",
+              "name": "每百名学生拥有体育、艺术专任教师数（初中）",
+              "dataType": "数字",
+              "unit": "人/百名学生",
+              "threshold": ">= 0.9",
+              "description": "非小规模学校：（体育+音乐+美术+艺术专任教师数）÷ 初中学生人数 × 100；小规模学校可加计交流轮岗/走教等到校教师数。",
+              "calculationMethod": "（体育+音乐+美术+艺术教师数）/学生数*100（小规模学校可加计到校教师）",
+              "dataSource": "学校填报（教师类别、学生人数、特殊情形标记）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "初中"
@@ -134,10 +164,10 @@
             {
               "id": "SY-YZJH-1-3-M1",
               "code": "1.3-M1",
-              "name": "体育场地场馆面积证明材料",
+              "name": "体育艺术教师配备与到校服务佐证",
               "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "10MB",
-              "description": "提供运动场地/馆舍面积统计表、平面图、现场照片等佐证。",
+              "maxSize": "20MB",
+              "description": "提供体育/音乐/美术/艺术教师名单、岗位性质说明；如加计到校教师，提供交流轮岗/走教协议、课表或到校记录等。",
               "required": true
             }
           ]
@@ -145,29 +175,39 @@
         {
           "id": "SY-YZJH-1-4",
           "code": "1.4",
-          "name": "生均教学仪器设备值",
-          "description": "小学≥7000元；初中≥12000元。",
+          "name": "生均教学及辅助用房面积",
+          "description": "小学、初中分别达到4.5㎡以上、5.8㎡以上。注意：教学及辅助用房总面积在统计口径中通常包含室内体育用房面积，计算生均时需扣除室内体育用房面积。（资源配置指标 L4）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-4-D1",
               "code": "1.4-D1",
-              "name": "生均教学仪器设备值（小学）",
-              "threshold": ">= 7000",
-              "description": "教学仪器设备资产值 ÷ 学生总数（单位：元/生）",
+              "name": "生均教学及辅助用房面积（小学）",
+              "dataType": "数字",
+              "unit": "㎡/生",
+              "threshold": ">= 4.5",
+              "description": "(教学及辅助用房总面积 - 室内体育用房面积) ÷ 小学学生人数",
+              "calculationMethod": "(教学及辅助用房总面积-室内体育用房面积)/学生数",
+              "dataSource": "学校填报（用房面积、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
-              "precision": 0,
+              "precision": 2,
               "targetType": "小学"
             },
             {
               "id": "SY-YZJH-1-4-D2",
               "code": "1.4-D2",
-              "name": "生均教学仪器设备值（初中）",
-              "threshold": ">= 12000",
-              "description": "教学仪器设备资产值 ÷ 学生总数（单位：元/生）",
+              "name": "生均教学及辅助用房面积（初中）",
+              "dataType": "数字",
+              "unit": "㎡/生",
+              "threshold": ">= 5.8",
+              "description": "(教学及辅助用房总面积 - 室内体育用房面积) ÷ 初中学生人数",
+              "calculationMethod": "(教学及辅助用房总面积-室内体育用房面积)/学生数",
+              "dataSource": "学校填报（用房面积、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
-              "precision": 0,
+              "precision": 2,
               "targetType": "初中"
             }
           ],
@@ -175,10 +215,10 @@
             {
               "id": "SY-YZJH-1-4-M1",
               "code": "1.4-M1",
-              "name": "教学仪器设备资产台账/审计材料",
+              "name": "用房面积统计及证明材料",
               "fileTypes": "PDF,Word,Excel,JPG,PNG",
               "maxSize": "20MB",
-              "description": "提供固定资产台账、设备清单、财务审计/决算相关佐证（含账面原值口径说明）。",
+              "description": "提供房产/不动产权证、竣工验收资料/平面图、用房面积统计表等佐证，并明确室内体育用房面积口径。",
               "required": true
             }
           ]
@@ -186,47 +226,73 @@
         {
           "id": "SY-YZJH-1-5",
           "code": "1.5",
-          "name": "每百名学生拥有计算机台数",
-          "description": "小学≥9台；初中≥8台。",
+          "name": "生均体育运动场馆面积",
+          "description": "小学、初中分别达到7.5㎡以上、10.2㎡以上。对人口密度过高的中心城区学校，体育运动场馆面积可包括地下/楼顶等改造专用安全活动空间及校外周边租赁场馆（10分钟步行可达且交通安全保障）。（资源配置指标 L5）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-5-D1",
               "code": "1.5-D1",
-              "name": "每百名学生拥有计算机台数（小学）",
-              "threshold": ">= 9",
-              "description": "计算机总台数 ÷ 学生总数 × 100",
+              "name": "生均体育运动场馆面积（小学）",
+              "dataType": "数字",
+              "unit": "㎡/生",
+              "threshold": ">= 7.5",
+              "description": "非中心城区： (体育馆面积+校内体育场面积) ÷ 小学学生人数；中心城区可加计校外租赁场馆与校内其他专用运动场地面积。",
+              "calculationMethod": "（体育馆+校内体育场（+校外租赁+校内其他专用场地））/学生数",
+              "dataSource": "学校填报（场馆面积、学生人数、特殊情形标记）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
-              "precision": 0,
+              "precision": 2,
               "targetType": "小学"
             },
             {
               "id": "SY-YZJH-1-5-D2",
               "code": "1.5-D2",
-              "name": "每百名学生拥有计算机台数（初中）",
-              "threshold": ">= 8",
-              "description": "计算机总台数 ÷ 学生总数 × 100",
+              "name": "生均体育运动场馆面积（初中）",
+              "dataType": "数字",
+              "unit": "㎡/生",
+              "threshold": ">= 10.2",
+              "description": "非中心城区： (体育馆面积+校内体育场面积) ÷ 初中学生人数；中心城区可加计校外租赁场馆与校内其他专用运动场地面积。",
+              "calculationMethod": "（体育馆+校内体育场（+校外租赁+校内其他专用场地））/学生数",
+              "dataSource": "学校填报（场馆面积、学生人数、特殊情形标记）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
-              "precision": 0,
+              "precision": 2,
               "targetType": "初中"
+            }
+          ],
+          "supportingMaterials": [
+            {
+              "id": "SY-YZJH-1-5-M1",
+              "code": "1.5-M1",
+              "name": "体育场馆面积与可用性佐证材料",
+              "fileTypes": "PDF,Word,Excel,JPG,PNG",
+              "maxSize": "20MB",
+              "description": "提供体育场地/场馆面积统计表、平面图、照片；如加计校外租赁场馆，提供租赁合同与专用时间保障说明。",
+              "required": true
             }
           ]
         },
         {
           "id": "SY-YZJH-1-6",
           "code": "1.6",
-          "name": "生均图书册数",
-          "description": "小学≥85册；初中≥13册。",
+          "name": "生均教学仪器设备值",
+          "description": "小学、初中分别达到2000元以上、2500元以上。资产值口径为“账面原值”。（资源配置指标 L6）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-6-D1",
               "code": "1.6-D1",
-              "name": "生均图书册数（小学）",
-              "threshold": ">= 85",
-              "description": "图书总册数 ÷ 学生总数（单位：册/生）",
+              "name": "生均教学仪器设备值（小学）",
+              "dataType": "数字",
+              "unit": "元/生",
+              "threshold": ">= 2000",
+              "description": "（教学仪器设备资产值（账面原值）×10000）÷ 小学学生人数",
+              "calculationMethod": "教学仪器设备资产值（万元）*10000/学生数",
+              "dataSource": "学校填报（固定资产台账/财务口径、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 0,
               "targetType": "小学"
@@ -234,29 +300,50 @@
             {
               "id": "SY-YZJH-1-6-D2",
               "code": "1.6-D2",
-              "name": "生均图书册数（初中）",
-              "threshold": ">= 13",
-              "description": "图书总册数 ÷ 学生总数（单位：册/生）",
+              "name": "生均教学仪器设备值（初中）",
+              "dataType": "数字",
+              "unit": "元/生",
+              "threshold": ">= 2500",
+              "description": "（教学仪器设备资产值（账面原值）×10000）÷ 初中学生人数",
+              "calculationMethod": "教学仪器设备资产值（万元）*10000/学生数",
+              "dataSource": "学校填报（固定资产台账/财务口径、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 0,
               "targetType": "初中"
+            }
+          ],
+          "supportingMaterials": [
+            {
+              "id": "SY-YZJH-1-6-M1",
+              "code": "1.6-M1",
+              "name": "教学仪器设备资产台账/审计材料",
+              "fileTypes": "PDF,Word,Excel",
+              "maxSize": "20MB",
+              "description": "提供固定资产台账、设备清单、财务审计/决算相关佐证（含账面原值口径说明）。",
+              "required": true
             }
           ]
         },
         {
           "id": "SY-YZJH-1-7",
           "code": "1.7",
-          "name": "师生比及校际差距系数",
-          "description": "师生比：小学≤17:1；初中≤13.5:1。校际差距系数≤0.65；沈阳市适配：城乡差距系数≤0.50（小学）/≤0.45（初中）。",
+          "name": "每百名学生拥有网络多媒体教室数",
+          "description": "小学、初中分别达到2.3间以上、2.4间以上。（资源配置指标 L7）",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
             {
               "id": "SY-YZJH-1-7-D1",
               "code": "1.7-D1",
-              "name": "师生比（小学）",
-              "threshold": "<= 17",
-              "description": "学生总数 ÷ 专任教师数（值越小越好；阈值按国家示例）",
+              "name": "每百名学生拥有网络多媒体教室数（小学）",
+              "dataType": "数字",
+              "unit": "间/百名学生",
+              "threshold": ">= 2.3",
+              "description": "（网络多媒体教室间数 ÷ 小学学生人数）× 100",
+              "calculationMethod": "(网络多媒体教室间数/学生数)*100",
+              "dataSource": "学校填报（多媒体教室间数、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "小学"
@@ -264,29 +351,14 @@
             {
               "id": "SY-YZJH-1-7-D2",
               "code": "1.7-D2",
-              "name": "师生比（初中）",
-              "threshold": "<= 13.5",
-              "description": "学生总数 ÷ 专任教师数（值越小越好；阈值按国家示例）",
-              "thresholdType": "single",
-              "precision": 2,
-              "targetType": "初中"
-            },
-            {
-              "id": "SY-YZJH-1-7-D3",
-              "code": "1.7-D3",
-              "name": "校际差距/综合差异系数（小学）",
-              "threshold": "<= 0.50",
-              "description": "基于多项资源指标计算的校际差异系数（沈阳市目标示例）",
-              "thresholdType": "single",
-              "precision": 2,
-              "targetType": "小学"
-            },
-            {
-              "id": "SY-YZJH-1-7-D4",
-              "code": "1.7-D4",
-              "name": "校际差距/综合差异系数（初中）",
-              "threshold": "<= 0.45",
-              "description": "基于多项资源指标计算的校际差异系数（沈阳市目标示例）",
+              "name": "每百名学生拥有网络多媒体教室数（初中）",
+              "dataType": "数字",
+              "unit": "间/百名学生",
+              "threshold": ">= 2.4",
+              "description": "（网络多媒体教室间数 ÷ 初中学生人数）× 100",
+              "calculationMethod": "(网络多媒体教室间数/学生数)*100",
+              "dataSource": "学校填报（多媒体教室间数、学生人数）",
+              "collectionFrequency": "年度",
               "thresholdType": "single",
               "precision": 2,
               "targetType": "初中"
@@ -296,10 +368,45 @@
             {
               "id": "SY-YZJH-1-7-M1",
               "code": "1.7-M1",
-              "name": "学生数/教师数统计及差异系数计算表",
+              "name": "多媒体教室清单与照片",
+              "fileTypes": "PDF,Word,Excel,JPG,PNG",
+              "maxSize": "20MB",
+              "description": "提供多媒体教室清单、设备配置说明及现场照片等佐证。",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "SY-YZJH-1-8",
+          "code": "1.8",
+          "name": "校际差异系数（资源配置7项指标）",
+          "description": "所有资源配置指标的校际差异系数：小学均≤0.50、初中均≤0.45（差异系数保留三位小数）。数据通常由系统基于学校填报计算，也可由区县汇总填报。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-1-8-D01", "code": "1.8-D01", "name": "差异系数-L1高学历教师（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L1差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D02", "code": "1.8-D02", "name": "差异系数-L1高学历教师（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L1差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D03", "code": "1.8-D03", "name": "差异系数-L2骨干教师（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L2差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D04", "code": "1.8-D04", "name": "差异系数-L2骨干教师（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L2差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D05", "code": "1.8-D05", "name": "差异系数-L3体育艺术教师（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L3差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D06", "code": "1.8-D06", "name": "差异系数-L3体育艺术教师（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L3差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D07", "code": "1.8-D07", "name": "差异系数-L4教学及辅助用房（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L4差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D08", "code": "1.8-D08", "name": "差异系数-L4教学及辅助用房（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L4差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D09", "code": "1.8-D09", "name": "差异系数-L5体育运动场馆（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L5差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D10", "code": "1.8-D10", "name": "差异系数-L5体育运动场馆（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L5差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D11", "code": "1.8-D11", "name": "差异系数-L6教学仪器设备值（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L6差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D12", "code": "1.8-D12", "name": "差异系数-L6教学仪器设备值（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L6差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" },
+            { "id": "SY-YZJH-1-8-D13", "code": "1.8-D13", "name": "差异系数-L7多媒体教室（小学）", "dataType": "数字", "unit": "", "threshold": "<= 0.50", "description": "资源配置指标L7差异系数（小学）", "thresholdType": "single", "precision": 3, "targetType": "小学" },
+            { "id": "SY-YZJH-1-8-D14", "code": "1.8-D14", "name": "差异系数-L7多媒体教室（初中）", "dataType": "数字", "unit": "", "threshold": "<= 0.45", "description": "资源配置指标L7差异系数（初中）", "thresholdType": "single", "precision": 3, "targetType": "初中" }
+          ],
+          "supportingMaterials": [
+            {
+              "id": "SY-YZJH-1-8-M1",
+              "code": "1.8-M1",
+              "name": "差异系数计算过程表",
               "fileTypes": "PDF,Word,Excel",
               "maxSize": "20MB",
-              "description": "提供学生数、专任教师数统计口径说明，以及校际差距/综合差异系数计算过程表。",
+              "description": "提供县域资源配置指标差异系数计算过程（含参与学校、数据口径、公式、结果），支持追溯。",
               "required": true
             }
           ]
@@ -310,7 +417,7 @@
       "id": "SY-YZJH-2",
       "code": "2",
       "name": "政府保障程度",
-      "description": "约20分。考察财政投入、政策落实与一体化改革保障。",
+      "description": "15项指标均要达到要求（以政策落实、保障机制与关键约束为主）。",
       "level": 1,
       "isLeaf": false,
       "weight": 20,
@@ -318,216 +425,215 @@
         {
           "id": "SY-YZJH-2-1",
           "code": "2.1",
-          "name": "教育经费执行情况",
-          "description": "教育经费占比≥4%（示例）。",
+          "name": "县域内义务教育学校规划布局合理，符合国家规定要求",
+          "description": "不需要数值数据，需提供规划布局、批复与实施等佐证资料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-1-D1",
-              "code": "2.1-D1",
-              "name": "教育经费占比",
-              "threshold": ">= 4%",
-              "description": "教育经费支出 ÷ 财政支出 × 100（按省/市口径）",
-              "thresholdType": "single",
-              "precision": 2
-            }
-          ],
+          "dataIndicators": [],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-1-M1",
-              "code": "2.1-M1",
-              "name": "预算决算/拨付凭证等经费佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供财政预算/决算报表、拨付凭证、审计报告等，说明统计口径与时间范围。",
-              "required": true
-            }
+            { "id": "SY-YZJH-2-1-M1", "code": "2.1-M1", "name": "学校布局规划与批复文件", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供县域义务教育学校布局规划、调整方案、批复文件、规划图等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-2",
           "code": "2.2",
-          "name": "教师培训覆盖率",
-          "description": "≥90%。",
+          "name": "城乡义务教育学校建设标准、教师编制标准、生均公用经费基准定额、基本装备配置标准统一",
+          "description": "需体现“统一”且不低于沈阳市标准；其中生均公用经费基准定额示例：小学≥1150元、初中≥1350元。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-2-D1",
-              "code": "2.2-D1",
-              "name": "教师培训覆盖率",
-              "threshold": ">= 90%",
-              "description": "参与培训教师数 ÷ 专任教师数 × 100（按规定周期）",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-2-D1", "code": "2.2-D1", "name": "规定的小学生均公用经费标准", "dataType": "数字", "unit": "元", "threshold": ">= 1150", "description": "县域规定的小学生均公用经费基准定额（不低于市级标准）", "thresholdType": "single", "precision": 0, "targetType": "小学" },
+            { "id": "SY-YZJH-2-2-D2", "code": "2.2-D2", "name": "规定的初中生均公用经费标准", "dataType": "数字", "unit": "元", "threshold": ">= 1350", "description": "县域规定的初中生均公用经费基准定额（不低于市级标准）", "thresholdType": "single", "precision": 0, "targetType": "初中" }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-2-M1", "code": "2.2-M1", "name": "统一标准与政策文件佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供建设标准、编制标准、公用经费基准定额、基本装备配置标准等相关政策文件及执行说明。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-3",
           "code": "2.3",
-          "name": "集团化办学覆盖率",
-          "description": "≥80%。沈阳市适配：推进集团化办学覆盖乡村学校。",
+          "name": "每12个班级配备音乐、美术专用教室1间以上且面积达标",
+          "description": "所有小学、初中每12个班级配备音乐、美术专用教室1间以上；常规面积：音乐≥96㎡、美术≥90㎡。对2016年及之前规划并建成学校：音乐≥73㎡、美术≥67㎡。对最大班额低于30人的农村小规模学校：小学音乐/美术≥54㎡，初中≥61㎡。需做持续建设规划与跟踪复查。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-3-D1",
-              "code": "2.3-D1",
-              "name": "集团化办学覆盖率",
-              "threshold": ">= 80%",
-              "description": "纳入集团化办学学校数 ÷ 学校总数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-3-D1", "code": "2.3-D1", "name": "音乐、美术专用教室配置与面积达标（县域结论）", "dataType": "逻辑", "unit": "", "threshold": "达标", "description": "所需教室数=班级数÷12（向上取整）；按学校建成年份/小规模学校条件选择对应面积标准进行判定。", "thresholdType": "single", "precision": 0 }
           ],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-3-M1",
-              "code": "2.3-M1",
-              "name": "集团化办学方案与名单",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供集团化办学文件、学校名单、章程/协议与运行机制等佐证。",
-              "required": true
-            }
+            { "id": "SY-YZJH-2-3-M1", "code": "2.3-M1", "name": "音乐/美术教室清单与面积佐证", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供各校音乐/美术教室清单、面积测算/平面图、现场照片及特殊情形（2016年前/小规模学校）说明材料。", "required": true },
+            { "id": "SY-YZJH-2-3-M2", "code": "2.3-M2", "name": "持续达标建设规划与跟踪材料", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "对暂按特殊标准评估的学校，提供三年内达到规定标准的建设规划、进度与复查机制材料。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-4",
           "code": "2.4",
-          "name": "优质高中招生名额分配比例",
-          "description": "≥50%，向农村倾斜。",
+          "name": "学校规模控制达标",
+          "description": "所有小学、初中规模不超过2000人；九年一贯制、十二年一贯制义务教育阶段规模不超过2500人。对2010年及之前规划并建成的学校、以及随迁子女占比超过50%的学校，可按小学/初中≤2400、九年一贯制≤3000评估，同时需建设规划与持续跟踪复查。职业学校不得附设普通小学班、初中班。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-4-D1",
-              "code": "2.4-D1",
-              "name": "优质高中名额分配比例",
-              "threshold": ">= 50%",
-              "description": "名额分配计划数 ÷ 优质高中招生计划总数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-4-D1", "code": "2.4-D1", "name": "超规模学校数（小学）", "dataType": "数字", "unit": "所", "threshold": "= 0", "description": "小学学生数超过对应标准的学校数量", "thresholdType": "single", "precision": 0, "targetType": "小学" },
+            { "id": "SY-YZJH-2-4-D2", "code": "2.4-D2", "name": "超规模学校数（初中）", "dataType": "数字", "unit": "所", "threshold": "= 0", "description": "初中学生数超过对应标准的学校数量", "thresholdType": "single", "precision": 0, "targetType": "初中" },
+            { "id": "SY-YZJH-2-4-D3", "code": "2.4-D3", "name": "超规模学校数（九/十二年一贯制义务教育阶段）", "dataType": "数字", "unit": "所", "threshold": "= 0", "description": "九年一贯制/十二年一贯制义务教育阶段学生数超过对应标准的学校数量", "thresholdType": "single", "precision": 0 }
           ],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-4-M1",
-              "code": "2.4-M1",
-              "name": "招生方案与名额分配表",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供年度招生政策文件、名额分配表及向农村倾斜的说明材料。",
-              "required": true
-            }
+            { "id": "SY-YZJH-2-4-M1", "code": "2.4-M1", "name": "学籍规模统计与说明材料", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供各校学生数统计（含学籍口径）、特殊标准适用学校清单及建设规划/复查机制等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-5",
           "code": "2.5",
-          "name": "随迁子女入学比例",
-          "description": "≥85%。",
+          "name": "班级学生数控制达标",
+          "description": "小学、初中所有班级学生数分别不超过45人、50人。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-5-D1",
-              "code": "2.5-D1",
-              "name": "随迁子女入学比例",
-              "threshold": ">= 85%",
-              "description": "随迁子女实际入学人数 ÷ 随迁子女适龄人数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-5-D1", "code": "2.5-D1", "name": "超45人小学班级数", "dataType": "数字", "unit": "个", "threshold": "= 0", "description": "小学班级人数>45的班级个数（可由分段班额统计汇总）", "thresholdType": "single", "precision": 0, "targetType": "小学" },
+            { "id": "SY-YZJH-2-5-D2", "code": "2.5-D2", "name": "超50人初中班级数", "dataType": "数字", "unit": "个", "threshold": "= 0", "description": "初中班级人数>50的班级个数（可由分段班额统计汇总）", "thresholdType": "single", "precision": 0, "targetType": "初中" }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-5-M1", "code": "2.5-M1", "name": "班额统计与学籍佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供班级花名册/学籍导出统计、班额分段汇总表等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-6",
           "code": "2.6",
-          "name": "留守儿童关爱体系健全率",
-          "description": "健全率100%。",
+          "name": "不足100人的规模较小学校按不低于100人核定公用经费",
+          "description": "对规模较小学校（包括乡镇中心校附设村小），按不低于100人核定公用经费，确保保障水平不降低。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-6-D1",
-              "code": "2.6-D1",
-              "name": "留守儿童关爱体系健全率",
-              "threshold": ">= 100%",
-              "description": "已建立并落实关爱体系的学校/地区占比（按规定口径）",
-              "thresholdType": "single",
-              "precision": 0
-            }
+            { "id": "SY-YZJH-2-6-D1", "code": "2.6-D1", "name": "小规模学校公用经费核定达标（县域结论）", "dataType": "逻辑", "unit": "", "threshold": "达标", "description": "不足100人的学校按100人核定公用经费，且达到规定生均标准。", "thresholdType": "single", "precision": 0 }
           ],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-6-M1",
-              "code": "2.6-M1",
-              "name": "留守儿童关爱制度与台账",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供关爱工作制度、责任清单、走访记录、个案台账等佐证。",
-              "required": true
-            }
+            { "id": "SY-YZJH-2-6-M1", "code": "2.6-M1", "name": "核定与拨付依据材料", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供小规模学校名单、核定依据、拨付凭证与测算表等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-7",
           "code": "2.7",
-          "name": "新优质学校创建覆盖率（沈阳市适配）",
-          "description": "到2025年覆盖率≥80%（地方强化要求）。",
+          "name": "特殊教育学校生均公用经费不低于8000元",
+          "description": "特殊教育学校生均公用经费不低于8000元。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-7-D1",
-              "code": "2.7-D1",
-              "name": "新优质学校创建覆盖率",
-              "threshold": ">= 80%",
-              "description": "新优质学校覆盖学校数 ÷ 学校总数 × 100（按市级口径）",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-7-D1", "code": "2.7-D1", "name": "特殊教育学校生均公用经费", "dataType": "数字", "unit": "元", "threshold": ">= 8000", "description": "特殊教育学校经费总额 ÷ 特殊教育学校学生人数", "calculationMethod": "经费总额/学生数", "dataSource": "区县填报（财政/拨付口径）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 0 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-7-M1", "code": "2.7-M1", "name": "特殊教育经费与学生数佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供特殊教育经费拨付/决算凭证、学生数统计与口径说明。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-8",
           "code": "2.8",
-          "name": "城乡联盟辐射覆盖率（沈阳市适配）",
-          "description": "联盟建设覆盖郊区≥80%（地方适配示例）。",
+          "name": "义务教育学校教师平均工资不低于当地公务员平均工资",
+          "description": "全县义务教育学校教师年平均工资收入水平不低于当地公务员年平均工资收入水平，并按规定足额核定教师绩效工资总量。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-8-D1",
-              "code": "2.8-D1",
-              "name": "城乡联盟辐射覆盖率",
-              "threshold": ">= 80%",
-              "description": "纳入城乡联盟/辐射带动学校数 ÷ 目标学校数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-8-D1", "code": "2.8-D1", "name": "教师年平均工资收入不低于公务员（结论）", "dataType": "逻辑", "unit": "", "threshold": "达标", "description": "义务教育学校教师年平均工资收入水平（不含民办） ≥ 当地公务员年平均工资收入。", "thresholdType": "single", "precision": 0 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-8-M1", "code": "2.8-M1", "name": "教师与公务员年平均工资统计佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供教师/公务员年平均工资统计表、来源口径说明及绩效工资核定依据等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-2-9",
           "code": "2.9",
-          "name": "“15分钟教育圈”覆盖与学校布局保障（沈阳市适配）",
-          "description": "三年行动计划强调新增学校、完善布局，保障“15分钟教育圈”。",
+          "name": "教师5年360学时培训完成率达到100%",
+          "description": "教师5年360学时培训完成率达到100%。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-2-9-D1",
-              "code": "2.9-D1",
-              "name": "“15分钟教育圈”覆盖率",
-              "threshold": ">= 95%",
-              "description": "满足“15分钟教育圈”服务半径要求的学生/居民覆盖比例（口径可在编辑页细化）",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-2-9-D1", "code": "2.9-D1", "name": "教师5年360学时培训完成率", "dataType": "数字", "unit": "%", "threshold": ">= 100%", "description": "完成360学时培训教师数 ÷ 全县教师数 × 100", "calculationMethod": "(完成360学时培训教师数/教师总数)*100", "dataSource": "区县汇总（培训平台/人事系统）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-9-M1", "code": "2.9-M1", "name": "教师培训记录与统计佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供培训平台导出、教师名单与学时统计、抽查凭证等佐证。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-10",
+          "code": "2.10",
+          "name": "县级教育行政部门统筹分配各校教职工编制和岗位数量",
+          "description": "县级教育行政部门在核定的教职工编制总额和岗位总量内，统筹分配各校教职工编制和岗位数量。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-10-M1", "code": "2.10-M1", "name": "编制与岗位统筹分配文件", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供编制核定、岗位设置与分配文件、年度调整记录及执行说明等佐证。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-11",
+          "code": "2.11",
+          "name": "教师交流轮岗比例达标",
+          "description": "全县每年交流轮岗教师比例不低于符合交流条件教师总数的10%；其中骨干教师不低于交流轮岗教师总数的20%。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-2-11-D1", "code": "2.11-D1", "name": "交流轮岗教师比例", "dataType": "数字", "unit": "%", "threshold": ">= 10%", "description": "实际交流轮岗教师数 ÷ 符合交流条件教师总数 × 100", "calculationMethod": "(实际交流轮岗教师数/符合交流条件教师总数)*100", "dataSource": "区县填报（人事/交流轮岗台账）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-2-11-D2", "code": "2.11-D2", "name": "交流轮岗骨干教师比例", "dataType": "数字", "unit": "%", "threshold": ">= 20%", "description": "实际交流骨干教师数 ÷ 实际交流轮岗教师数 × 100", "calculationMethod": "(实际交流骨干教师数/实际交流轮岗教师数)*100", "dataSource": "区县填报（人事/交流轮岗台账）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-11-M1", "code": "2.11-M1", "name": "交流轮岗台账与政策佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供交流轮岗政策文件、教师名单、去向与周期、骨干教师认定依据等佐证。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-12",
+          "code": "2.12",
+          "name": "专任教师持证上岗率达到100%",
+          "description": "专任教师持有教师资格证上岗率达到100%。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-2-12-D1", "code": "2.12-D1", "name": "教师资格证持证上岗率", "dataType": "数字", "unit": "%", "threshold": ">= 100%", "description": "持有教师资格证的专任教师人数 ÷ 专任教师总人数 × 100", "calculationMethod": "(持证专任教师数/专任教师总数)*100", "dataSource": "学校填报/区县汇总（人事系统）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-12-M1", "code": "2.12-M1", "name": "教师资格证与在岗证明", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供持证教师名单、资格证编号/截图抽查材料、在岗情况说明等佐证。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-13",
+          "code": "2.13",
+          "name": "就近划片入学比例达标",
+          "description": "城区和镇区公办小学、初中（均不含寄宿制学校）就近划片入学比例分别达到100%、95%以上。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-2-13-D1", "code": "2.13-D1", "name": "就近划片入学比例（小学）", "dataType": "数字", "unit": "%", "threshold": ">= 100%", "description": "划片范围内在校学生数（小学） ÷ 小学学生人数 × 100", "calculationMethod": "(划片范围内小学在校生数/小学学生数)*100", "dataSource": "学校填报/学籍", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2, "targetType": "小学" },
+            { "id": "SY-YZJH-2-13-D2", "code": "2.13-D2", "name": "就近划片入学比例（初中）", "dataType": "数字", "unit": "%", "threshold": ">= 95%", "description": "划片范围内在校学生数（初中） ÷ 初中学生人数 × 100", "calculationMethod": "(划片范围内初中在校生数/初中学生数)*100", "dataSource": "学校填报/学籍", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2, "targetType": "初中" }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-13-M1", "code": "2.13-M1", "name": "划片方案与学籍统计佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供年度划片方案、招生政策、学籍/居住地核验统计与抽查材料等佐证。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-14",
+          "code": "2.14",
+          "name": "优质高中招生名额分配比例不低于50%并向农村初中倾斜",
+          "description": "全县优质高中招生名额分配比例不低于50%，并向农村初中倾斜。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-2-14-D1", "code": "2.14-D1", "name": "优质高中招生名额分配比例", "dataType": "数字", "unit": "%", "threshold": ">= 50%", "description": "优质高中招生分配指标数 ÷ 优质高中招生计划总人数 × 100", "calculationMethod": "(分配指标数/招生计划总人数)*100", "dataSource": "区县填报（招生计划与分配表）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-14-M1", "code": "2.14-M1", "name": "招生方案与名额分配表", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供年度招生政策文件、名额分配表及向农村倾斜的说明材料。", "required": true }
+          ]
+        },
+        {
+          "id": "SY-YZJH-2-15",
+          "code": "2.15",
+          "name": "留守儿童关爱体系健全，随迁子女就读比例不低于85%",
+          "description": "留守儿童关爱体系健全；全县符合条件的随迁子女在公办学校和政府购买服务的民办学校就读比例不低于85%。",
+          "level": 2,
+          "isLeaf": true,
+          "dataIndicators": [
+            { "id": "SY-YZJH-2-15-D1", "code": "2.15-D1", "name": "随迁子女就读比例", "dataType": "数字", "unit": "%", "threshold": ">= 85%", "description": "（公办学校随迁子女 + 政府购买服务民办学校随迁子女）÷ 符合条件随迁子女总人数 × 100", "calculationMethod": "((公办+购买服务民办)/符合条件总数)*100", "dataSource": "区县填报（随迁子女统计口径）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-2-15-M1", "code": "2.15-M1", "name": "留守儿童关爱制度与台账", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供关爱工作制度、责任清单、走访记录、个案台账等佐证。", "required": true },
+            { "id": "SY-YZJH-2-15-M2", "code": "2.15-M2", "name": "随迁子女入学统计与证明材料", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供符合条件随迁子女总数、公办与购买服务民办就读人数统计、口径说明及抽查凭证。", "required": true }
           ]
         }
       ]
@@ -536,7 +642,7 @@
       "id": "SY-YZJH-3",
       "code": "3",
       "name": "教育质量",
-      "description": "约30分。强调“重软件、重质量”，关注学生发展与学校治理。",
+      "description": "9项指标均要达到要求（含巩固率、入学率、学校治理与质量监测等）。",
       "level": 1,
       "isLeaf": false,
       "weight": 30,
@@ -544,232 +650,129 @@
         {
           "id": "SY-YZJH-3-1",
           "code": "3.1",
-          "name": "学生体质健康达标率",
-          "description": "≥95%。",
+          "name": "初中三年巩固率达到95%以上",
+          "description": "全县初中三年巩固率达到95%以上。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-1-D1",
-              "code": "3.1-D1",
-              "name": "学生体质健康达标率",
-              "threshold": ">= 95%",
-              "description": "体质健康测试达标学生数 ÷ 参测学生数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-3-1-D1", "code": "3.1-D1", "name": "初中三年巩固率", "dataType": "数字", "unit": "%", "threshold": ">= 95%", "description": "（毕业学生数 - 三年转入 + 三年转出）÷（三年前初一在校生数 - 三年死亡）×100", "calculationMethod": "((毕业-转入+转出)/(初一时在校-死亡))*100", "dataSource": "学校汇总/学籍", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-1-M1", "code": "3.1-M1", "name": "巩固率计算与学籍佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供初中毕业班学生数、三年前入学数、转入转出、死亡等学籍统计与计算过程表。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-2",
           "code": "3.2",
-          "name": "教师专业发展参与率",
-          "description": "≥90%。",
+          "name": "残疾儿童少年入学率达到95%以上",
+          "description": "全县残疾儿童少年入学率达到95%以上。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-2-D1",
-              "code": "3.2-D1",
-              "name": "教师专业发展参与率",
-              "threshold": ">= 90%",
-              "description": "参与教研/培训/研修等专业发展活动教师数 ÷ 专任教师数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-3-2-D1", "code": "3.2-D1", "name": "残疾儿童少年入学率", "dataType": "数字", "unit": "%", "threshold": ">= 95%", "description": "适龄残疾儿童少年入学总人数 ÷ 适龄残疾儿童少年总数 × 100", "calculationMethod": "(入学总人数/适龄总数)*100", "dataSource": "区县填报（残联/教育统计口径）", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-2-M1", "code": "3.2-M1", "name": "残疾儿童少年入学统计佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供适龄残疾儿童少年总数、入学人数、就读去向（特教/随班/送教）统计与口径说明。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-3",
           "code": "3.3",
-          "name": "课程实施达标率",
-          "description": "100%。",
+          "name": "所有学校制定章程，实现学校管理与教学信息化",
+          "description": "以制度建设与信息化应用为主，需佐证材料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-3-D1",
-              "code": "3.3-D1",
-              "name": "课程实施达标率",
-              "threshold": ">= 100%",
-              "description": "按国家课程方案落实（开齐开足、课时达标等）的学校占比",
-              "thresholdType": "single",
-              "precision": 0
-            }
-          ],
+          "dataIndicators": [],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-3-M1",
-              "code": "3.3-M1",
-              "name": "课程表与课程实施自查材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供课表、课程实施方案、课程执行自查表等佐证。",
-              "required": true
-            }
+            { "id": "SY-YZJH-3-3-M1", "code": "3.3-M1", "name": "学校章程与信息化材料", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供学校章程、信息化建设方案、制度上墙/运行截图、管理平台使用记录等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-4",
           "code": "3.4",
-          "name": "学校管理水平",
-          "description": "示范校占比≥80%（示例）。",
+          "name": "教师培训经费占公用经费预算（及决算）不低于5%",
+          "description": "全县所有学校按不低于学校年度公用经费预算总额的5%安排教师培训经费（预算与决算口径均建议核验）。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-4-D1",
-              "code": "3.4-D1",
-              "name": "示范/达标学校占比",
-              "threshold": ">= 80%",
-              "description": "达到管理水平示范/达标标准的学校数 ÷ 学校总数 × 100（按认定口径）",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-3-4-D1", "code": "3.4-D1", "name": "教师培训经费占公用经费预算比例", "dataType": "数字", "unit": "%", "threshold": ">= 5%", "description": "教师培训经费预算总额 ÷ 公用经费预算总额 × 100", "calculationMethod": "(培训经费预算/公用经费预算)*100", "dataSource": "学校填报/财务", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-4-D2", "code": "3.4-D2", "name": "教师培训经费占公用经费决算比例", "dataType": "数字", "unit": "%", "threshold": ">= 5%", "description": "教师培训经费决算总额 ÷ 公用经费决算总额 × 100", "calculationMethod": "(培训经费决算/公用经费决算)*100", "dataSource": "学校填报/财务", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-4-M1", "code": "3.4-M1", "name": "预算决算与培训经费佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供公用经费与培训经费预算/决算报表、拨付凭证与口径说明。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-5",
           "code": "3.5",
-          "name": "学生综合素质评价覆盖情况",
-          "description": "全面覆盖。",
+          "name": "教师能熟练运用信息化手段组织教学，设施设备利用率达到较高水平",
+          "description": "以应用效果为主，需佐证材料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-5-D1",
-              "code": "3.5-D1",
-              "name": "综合素质评价覆盖率",
-              "threshold": ">= 100%",
-              "description": "开展综合素质评价学生数 ÷ 在校学生数 × 100",
-              "thresholdType": "single",
-              "precision": 0
-            }
+          "dataIndicators": [],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-5-M1", "code": "3.5-M1", "name": "信息化教学应用与设备利用佐证", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供教师信息化培训记录、课堂应用案例、平台使用统计、设备使用台账/抽查记录等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-6",
           "code": "3.6",
-          "name": "控辍保学率",
-          "description": "100%。",
+          "name": "德育工作与校园文化建设达到良好以上",
+          "description": "需佐证材料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-6-D1",
-              "code": "3.6-D1",
-              "name": "控辍保学达标率",
-              "threshold": ">= 100%",
-              "description": "无辍学/疑似辍学处置闭环达标（按教育行政部门口径）",
-              "thresholdType": "single",
-              "precision": 0
-            }
-          ],
+          "dataIndicators": [],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-6-M1",
-              "code": "3.6-M1",
-              "name": "控辍保学台账与处置记录",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供学籍变动台账、走访记录、劝返复学材料、闭环处置记录等佐证。",
-              "required": true
-            }
+            { "id": "SY-YZJH-3-6-M1", "code": "3.6-M1", "name": "德育与校园文化建设佐证", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供德育工作方案、主题活动记录、校园文化建设成果材料与评估/获奖/抽查记录等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-7",
           "code": "3.7",
-          "name": "义务教育巩固率",
-          "description": "≥99%。",
+          "name": "课程开齐开足，教学秩序规范，综合实践活动有效开展",
+          "description": "需佐证材料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-7-D1",
-              "code": "3.7-D1",
-              "name": "义务教育巩固率",
-              "threshold": ">= 99%",
-              "description": "按统计制度计算的义务教育巩固率",
-              "thresholdType": "single",
-              "precision": 2
-            }
+          "dataIndicators": [],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-7-M1", "code": "3.7-M1", "name": "课程实施与教学秩序佐证", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供课表、课程实施方案、教学常规检查记录、综合实践活动方案与过程性材料等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-8",
           "code": "3.8",
-          "name": "学生学业质量",
-          "description": "监测合格率≥95%。",
+          "name": "无过重课业负担",
+          "description": "需佐证材料。",
           "level": 2,
           "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-8-D1",
-              "code": "3.8-D1",
-              "name": "学业质量监测合格率",
-              "threshold": ">= 95%",
-              "description": "学业质量监测合格学生数 ÷ 参测学生数 × 100（按监测制度）",
-              "thresholdType": "single",
-              "precision": 2
-            }
+          "dataIndicators": [],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-8-M1", "code": "3.8-M1", "name": "作业管理与课业负担佐证", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供作业管理制度、课后服务方案、抽查记录、家校沟通与整改材料等佐证。", "required": true }
           ]
         },
         {
           "id": "SY-YZJH-3-9",
           "code": "3.9",
-          "name": "五育并举实施率",
-          "description": "≥95%。",
+          "name": "国家义务教育质量监测达标（学业水平≥Ⅲ级且差异率<0.15）",
+          "description": "在国家义务教育质量监测中，相关科目学生学业水平达到Ⅲ级以上，且校际差异率低于0.15。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-9-D1",
-              "code": "3.9-D1",
-              "name": "五育并举实施率",
-              "threshold": ">= 95%",
-              "description": "五育并举相关课程/活动达到要求的学校占比（口径可在编辑页细化）",
-              "thresholdType": "single",
-              "precision": 2
-            }
-          ]
-        },
-        {
-          "id": "SY-YZJH-3-10",
-          "code": "3.10",
-          "name": "弹性离校参与率（沈阳市适配）",
-          "description": "学生参与弹性离校率≥95%（地方适配示例）。",
-          "level": 2,
-          "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-10-D1",
-              "code": "3.10-D1",
-              "name": "弹性离校参与率",
-              "threshold": ">= 95%",
-              "description": "参与弹性离校服务学生数 ÷ 有需求学生数 × 100（按政策口径）",
-              "thresholdType": "single",
-              "precision": 2
-            }
-          ]
-        },
-        {
-          "id": "SY-YZJH-3-11",
-          "code": "3.11",
-          "name": "新优质学校创建数量与成效（沈阳市适配）",
-          "description": "推进新优质学校创建，示例：新优质学校创建≥300所（已超额）。",
-          "level": 2,
-          "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-3-11-D1",
-              "code": "3.11-D1",
-              "name": "新优质学校创建数量（年度/累计）",
-              "threshold": ">= 300",
-              "description": "按市级统计口径的创建学校数量（可在编辑页调整为覆盖率或年度目标）",
-              "thresholdType": "single",
-              "precision": 0
-            }
+            { "id": "SY-YZJH-3-9-D1", "code": "3.9-D1", "name": "语文学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测语文学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D2", "code": "3.9-D2", "name": "语文校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "语文校际差异率", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-9-D3", "code": "3.9-D3", "name": "数学学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测数学学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D4", "code": "3.9-D4", "name": "数学校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "数学校际差异率", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-9-D5", "code": "3.9-D5", "name": "科学学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测科学学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D6", "code": "3.9-D6", "name": "科学校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "科学校际差异率", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-9-D7", "code": "3.9-D7", "name": "体育学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测体育学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D8", "code": "3.9-D8", "name": "体育校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "体育校际差异率", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-9-D9", "code": "3.9-D9", "name": "艺术学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测艺术学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D10", "code": "3.9-D10", "name": "艺术校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "艺术校际差异率", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-3-9-D11", "code": "3.9-D11", "name": "德育学业水平等级", "dataType": "文本", "unit": "", "threshold": ">= Ⅲ级", "description": "国家义务教育质量监测德育学业水平等级（Ⅲ级及以上）", "thresholdType": "single", "precision": 0 },
+            { "id": "SY-YZJH-3-9-D12", "code": "3.9-D12", "name": "德育校际差异率", "dataType": "数字", "unit": "", "threshold": "< 0.15", "description": "德育校际差异率", "thresholdType": "single", "precision": 2 }
+          ],
+          "supportingMaterials": [
+            { "id": "SY-YZJH-3-9-M1", "code": "3.9-M1", "name": "国家质量监测结果与差异率佐证", "fileTypes": "PDF,Word,Excel", "maxSize": "20MB", "description": "提供国家义务教育质量监测结果通报、科目水平等级证明、校际差异率计算/来源说明等佐证。", "required": true }
           ]
         }
       ]
@@ -778,7 +781,7 @@
       "id": "SY-YZJH-4",
       "code": "4",
       "name": "社会认可度",
-      "description": "约10分。通过问卷、第三方调查与公示反馈等方式评估。",
+      "description": "社会认可度达到85%以上。",
       "level": 1,
       "isLeaf": false,
       "weight": 10,
@@ -786,88 +789,17 @@
         {
           "id": "SY-YZJH-4-1",
           "code": "4.1",
-          "name": "家长满意度调查",
-          "description": "≥95%。",
+          "name": "社会认可度达到85%以上",
+          "description": "基于问卷调查综合满意度与实地走访满意度等结果。",
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [
-            {
-              "id": "SY-YZJH-4-1-D1",
-              "code": "4.1-D1",
-              "name": "家长满意度",
-              "threshold": ">= 95%",
-              "description": "满意及以上问卷数 ÷ 有效问卷数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-4-1-D1", "code": "4.1-D1", "name": "问卷调查综合满意度", "dataType": "数字", "unit": "%", "threshold": ">= 85%", "description": "满意问卷数 ÷ 有效问卷数 × 100", "calculationMethod": "(满意问卷数/有效问卷数)*100", "dataSource": "问卷系统/第三方调查", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 },
+            { "id": "SY-YZJH-4-1-D2", "code": "4.1-D2", "name": "实地走访满意度", "dataType": "数字", "unit": "%", "threshold": ">= 85%", "description": "走访满意人数 ÷ 走访人数 × 100", "calculationMethod": "(满意人数/走访人数)*100", "dataSource": "实地走访记录/第三方调查", "collectionFrequency": "年度", "thresholdType": "single", "precision": 2 }
           ],
           "supportingMaterials": [
-            {
-              "id": "SY-YZJH-4-1-M1",
-              "code": "4.1-M1",
-              "name": "满意度调查报告/问卷数据",
-              "fileTypes": "PDF,Excel",
-              "maxSize": "20MB",
-              "description": "提供问卷样本、调查说明、原始数据与统计分析报告等佐证。",
-              "required": true
-            }
-          ]
-        },
-        {
-          "id": "SY-YZJH-4-2",
-          "code": "4.2",
-          "name": "社会参与度",
-          "description": "社会参与度（示例），可结合家委会、社会资源支持等指标细化。",
-          "level": 2,
-          "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-4-2-D1",
-              "code": "4.2-D1",
-              "name": "社会参与度",
-              "threshold": ">= 90%",
-              "description": "开展社会参与活动的学校或项目覆盖比例（口径可在编辑页细化）",
-              "thresholdType": "single",
-              "precision": 2
-            }
-          ]
-        },
-        {
-          "id": "SY-YZJH-4-3",
-          "code": "4.3",
-          "name": "群众认可率",
-          "description": "≥95%。",
-          "level": 2,
-          "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-4-3-D1",
-              "code": "4.3-D1",
-              "name": "群众认可率",
-              "threshold": ">= 95%",
-              "description": "认可及以上评价数 ÷ 有效评价数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
-          ]
-        },
-        {
-          "id": "SY-YZJH-4-4",
-          "code": "4.4",
-          "name": "第三方调查覆盖率",
-          "description": "第三方调查覆盖≥90%（示例）。",
-          "level": 2,
-          "isLeaf": true,
-          "dataIndicators": [
-            {
-              "id": "SY-YZJH-4-4-D1",
-              "code": "4.4-D1",
-              "name": "第三方调查覆盖率",
-              "threshold": ">= 90%",
-              "description": "第三方调查覆盖对象数 ÷ 应覆盖对象数 × 100",
-              "thresholdType": "single",
-              "precision": 2
-            }
+            { "id": "SY-YZJH-4-1-M1", "code": "4.1-M1", "name": "问卷数据与分析报告", "fileTypes": "PDF,Excel", "maxSize": "20MB", "description": "提供问卷样本、调查说明、原始数据与统计分析报告等佐证。", "required": true },
+            { "id": "SY-YZJH-4-1-M2", "code": "4.1-M2", "name": "实地走访记录与汇总", "fileTypes": "PDF,Word,Excel,JPG,PNG", "maxSize": "20MB", "description": "提供走访方案、对象清单、记录表、照片及满意度统计汇总等佐证。", "required": true }
           ]
         }
       ]
