@@ -3,11 +3,18 @@ import { get, post, put, del } from './api';
 export type UserRole = 'admin' | 'project_manager' | 'collector' | 'expert' | 'decision_maker';
 export type UserStatus = 'active' | 'inactive';
 
+export interface ScopeItem {
+  type: 'city' | 'district' | 'school';
+  id: string;
+  name: string;
+}
+
 export interface SystemUser {
   username: string;
   role: UserRole;
   roleName: string;
   status: UserStatus;
+  scopes: ScopeItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +37,7 @@ export async function createUser(data: {
   role: UserRole;
   roleName?: string;
   status?: UserStatus;
+  scopes?: ScopeItem[];
 }): Promise<SystemUser> {
   return post<SystemUser>('/users', data);
 }
@@ -41,6 +49,7 @@ export async function updateUser(
     role: UserRole;
     roleName: string;
     status: UserStatus;
+    scopes: ScopeItem[];
   }>
 ): Promise<SystemUser> {
   return put<SystemUser>(`/users/${encodeURIComponent(username)}`, data);

@@ -3,7 +3,9 @@ import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from '
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import styles from './index.module.css';
-import { createUser, deleteUser, getUsers, roleOptions, SystemUser, updateUser } from '../../../services/userService';
+import { createUser, deleteUser, getUsers, roleOptions, SystemUser, updateUser, ScopeItem } from '../../../services/userService';
+import { getDistricts, District } from '../../../services/districtService';
+import { getSchools, School } from '../../../services/schoolService';
 
 const { Search } = Input;
 
@@ -19,6 +21,15 @@ const roleTagColor: Record<SystemUser['role'], string> = {
   expert: 'orange',
   decision_maker: 'purple',
 };
+
+// 构建带分组的选项
+interface ScopeOption {
+  value: string;
+  label: string;
+  type: 'city' | 'district' | 'school';
+  id: string;
+  name: string;
+}
 
 const AccountManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -36,6 +47,10 @@ const AccountManagement: React.FC = () => {
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
   const [pwdForm] = Form.useForm();
+
+  // 区县和学校数据
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -55,10 +70,84 @@ const AccountManagement: React.FC = () => {
 
   useEffect(() => {
     load();
+    loadDistricts();
+    loadSchools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.role, filters.status]);
 
+  const loadDistricts = async () => {
+    try {
+      const list = await getDistricts();
+      setDistricts(list);
+    } catch (e) {
+      console.error('加载区县列表失败', e);
+    }
+  };
+
+  const loadSchools = async () => {
+    try {
+      const response = await getSchools({ pageSize: 1000 });
+      setSchools(response.list);
+    } catch (e) {
+      console.error('加载学校列表失败', e);
+    }
+  };
+
   const roleSelectOptions = useMemo(() => roleOptions, []);
+
+  // 构建数据范围多选选项（带分组）
+  const scopeOptions = useMemo(() => {
+    const options: { label: string; options: ScopeOption[] }[] = [
+      {
+        label: '市级',
+        options: [
+          { value: 'city:shenyang', label: '沈阳市', type: 'city', id: 'shenyang', name: '沈阳市' },
+        ],
+      },
+      {
+        label: '区县',
+        options: districts.map(d => ({
+          value: `district:${d.id}`,
+          label: d.name,
+          type: 'district' as const,
+          id: d.id,
+          name: d.name,
+        })),
+      },
+      {
+        label: '学校',
+        options: schools.map(s => ({
+          value: `school:${s.id}`,
+          label: s.name,
+          type: 'school' as const,
+          id: s.id,
+          name: s.name,
+        })),
+      },
+    ];
+    return options;
+  }, [districts, schools]);
+
+  // 将选中的值转换为 ScopeItem 数组
+  const valuesToScopes = (values: string[]): ScopeItem[] => {
+    return values.map(v => {
+      const [type, id] = v.split(':');
+      let name = '';
+      if (type === 'city') {
+        name = '沈阳市';
+      } else if (type === 'district') {
+        name = districts.find(d => d.id === id)?.name || '';
+      } else if (type === 'school') {
+        name = schools.find(s => s.id === id)?.name || '';
+      }
+      return { type: type as ScopeItem['type'], id, name };
+    });
+  };
+
+  // 将 ScopeItem 数组转换为选中的值
+  const scopesToValues = (scopes: ScopeItem[]): string[] => {
+    return scopes?.map(s => `${s.type}:${s.id}`) || [];
+  };
 
   const handleSearch = (value: string) => {
     setFilters(prev => ({ ...prev, keyword: value }));
@@ -71,6 +160,7 @@ const AccountManagement: React.FC = () => {
       role: u.role,
       roleName: u.roleName,
       status: u.status,
+      scopes: scopesToValues(u.scopes),
     });
     setEditOpen(true);
   };
@@ -81,9 +171,18 @@ const AccountManagement: React.FC = () => {
     setPwdOpen(true);
   };
 
-  const onCreate = async (values: { username: string; password: string; role: SystemUser['role']; roleName?: string; status?: SystemUser['status'] }) => {
+  const onCreate = async (values: {
+    username: string;
+    password: string;
+    role: SystemUser['role'];
+    roleName?: string;
+    status?: SystemUser['status'];
+    scopes?: string[];
+  }) => {
     try {
-      await createUser(values);
+      const { scopes: scopeValues, ...rest } = values;
+      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
+      await createUser({ ...rest, scopes });
       message.success('创建成功');
       setCreateOpen(false);
       createForm.resetFields();
@@ -93,10 +192,17 @@ const AccountManagement: React.FC = () => {
     }
   };
 
-  const onSaveEdit = async (values: { role: SystemUser['role']; roleName: string; status: SystemUser['status'] }) => {
+  const onSaveEdit = async (values: {
+    role: SystemUser['role'];
+    roleName: string;
+    status: SystemUser['status'];
+    scopes?: string[];
+  }) => {
     if (!current) return;
     try {
-      await updateUser(current.username, values);
+      const { scopes: scopeValues, ...rest } = values;
+      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
+      await updateUser(current.username, { ...rest, scopes });
       message.success('保存成功');
       setEditOpen(false);
       editForm.resetFields();
@@ -138,31 +244,60 @@ const AccountManagement: React.FC = () => {
     });
   };
 
+  // 渲染数据范围标签
+  const renderScopes = (scopes: ScopeItem[]) => {
+    if (!scopes || scopes.length === 0) return '-';
+
+    const typeColors: Record<string, string> = {
+      city: 'purple',
+      district: 'blue',
+      school: 'green',
+    };
+
+    // 最多显示3个，超出显示 +N
+    const displayScopes = scopes.slice(0, 3);
+    const remaining = scopes.length - 3;
+
+    return (
+      <Space size={[0, 4]} wrap>
+        {displayScopes.map((s, i) => (
+          <Tag key={i} color={typeColors[s.type] || 'default'}>{s.name}</Tag>
+        ))}
+        {remaining > 0 && <Tag>+{remaining}</Tag>}
+      </Space>
+    );
+  };
+
   const columns: ColumnsType<SystemUser> = [
-    { title: '用户名', dataIndex: 'username', key: 'username', width: 140 },
+    { title: '用户名', dataIndex: 'username', key: 'username', width: 120 },
     {
       title: '角色',
       dataIndex: 'roleName',
       key: 'roleName',
-      width: 140,
+      width: 120,
       render: (_: unknown, record: SystemUser) => (
         <Tag color={roleTagColor[record.role] || 'default'}>{record.roleName}</Tag>
       ),
     },
-    { title: '角色标识', dataIndex: 'role', key: 'role', width: 160 },
+    {
+      title: '数据范围',
+      dataIndex: 'scopes',
+      key: 'scopes',
+      width: 280,
+      render: (scopes: ScopeItem[]) => renderScopes(scopes),
+    },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 80,
       render: (s: SystemUser['status']) => statusTag(s),
     },
     { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 120 },
-    { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt', width: 120 },
     {
       title: '操作',
       key: 'actions',
-      width: 220,
+      width: 200,
       render: (_: unknown, record: SystemUser) => (
         <Space>
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>
@@ -238,6 +373,7 @@ const AccountManagement: React.FC = () => {
           createForm.resetFields();
         }}
         footer={null}
+        width={560}
       >
         <Form
           form={createForm}
@@ -261,6 +397,19 @@ const AccountManagement: React.FC = () => {
           <Form.Item name="roleName" label="角色名称（可选）">
             <Input placeholder="不填则使用默认角色名称" />
           </Form.Item>
+          <Form.Item name="scopes" label="数据范围" rules={[{ required: true, message: '请选择数据范围' }]}>
+            <Select
+              mode="multiple"
+              placeholder="请选择数据范围（可多选）"
+              options={scopeOptions}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+              }
+              maxTagCount="responsive"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
             <Select options={[{ label: '启用', value: 'active' }, { label: '停用', value: 'inactive' }]} />
           </Form.Item>
@@ -283,6 +432,7 @@ const AccountManagement: React.FC = () => {
           setCurrent(null);
         }}
         footer={null}
+        width={560}
       >
         <Form form={editForm} layout="vertical" onFinish={onSaveEdit}>
           <Form.Item name="role" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
@@ -290,6 +440,19 @@ const AccountManagement: React.FC = () => {
           </Form.Item>
           <Form.Item name="roleName" label="角色名称" rules={[{ required: true, message: '请输入角色名称' }]}>
             <Input placeholder="请输入角色名称" />
+          </Form.Item>
+          <Form.Item name="scopes" label="数据范围" rules={[{ required: true, message: '请选择数据范围' }]}>
+            <Select
+              mode="multiple"
+              placeholder="请选择数据范围（可多选）"
+              options={scopeOptions}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+              }
+              maxTagCount="responsive"
+              style={{ width: '100%' }}
+            />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
             <Select options={[{ label: '启用', value: 'active' }, { label: '停用', value: 'inactive' }]} />

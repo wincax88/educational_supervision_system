@@ -11,12 +11,20 @@ const nowDate = () => new Date().toISOString().split('T')[0];
  */
 
 /**
+ * @typedef {Object} ScopeItem
+ * @property {'city'|'district'|'school'} type
+ * @property {string} id
+ * @property {string} name
+ */
+
+/**
  * @typedef {Object} SysUser
  * @property {string} username
  * @property {string} password
  * @property {UserRole} role
  * @property {string} roleName
  * @property {'active'|'inactive'} status
+ * @property {ScopeItem[]} scopes
  * @property {string} createdAt
  * @property {string} updatedAt
  */
@@ -28,11 +36,11 @@ function seedIfEmpty() {
   if (userMap.size > 0) return;
   const ts = nowDate();
   const defaults = [
-    { username: 'AAA', password: 'BBB', role: 'admin', roleName: '系统管理员' },
-    { username: '111', password: '222', role: 'project_manager', roleName: '项目管理员' },
-    { username: '333', password: '444', role: 'collector', roleName: '数据采集员' },
-    { username: '555', password: '666', role: 'expert', roleName: '项目评估专家' },
-    { username: '777', password: '888', role: 'decision_maker', roleName: '报告决策者' },
+    { username: 'AAA', password: 'BBB', role: 'admin', roleName: '系统管理员', scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
+    { username: '111', password: '222', role: 'project_manager', roleName: '项目管理员', scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
+    { username: '333', password: '444', role: 'collector', roleName: '数据采集员', scopes: [] },
+    { username: '555', password: '666', role: 'expert', roleName: '项目评估专家', scopes: [] },
+    { username: '777', password: '888', role: 'decision_maker', roleName: '报告决策者', scopes: [] },
   ];
   defaults.forEach(u => {
     userMap.set(u.username, {
@@ -75,7 +83,7 @@ function getUser(username) {
   return userMap.get(username) || null;
 }
 
-function createUser({ username, password, role, roleName, status } = {}) {
+function createUser({ username, password, role, roleName, status, scopes } = {}) {
   const ts = nowDate();
   const u = (username || '').trim();
   if (!u) throw new Error('用户名为必填项');
@@ -89,6 +97,7 @@ function createUser({ username, password, role, roleName, status } = {}) {
     role,
     roleName: (roleName || '').trim() || roleNameFallback[role] || role,
     status: status === 'inactive' ? 'inactive' : 'active',
+    scopes: Array.isArray(scopes) ? scopes : [],
     createdAt: ts,
     updatedAt: ts,
   };
@@ -112,6 +121,7 @@ function updateUser(username, updates = {}) {
     ...(updates.roleName !== undefined ? { roleName: String(updates.roleName) } : {}),
     ...(updates.status !== undefined ? { status: updates.status } : {}),
     ...(updates.password !== undefined ? { password: String(updates.password) } : {}),
+    ...(updates.scopes !== undefined ? { scopes: Array.isArray(updates.scopes) ? updates.scopes : [] } : {}),
     updatedAt: nowDate(),
   };
   userMap.set(username, next);

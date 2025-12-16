@@ -16,6 +16,7 @@ router.get('/users', (req, res) => {
       role: u.role,
       roleName: u.roleName,
       status: u.status,
+      scopes: u.scopes || [],
       createdAt: u.createdAt,
       updatedAt: u.updatedAt,
     }));
@@ -28,8 +29,8 @@ router.get('/users', (req, res) => {
 // 创建用户
 router.post('/users', (req, res) => {
   try {
-    const { username, password, role, roleName, status } = req.body || {};
-    const created = userStore.createUser({ username, password, role, roleName, status });
+    const { username, password, role, roleName, status, scopes } = req.body || {};
+    const created = userStore.createUser({ username, password, role, roleName, status, scopes });
     res.json({
       code: 200,
       data: {
@@ -37,6 +38,7 @@ router.post('/users', (req, res) => {
         role: created.role,
         roleName: created.roleName,
         status: created.status,
+        scopes: created.scopes || [],
         createdAt: created.createdAt,
         updatedAt: created.updatedAt,
       },
@@ -51,8 +53,8 @@ router.post('/users', (req, res) => {
 router.put('/users/:username', (req, res) => {
   try {
     const { username } = req.params;
-    const { password, role, roleName, status } = req.body || {};
-    const updated = userStore.updateUser(username, { password, role, roleName, status });
+    const { password, role, roleName, status, scopes } = req.body || {};
+    const updated = userStore.updateUser(username, { password, role, roleName, status, scopes });
     res.json({
       code: 200,
       data: {
@@ -60,6 +62,7 @@ router.put('/users/:username', (req, res) => {
         role: updated.role,
         roleName: updated.roleName,
         status: updated.status,
+        scopes: updated.scopes || [],
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt,
       },
