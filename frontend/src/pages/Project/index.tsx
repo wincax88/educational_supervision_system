@@ -17,12 +17,14 @@ import * as projectService from '../../services/projectService';
 import * as indicatorService from '../../services/indicatorService';
 import type { Project } from '../../services/projectService';
 import type { IndicatorSystem } from '../../services/indicatorService';
+import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
 const { Search } = Input;
 
 const ProjectPage: React.FC = () => {
   const navigate = useNavigate();
+  const permissions = useUserPermissions();
   const [loading, setLoading] = useState(true);
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [filteredList, setFilteredList] = useState<Project[]>([]);
@@ -224,9 +226,11 @@ const ProjectPage: React.FC = () => {
             style={{ width: 200 }}
             allowClear
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-            创建项目
-          </Button>
+          {permissions.canConfigProject && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+              创建项目
+            </Button>
+          )}
         </div>
       </div>
 
@@ -249,13 +253,15 @@ const ProjectPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles.projectActions}>
-                <Button
-                  type="primary"
-                  icon={<SettingOutlined />}
-                  onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
-                >
-                  配置
-                </Button>
+                {permissions.canConfigProject && (
+                  <Button
+                    type="primary"
+                    icon={<SettingOutlined />}
+                    onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
+                  >
+                    配置
+                  </Button>
+                )}
                 {['填报中', '评审中', '已完成'].includes(project.status) && (
                   <>
                     <Button
@@ -272,7 +278,7 @@ const ProjectPage: React.FC = () => {
                     </Button>
                   </>
                 )}
-                {project.status === '配置中' && (
+                {project.status === '配置中' && permissions.canConfigProject && (
                   <Popconfirm
                     title="确认删除"
                     description={`确定要删除项目 "${project.name}" 吗？`}

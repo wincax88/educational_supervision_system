@@ -1,0 +1,117 @@
+/* 数据采集员工作台样式 */
+
+.collectorDashboard {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 欢迎区域 */
+.welcomeSection {
+  margin-bottom: 24px;
+}
+
+.welcomeTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.welcomeSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.welcomeSubtitle strong {
+  color: #1890ff;
+  font-size: 18px;
+}
+
+/* 统计卡片 */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 28px;
+}
+
+.progressStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 任务卡片 */
+.taskCard {
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.taskCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 提醒卡片 */
+.alertCard {
+  border-radius: 8px;
+  border: 1px solid #ffccc7;
+  background: #fff2f0;
+}
+
+.alertContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alertText {
+  flex: 1;
+}
+
+.alertText h4 {
+  margin: 0 0 4px 0;
+  color: #ff4d4f;
+  font-size: 16px;
+}
+
+.alertText p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .collectorDashboard {
+    padding: 16px;
+  }
+
+  .statsRow :global(.ant-col) {
+    margin-bottom: 16px;
+  }
+
+  .alertContent {
+    flex-direction: column;
+    text-align: center;
+  }
+}

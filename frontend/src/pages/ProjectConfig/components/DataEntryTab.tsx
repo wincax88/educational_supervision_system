@@ -50,6 +50,7 @@ import styles from '../index.module.css';
 
 interface DataEntryTabProps {
   projectId: string;
+  disabled?: boolean; // 是否禁用编辑（非配置中状态）
 }
 
 // 可拖拽行组件
@@ -95,7 +96,7 @@ const SortableRow: React.FC<RowProps> = ({ children, ...props }) => {
   );
 };
 
-const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId }) => {
+const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId, disabled = false }) => {
   const [loading, setLoading] = useState(false);
   const [tools, setTools] = useState<ProjectTool[]>([]);
   const [availableTools, setAvailableTools] = useState<AvailableTool[]>([]);
@@ -293,6 +294,7 @@ const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId }) => {
           checked={isRequired === 1}
           onChange={(checked) => handleToggleRequired(record, checked)}
           size="small"
+          disabled={disabled}
         />
       ),
     },
@@ -310,23 +312,27 @@ const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId }) => {
               onClick={() => window.open(`/form-tool/${record.toolId}`, '_blank')}
             />
           </Tooltip>
-          <Tooltip title="配置映射">
-            <Button
-              type="link"
-              size="small"
-              icon={<LinkOutlined />}
-              onClick={() => window.open(`/form-tool/${record.toolId}/edit`, '_blank')}
-            />
-          </Tooltip>
-          <Tooltip title="移除">
-            <Button
-              type="link"
-              danger
-              size="small"
-              icon={<DeleteOutlined />}
-              onClick={() => handleRemoveTool(record)}
-            />
-          </Tooltip>
+          {!disabled && (
+            <Tooltip title="配置映射">
+              <Button
+                type="link"
+                size="small"
+                icon={<LinkOutlined />}
+                onClick={() => window.open(`/form-tool/${record.toolId}/edit`, '_blank')}
+              />
+            </Tooltip>
+          )}
+          {!disabled && (
+            <Tooltip title="移除">
+              <Button
+                type="link"
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+                onClick={() => handleRemoveTool(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -388,6 +394,7 @@ const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId }) => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleOpenAddModal}
+          disabled={disabled}
         >
           添加工具
         </Button>

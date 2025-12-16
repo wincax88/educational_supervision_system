@@ -27,6 +27,7 @@ interface SampleTabProps {
   onDeleteTeacher: (schoolId: string, teacherId: string) => void;
   onAddTeacher: (schoolId: string) => void;
   onTeacherModeChange: (schoolId: string, mode: 'self' | 'assigned') => void;
+  disabled?: boolean; // 是否禁用编辑（非配置中状态）
 }
 
 const SampleTab: React.FC<SampleTabProps> = ({
@@ -40,6 +41,7 @@ const SampleTab: React.FC<SampleTabProps> = ({
   onDeleteTeacher,
   onAddTeacher,
   onTeacherModeChange,
+  disabled = false,
 }) => {
   return (
     <div className={styles.sampleTab}>
@@ -51,12 +53,14 @@ const SampleTab: React.FC<SampleTabProps> = ({
             type="primary"
             icon={<SettingOutlined />}
             onClick={onConfigSample}
+            disabled={disabled}
           >
             配置样本
           </Button>
           <Button
             icon={<PlusOutlined />}
             onClick={onAddSample}
+            disabled={disabled}
           >
             添加样本
           </Button>
@@ -106,14 +110,16 @@ const SampleTab: React.FC<SampleTabProps> = ({
                 <Tag color="blue">区</Tag>
                 <span className={styles.schoolCount}>({district.schools.length} 所学校)</span>
               </div>
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => onDeleteSample('district', district.id)}
-              >
-                删除
-              </Button>
+              {!disabled && (
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => onDeleteSample('district', district.id)}
+                >
+                  删除
+                </Button>
+              )}
             </div>
 
             {/* 学校列表 */}
@@ -128,14 +134,16 @@ const SampleTab: React.FC<SampleTabProps> = ({
                         <span className={styles.schoolName}>{school.name}</span>
                         <Tag color="green">校</Tag>
                       </div>
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => onDeleteSample('school', school.id)}
-                      >
-                        删除
-                      </Button>
+                      {!disabled && (
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => onDeleteSample('school', school.id)}
+                        >
+                          删除
+                        </Button>
+                      )}
                     </div>
 
                     {/* 教师样本区域 */}
@@ -148,11 +156,12 @@ const SampleTab: React.FC<SampleTabProps> = ({
                           onChange={(v) => onTeacherModeChange(school.id, v)}
                           size="small"
                           className={styles.teacherModeSelect}
+                          disabled={disabled}
                         >
                           <Select.Option value="self">学校自行确定</Select.Option>
                           <Select.Option value="assigned">指定具体人员</Select.Option>
                         </Select>
-                        {school.teacherSampleMode === 'assigned' && (
+                        {school.teacherSampleMode === 'assigned' && !disabled && (
                           <Button
                             type="link"
                             size="small"
@@ -168,7 +177,7 @@ const SampleTab: React.FC<SampleTabProps> = ({
                           {school.teachers.map(teacher => (
                             <Tag
                               key={teacher.id}
-                              closable
+                              closable={!disabled}
                               onClose={() => onDeleteTeacher(school.id, teacher.id)}
                               className={styles.teacherTag}
                             >

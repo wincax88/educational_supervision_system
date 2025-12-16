@@ -152,26 +152,46 @@ export const useAuthStore = create<AuthState>()(
 
 /**
  * 获取当前用户的角色权限
+ *
+ * 角色权限说明：
+ * - admin: 系统管理员，拥有所有权限
+ * - project_manager: 项目管理员，负责项目配置和状态管理
+ * - collector: 数据采集员，负责数据填报
+ * - expert: 项目评估专家，负责数据审核和评审
+ * - decision_maker: 报告决策者，查看最终报告
+ *
+ * 注意：各角色权限相互独立，不存在继承关系（admin 除外）
  */
 export const useUserPermissions = () => {
   const user = useAuthStore((state) => state.user);
+  const role = user?.role;
 
-  const isAdmin = user?.role === 'admin';
-  const isProjectManager = user?.role === 'project_manager' || isAdmin;
-  const isCollector = user?.role === 'collector' || isProjectManager;
-  const isExpert = user?.role === 'expert' || isAdmin;
-  const isDecisionMaker = user?.role === 'decision_maker' || isAdmin;
+  // 角色判断（独立，不继承）
+  const isAdmin = role === 'admin';
+  const isProjectManager = role === 'project_manager';
+  const isCollector = role === 'collector';
+  const isExpert = role === 'expert';
+  const isDecisionMaker = role === 'decision_maker';
 
+  // 权限判断（admin 拥有所有权限）
   return {
+    // 角色标识
     isAdmin,
     isProjectManager,
     isCollector,
     isExpert,
     isDecisionMaker,
-    canManageProjects: isProjectManager,
-    canCollectData: isCollector,
-    canReviewData: isExpert,
-    canViewReports: isDecisionMaker,
+
+    // 功能权限（admin 拥有所有权限）
+    canManageProjects: isAdmin || isProjectManager,  // 项目管理权限
+    canCollectData: isAdmin || isCollector,          // 数据填报权限
+    canReviewData: isAdmin || isExpert,              // 数据审核权限
+    canViewReports: isAdmin || isDecisionMaker,      // 查看报告权限
+
+    // 扩展权限
+    canManageSystem: isAdmin,                        // 系统管理权限
+    canConfigProject: isAdmin || isProjectManager,   // 项目配置权限
+    canChangeProjectStatus: isAdmin || isProjectManager, // 项目状态流转权限
   };
 };
 

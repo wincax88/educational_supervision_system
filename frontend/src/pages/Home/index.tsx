@@ -9,6 +9,7 @@ import {
   EnvironmentOutlined,
   BankOutlined,
 } from '@ant-design/icons';
+import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
 interface ModuleCard {
@@ -73,6 +74,7 @@ const baseDataModules: ModuleCard[] = [
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const permissions = useUserPermissions();
 
   const handleCardClick = (module: ModuleCard) => {
     if (!module.status) {
@@ -103,23 +105,28 @@ const Home: React.FC = () => {
         ))}
       </div>
 
-      <h2 className={styles.sectionTitle} style={{ marginTop: 32 }}>基础数据管理</h2>
-      <div className={styles.moduleGrid}>
-        {baseDataModules.map(module => (
-          <Card
-            key={module.key}
-            className={styles.moduleCard}
-            onClick={() => handleCardClick(module)}
-          >
-            <div className={styles.moduleContent}>
-              <div className={styles.moduleIcon} style={{ color: module.color }}>
-                {module.icon}
-              </div>
-              <span className={styles.moduleTitle}>{module.title}</span>
-            </div>
-          </Card>
-        ))}
-      </div>
+      {/* 基础数据管理 - 仅管理员可见 */}
+      {permissions.canManageSystem && (
+        <>
+          <h2 className={styles.sectionTitle} style={{ marginTop: 32 }}>基础数据管理</h2>
+          <div className={styles.moduleGrid}>
+            {baseDataModules.map(module => (
+              <Card
+                key={module.key}
+                className={styles.moduleCard}
+                onClick={() => handleCardClick(module)}
+              >
+                <div className={styles.moduleContent}>
+                  <div className={styles.moduleIcon} style={{ color: module.color }}>
+                    {module.icon}
+                  </div>
+                  <span className={styles.moduleTitle}>{module.title}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

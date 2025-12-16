@@ -1,0 +1,82 @@
+/* 专家评审工作台样式 */
+
+.expertDashboard {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 欢迎区域 */
+.welcomeSection {
+  margin-bottom: 24px;
+}
+
+.welcomeTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.welcomeSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.welcomeSubtitle strong {
+  color: #fa8c16;
+  font-size: 18px;
+}
+
+/* 统计卡片 */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 28px;
+}
+
+.progressStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 审核卡片 */
+.reviewCard {
+  border-radius: 8px;
+}
+
+.reviewCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .expertDashboard {
+    padding: 16px;
+  }
+
+  .statsRow :global(.ant-col) {
+    margin-bottom: 16px;
+  }
+}

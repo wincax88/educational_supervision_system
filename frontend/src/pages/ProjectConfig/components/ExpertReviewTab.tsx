@@ -62,6 +62,12 @@ const ExpertReviewTab: React.FC<ExpertReviewTabProps> = ({
   const [rejectForm] = Form.useForm();
   const [actionLoading, setActionLoading] = useState(false);
 
+  // 批量审核相关状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [batchReviewModalVisible, setBatchReviewModalVisible] = useState(false);
+  const [batchRejectModalVisible, setBatchRejectModalVisible] = useState(false);
+  const [batchRejectForm] = Form.useForm();
+
   // 加载填报记录和统计
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -142,6 +148,67 @@ const ExpertReviewTab: React.FC<ExpertReviewTabProps> = ({
   // 查看详情
   const handleViewDetail = (submission: Submission) => {
     window.open(`/data-entry/${submission.id}`, '_blank');
+  };
+
+  // 获取待审核的选中记录
+  const selectedSubmittedRecords = submissions.filter(
+    s => selectedRowKeys.includes(s.id) && s.status === 'submitted'
+  );
+
+  // 批量批准
+  const handleBatchApprove = async () => {
+    if (selectedSubmittedRecords.length === 0) {
+      message.warning('请选择待审核的记录');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await Promise.all(
+        selectedSubmittedRecords.map(s => submissionService.approveSubmission(s.id))
+      );
+      message.success(`成功批准 ${selectedSubmittedRecords.length} 条记录`);
+      setBatchReviewModalVisible(false);
+      setSelectedRowKeys([]);
+      loadData();
+    } catch (error) {
+      message.error('批量批准失败');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // 批量驳回
+  const handleBatchReject = async (values: { reason: string }) => {
+    if (selectedSubmittedRecords.length === 0) {
+      message.warning('请选择待审核的记录');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await Promise.all(
+        selectedSubmittedRecords.map(s => submissionService.rejectSubmission(s.id, values.reason))
+      );
+      message.success(`成功驳回 ${selectedSubmittedRecords.length} 条记录`);
+      setBatchRejectModalVisible(false);
+      setSelectedRowKeys([]);
+      batchRejectForm.resetFields();
+      loadData();
+    } catch (error) {
+      message.error('批量驳回失败');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // 打开批量审核弹窗
+  const handleOpenBatchReview = () => {
+    if (selectedSubmittedRecords.length === 0) {
+      message.warning('请先选择待审核的记录');
+      return;
+    }
+    setBatchReviewModalVisible(true);
   };
 
   // 状态配置
@@ -367,9 +434,13 @@ const ExpertReviewTab: React.FC<ExpertReviewTabProps> = ({
           <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
             刷新
           </Button>
-          {stats && stats.submitted > 0 && (
-            <Button type="primary" icon={<TeamOutlined />}>
-              批量审核 ({stats.submitted})
+          {selectedRowKeys.length > 0 && (
+            <Button
+              type="primary"
+              icon={<TeamOutlined />}
+              onClick={handleOpenBatchReview}
+            >
+              批量审核 ({selectedSubmittedRecords.length})
             </Button>
           )}
         </Space>
@@ -387,6 +458,14 @@ const ExpertReviewTab: React.FC<ExpertReviewTabProps> = ({
               pageSize: 10,
               showTotal: (total) => `共 ${total} 条记录`,
               showSizeChanger: true,
+            }}
+            rowSelection={{
+              type: 'checkbox',
+              selectedRowKeys,
+              onChange: (keys) => setSelectedRowKeys(keys as string[]),
+              getCheckboxProps: (record) => ({
+                disabled: record.status !== 'submitted',
+              }),
             }}
             className={styles.submissionTable}
           />
@@ -435,6 +514,106 @@ const ExpertReviewTab: React.FC<ExpertReviewTabProps> = ({
             <Button onClick={() => setRejectModalVisible(false)}>取消</Button>
             <Button type="primary" danger htmlType="submit" loading={actionLoading}>
               确认驳回
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 批量审核弹窗 */}
+      <Modal
+        title={
+          <Space>
+            <TeamOutlined style={{ color: '#1890ff' }} />
+            批量审核
+          </Space>
+        }
+        open={batchReviewModalVisible}
+        onCancel={() => setBatchReviewModalVisible(false)}
+        footer={null}
+        width={500}
+      >
+        <p style={{ marginBottom: 16 }}>
+          已选择 <strong>{selectedSubmittedRecords.length}</strong> 条待审核记录，请选择操作：
+        </p>
+        <div className={styles.batchReviewList}>
+          {selectedSubmittedRecords.slice(0, 5).map(s => (
+            <div key={s.id} className={styles.batchReviewItem}>
+              <UserOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+              <span>{s.submitterName || '未知'}</span>
+              <span style={{ color: '#999', marginLeft: 8 }}>({s.submitterOrg || '-'})</span>
+              <span style={{ color: '#666', marginLeft: 'auto' }}>{s.formName}</span>
+            </div>
+          ))}
+          {selectedSubmittedRecords.length > 5 && (
+            <div className={styles.batchReviewMore}>
+              ... 等共 {selectedSubmittedRecords.length} 条记录
+            </div>
+          )}
+        </div>
+        <Divider />
+        <div className={styles.batchReviewActions}>
+          <Button
+            type="primary"
+            icon={<CheckCircleOutlined />}
+            onClick={handleBatchApprove}
+            loading={actionLoading}
+            style={{ marginRight: 12 }}
+          >
+            全部批准
+          </Button>
+          <Button
+            danger
+            icon={<CloseCircleOutlined />}
+            onClick={() => {
+              setBatchReviewModalVisible(false);
+              batchRejectForm.resetFields();
+              setBatchRejectModalVisible(true);
+            }}
+          >
+            全部驳回
+          </Button>
+          <Button
+            onClick={() => setBatchReviewModalVisible(false)}
+            style={{ marginLeft: 'auto' }}
+          >
+            取消
+          </Button>
+        </div>
+      </Modal>
+
+      {/* 批量驳回原因弹窗 */}
+      <Modal
+        title={
+          <Space>
+            <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />
+            批量驳回
+          </Space>
+        }
+        open={batchRejectModalVisible}
+        onCancel={() => setBatchRejectModalVisible(false)}
+        footer={null}
+        width={480}
+      >
+        <p style={{ marginBottom: 16 }}>
+          即将驳回 <strong>{selectedSubmittedRecords.length}</strong> 条记录，请填写统一驳回原因：
+        </p>
+        <Form form={batchRejectForm} onFinish={handleBatchReject} layout="vertical">
+          <Form.Item
+            name="reason"
+            label="驳回原因"
+            rules={[{ required: true, message: '请输入驳回原因' }]}
+          >
+            <Input.TextArea
+              placeholder="请输入驳回原因，所有选中的填报人将收到此反馈"
+              rows={4}
+              maxLength={500}
+              showCount
+            />
+          </Form.Item>
+          <Form.Item className={styles.formFooter}>
+            <Button onClick={() => setBatchRejectModalVisible(false)}>取消</Button>
+            <Button type="primary" danger htmlType="submit" loading={actionLoading}>
+              确认批量驳回
             </Button>
           </Form.Item>
         </Form>

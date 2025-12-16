@@ -12,6 +12,8 @@ import {
   Empty,
   Form,
   Tabs,
+  Modal,
+  message,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -20,6 +22,12 @@ import {
   FileTextOutlined,
   FilePdfOutlined,
   FileWordOutlined,
+  PlayCircleOutlined,
+  PauseCircleOutlined,
+  CheckCircleOutlined,
+  ReloadOutlined,
+  AuditOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as projectService from '../../services/projectService';
@@ -32,7 +40,9 @@ import {
   SampleTab,
   IndicatorTab,
   DataEntryTab,
+  TaskAssignmentTab,
   ExpertReviewTab,
+  ProgressOverview,
   AddPersonModal,
   ImportModal,
   MorePersonModal,
@@ -185,6 +195,129 @@ const ProjectConfig: React.FC = () => {
     setAddTeacherModalVisible(true);
   };
 
+  // ==================== 项目状态流转处理 ====================
+
+  // 启动填报（配置中 → 填报中）
+  const handleStartProject = () => {
+    Modal.confirm({
+      title: '启动填报',
+      icon: <ExclamationCircleOutlined />,
+      content: '启动后项目将进入填报阶段，部分配置将无法修改。确定要启动填报吗？',
+      okText: '确定启动',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await projectService.startProject(projectId!);
+          message.success('项目已启动填报');
+          loadProject();
+        } catch (error: any) {
+          message.error(error.message || '启动失败');
+        }
+      },
+    });
+  };
+
+  // 进入评审（填报中 → 评审中）
+  const handleReviewProject = () => {
+    Modal.confirm({
+      title: '进入评审',
+      icon: <ExclamationCircleOutlined />,
+      content: '进入评审后将关闭数据填报通道。确定要进入评审阶段吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await projectService.reviewProject(projectId!);
+          message.success('项目已进入评审阶段');
+          loadProject();
+        } catch (error: any) {
+          message.error(error.message || '操作失败');
+        }
+      },
+    });
+  };
+
+  // 完成项目（评审中 → 已完成）
+  const handleCompleteProject = () => {
+    Modal.confirm({
+      title: '完成项目',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要完成此项目吗？完成后项目将归档，无法再进行修改。',
+      okText: '确定完成',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await projectService.completeProject(projectId!);
+          message.success('项目已完成');
+          loadProject();
+        } catch (error: any) {
+          message.error(error.message || '操作失败');
+        }
+      },
+    });
+  };
+
+  // 中止项目（任意状态 → 已中止）
+  const handleStopProject = () => {
+    Modal.confirm({
+      title: '中止项目',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要中止此项目吗？中止后可以重新启动。',
+      okText: '确定中止',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await projectService.stopProject(projectId!);
+          message.success('项目已中止');
+          loadProject();
+        } catch (error: any) {
+          message.error(error.message || '操作失败');
+        }
+      },
+    });
+  };
+
+  // 重启项目（已中止 → 配置中）
+  const handleRestartProject = () => {
+    Modal.confirm({
+      title: '重启项目',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要重启此项目吗？重启后项目将回到配置阶段。',
+      okText: '确定重启',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await projectService.restartProject(projectId!);
+          message.success('项目已重启');
+          loadProject();
+        } catch (error: any) {
+          message.error(error.message || '操作失败');
+        }
+      },
+    });
+  };
+
+  // 获取状态标签颜色
+  const getStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      '配置中': 'default',
+      '填报中': 'processing',
+      '评审中': 'warning',
+      '已中止': 'error',
+      '已完成': 'success',
+    };
+    return colorMap[status] || 'default';
+  };
+
+  // ==================== 编辑权限判断 ====================
+
+  // 判断项目是否可编辑（仅配置中状态可以完全编辑）
+  const isEditable = project?.status === '配置中';
+
+  // 判断是否为只读模式（已完成或已中止）
+  const isReadOnly = project?.status === '已完成' || project?.status === '已中止';
+
   // ==================== 渲染 ====================
 
   if (loading) {
@@ -236,7 +369,9 @@ const ProjectConfig: React.FC = () => {
             <span className={styles.projectPeriod}>
               项目周期：{project.startDate || '2025-04-01'} 至 {project.endDate || '2025-06-30'}
             </span>
-            <Tag color="blue" className={styles.statusTag}>配置中</Tag>
+            <Tag color={getStatusColor(project.status)} className={styles.statusTag}>
+              {project.status}
+            </Tag>
           </div>
         </div>
         <div className={styles.projectDesc}>
@@ -253,7 +388,62 @@ const ProjectConfig: React.FC = () => {
             评估说明.docx (245.6 KB)
           </Tag>
         </div>
+
+        {/* 项目状态流转操作 */}
+        <div className={styles.statusActions}>
+          {project.status === '配置中' && (
+            <Button
+              type="primary"
+              icon={<PlayCircleOutlined />}
+              onClick={handleStartProject}
+            >
+              启动填报
+            </Button>
+          )}
+          {project.status === '填报中' && (
+            <Button
+              type="primary"
+              icon={<AuditOutlined />}
+              onClick={handleReviewProject}
+            >
+              进入评审
+            </Button>
+          )}
+          {project.status === '评审中' && (
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={handleCompleteProject}
+            >
+              完成项目
+            </Button>
+          )}
+          {project.status === '已中止' && (
+            <Button
+              type="primary"
+              icon={<ReloadOutlined />}
+              onClick={handleRestartProject}
+            >
+              重启项目
+            </Button>
+          )}
+          {project.status !== '已完成' && project.status !== '已中止' && (
+            <Button
+              danger
+              icon={<PauseCircleOutlined />}
+              onClick={handleStopProject}
+            >
+              中止项目
+            </Button>
+          )}
+        </div>
       </Card>
+
+      {/* 填报进度概览 - 仅在非配置中状态显示 */}
+      <ProgressOverview
+        projectId={projectId || ''}
+        projectStatus={project.status}
+      />
 
       {/* 主内容区域 - Tab切换 */}
       <Card className={styles.mainCard}>
@@ -277,6 +467,7 @@ const ProjectConfig: React.FC = () => {
                   onDeleteTeacher={deleteTeacher}
                   onAddTeacher={handleOpenAddTeacher}
                   onTeacherModeChange={updateTeacherMode}
+                  disabled={!isEditable}
                 />
               ),
             },
@@ -288,13 +479,31 @@ const ProjectConfig: React.FC = () => {
                   projectId={projectId || ''}
                   indicatorSystemId={project.indicatorSystemId}
                   indicatorSystemName={project.indicatorSystemName}
+                  disabled={!isEditable}
                 />
               ),
             },
             {
               key: 'data',
               label: '数据填报',
-              children: <DataEntryTab projectId={projectId || ''} />,
+              children: (
+                <DataEntryTab
+                  projectId={projectId || ''}
+                  disabled={!isEditable}
+                />
+              ),
+            },
+            {
+              key: 'task',
+              label: '任务分配',
+              children: (
+                <TaskAssignmentTab
+                  projectId={projectId || ''}
+                  projectStatus={project.status}
+                  personnel={personnel}
+                  disabled={isReadOnly}
+                />
+              ),
             },
             {
               key: 'review',
@@ -322,6 +531,7 @@ const ProjectConfig: React.FC = () => {
                     setMorePersonModalVisible(true);
                   }}
                   filterPersonnel={filterPersonnel}
+                  disabled={isReadOnly}
                 />
               ),
             },

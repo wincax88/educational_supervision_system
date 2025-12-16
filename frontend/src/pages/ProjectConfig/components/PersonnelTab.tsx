@@ -24,6 +24,7 @@ interface PersonnelTabProps {
   onDeletePerson: (person: Personnel) => void;
   onOpenMore: (role: string) => void;
   filterPersonnel: (role: string) => Personnel[];
+  disabled?: boolean; // 是否禁用编辑（只读模式）
 }
 
 // 获取角色显示名和描述
@@ -46,6 +47,7 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
   onDeletePerson,
   onOpenMore,
   filterPersonnel,
+  disabled = false,
 }) => {
   // 人员表格列定义
   const personnelColumns: ColumnsType<Personnel> = [
@@ -59,11 +61,11 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
     { title: '单位', dataIndex: 'organization', key: 'organization', width: 180 },
     { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
     { title: '身份证件号码', dataIndex: 'idCard', key: 'idCard', width: 180 },
-    {
+    ...(!disabled ? [{
       title: '操作',
       key: 'action',
       width: 80,
-      render: (_, record) => (
+      render: (_: unknown, record: Personnel) => (
         <Button
           type="text"
           danger
@@ -71,7 +73,7 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
           onClick={() => onDeletePerson(record)}
         />
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -91,12 +93,14 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
             type="primary"
             icon={<PlusOutlined />}
             onClick={onAddPerson}
+            disabled={disabled}
           >
             添加人员
           </Button>
           <Button
             icon={<UploadOutlined />}
             onClick={onImport}
+            disabled={disabled}
           >
             导入人员
           </Button>

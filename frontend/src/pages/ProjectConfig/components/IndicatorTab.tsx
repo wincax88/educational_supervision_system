@@ -48,6 +48,7 @@ interface IndicatorTabProps {
   projectId: string;
   indicatorSystemId?: string;
   indicatorSystemName?: string;
+  disabled?: boolean; // 是否禁用编辑（非配置中状态）
 }
 
 // 要素关联统计
@@ -61,6 +62,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
   projectId,
   indicatorSystemId,
   indicatorSystemName,
+  disabled = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [indicators, setIndicators] = useState<Indicator[]>([]);
@@ -206,35 +208,39 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
                   </ul>
                 </div>
               )
-              : '点击关联评估要素'
+              : disabled ? '要素关联（只读）' : '点击关联评估要素'
           }
         >
           <Tag
             color={hasElements ? 'success' : 'warning'}
             icon={hasElements ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: disabled ? 'default' : 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
-              handleEditElementAssociation(di, indicatorName);
+              if (!disabled) {
+                handleEditElementAssociation(di, indicatorName);
+              }
             }}
           >
             <DatabaseOutlined style={{ marginRight: 4 }} />
             {hasElements ? `已关联 ${elementCount} 个要素` : '未关联要素'}
           </Tag>
         </Tooltip>
-        {/* 编辑按钮 */}
-        <Tooltip title="编辑要素关联">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditElementAssociation(di, indicatorName);
-            }}
-            style={{ marginLeft: 4 }}
-          />
-        </Tooltip>
+        {/* 编辑按钮 - 仅在可编辑状态显示 */}
+        {!disabled && (
+          <Tooltip title="编辑要素关联">
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditElementAssociation(di, indicatorName);
+              }}
+              style={{ marginLeft: 4 }}
+            />
+          </Tooltip>
+        )}
       </div>
     );
   };
