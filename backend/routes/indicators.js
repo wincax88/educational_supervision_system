@@ -287,6 +287,22 @@ router.delete('/indicator-systems/:id', async (req, res) => {
 
 // ==================== 指标树操作 ====================
 
+/**
+ * 标准化数据指标的数据类型
+ * - 兼容前端使用 dataType（驼峰）或 data_type（下划线）
+ * - 缺省时给一个安全默认值，避免 DB NOT NULL 约束报错
+ * @param {object} di
+ * @returns {string}
+ */
+function normalizeDataIndicatorDataType(di) {
+  const dt = di?.dataType ?? di?.data_type;
+  // 当前项目里“数据类型”语义与要素一致，沿用同一套取值
+  const allowed = ['文本', '数字', '日期', '时间', '逻辑', '数组', '文件'];
+  if (dt && allowed.includes(dt)) return dt;
+  // 兜底：大多数数据指标是数值型（阈值比较/比例等）
+  return '数字';
+}
+
 // 获取指标树
 router.get('/indicator-systems/:id/tree', async (req, res) => {
   try {
@@ -301,7 +317,11 @@ router.get('/indicator-systems/:id/tree', async (req, res) => {
 
     // 获取数据指标
     const dataIndicatorsResult = await db.query(`
-      SELECT di.id, di.indicator_id as "indicatorId", di.code, di.name, di.threshold, di.description, di.sort_order as "sortOrder"
+      SELECT di.id, di.indicator_id as "indicatorId", di.code, di.name,
+             di.description, di.data_type as "dataType", di.unit,
+             di.threshold, di.calculation_method as "calculationMethod",
+             di.data_source as "dataSource", di.collection_frequency as "collectionFrequency",
+             di.sort_order as "sortOrder"
       FROM data_indicators di
       JOIN indicators i ON di.indicator_id = i.id
       WHERE i.system_id = $1
@@ -367,6 +387,10 @@ router.put('/indicator-systems/:id/tree', async (req, res) => {
   const timestamp = now();
 
   try {
+    if (!Array.isArray(tree)) {
+      return res.status(400).json({ code: 400, message: '参数错误：tree 必须是数组' });
+    }
+
     // 1) 清空旧树
     await clearIndicatorSystemTree(systemId, timestamp);
 
@@ -399,8 +423,13 @@ router.put('/indicator-systems/:id/tree', async (req, res) => {
           indicator_id: nodeId,
           code: di.code,
           name: di.name,
+          data_type: normalizeDataIndicatorDataType(di),
+          unit: di.unit || '',
           threshold: di.threshold || '',
           description: di.description || '',
+          calculation_method: di.calculationMethod || di.calculation_method || '',
+          data_source: di.dataSource || di.data_source || '',
+          collection_frequency: di.collectionFrequency || di.collection_frequency || '',
           sort_order: idx,
           created_at: timestamp,
           updated_at: timestamp,
@@ -452,6 +481,14 @@ router.put('/indicator-systems/:id/tree', async (req, res) => {
 
     return res.json({ code: 200, message: '保存成功' });
   } catch (error) {
+    // 常见的约束错误：尽量给出可读提示，避免前端只看到 500
+    const msg = error?.message || '';
+    if (msg.includes('data_indicators') && msg.includes('data_type') && msg.includes('not-null')) {
+      return res.status(400).json({
+        code: 400,
+        message: '保存失败：数据指标缺少 dataType（数据类型）。可在前端补填，或由后端默认“数字”后重试。'
+      });
+    }
     return res.status(500).json({ code: 500, message: error.message });
   }
 });

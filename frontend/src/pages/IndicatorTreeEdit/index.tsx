@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Tag, Modal, Form, Input, Switch, message, InputNumber, Popconfirm, Spin, Checkbox, Select } from 'antd';
+import { Button, Tag, Modal, Form, Input, Switch, message, InputNumber, Popconfirm, Spin, Checkbox, Select, Upload } from 'antd';
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -14,6 +14,7 @@ import {
   RightOutlined,
   PaperClipOutlined,
   StarOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -58,6 +59,124 @@ const recalculateCodes = (nodes: Indicator[], parentCode: string = ''): Indicato
   });
 };
 
+// 将导入的 JSON 标准化为系统可保存的 Indicator 树（最多 3 层）
+const normalizeImportedTree = (raw: unknown): Indicator[] => {
+  const parseBoolean = (v: any): boolean | undefined => {
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'number') return v !== 0;
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase();
+      if (s === 'true') return true;
+      if (s === 'false') return false;
+      if (s === '1') return true;
+      if (s === '0') return false;
+    }
+    return undefined;
+  };
+
+  const normalizeNode = (node: any, level: number): Indicator => {
+    if (!node || typeof node !== 'object') {
+      throw new Error('指标节点格式错误：节点不是对象');
+    }
+    if (level < 1 || level > 3) {
+      throw new Error('指标层级不合法：仅支持 1-3 级');
+    }
+
+    const id = typeof node.id === 'string' && node.id.trim() ? node.id : generateId();
+    const name = typeof node.name === 'string' ? node.name.trim() : String(node.name ?? '').trim();
+    if (!name) throw new Error('指标节点缺少 name');
+
+    const description = typeof node.description === 'string' ? node.description : '';
+    const weight = typeof node.weight === 'number' ? node.weight : undefined;
+
+    const rawChildren = Array.isArray(node.children) ? node.children : [];
+    const inputIsLeaf = parseBoolean(node.isLeaf);
+    const isLeaf = level === 3 ? true : (rawChildren.length > 0 ? false : (inputIsLeaf ?? true));
+
+    if (level === 3 && rawChildren.length > 0) {
+      throw new Error(`三级指标“${name}”不允许包含 children`);
+    }
+
+    if (!isLeaf) {
+      const children = rawChildren.map((c: any) => normalizeNode(c, level + 1));
+      if (children.length === 0) {
+        // 非末级但无子节点，自动降级为末级
+        return {
+          id,
+          code: typeof node.code === 'string' ? node.code : '',
+          name,
+          description,
+          level,
+          isLeaf: true,
+          weight,
+          dataIndicators: [],
+          supportingMaterials: [],
+        };
+      }
+      return {
+        id,
+        code: typeof node.code === 'string' ? node.code : '',
+        name,
+        description,
+        level,
+        isLeaf: false,
+        weight,
+        children,
+      };
+    }
+
+    const diRaw = Array.isArray(node.dataIndicators) ? node.dataIndicators : [];
+    const smRaw = Array.isArray(node.supportingMaterials) ? node.supportingMaterials : [];
+
+    const dataIndicators: DataIndicator[] = diRaw.map((di: any, idx: number) => {
+      const diName = typeof di?.name === 'string' ? di.name.trim() : String(di?.name ?? '').trim();
+      return {
+        id: typeof di?.id === 'string' && di.id.trim() ? di.id : generateId(),
+        code: typeof di?.code === 'string' ? di.code : '',
+        name: diName || `数据指标${idx + 1}`,
+        threshold: typeof di?.threshold === 'string' ? di.threshold : (di?.threshold == null ? '' : String(di.threshold)),
+        description: typeof di?.description === 'string' ? di.description : '',
+        thresholdType: di?.thresholdType === 'range' ? 'range' : 'single',
+        precision: typeof di?.precision === 'number' ? di.precision : 2,
+        targetType: typeof di?.targetType === 'string' ? di.targetType : undefined,
+      };
+    });
+
+    const supportingMaterials: SupportingMaterial[] = smRaw.map((sm: any, idx: number) => {
+      const smName = typeof sm?.name === 'string' ? sm.name.trim() : String(sm?.name ?? '').trim();
+      return {
+        id: typeof sm?.id === 'string' && sm.id.trim() ? sm.id : generateId(),
+        code: typeof sm?.code === 'string' ? sm.code : '',
+        name: smName || `佐证资料${idx + 1}`,
+        fileTypes: typeof sm?.fileTypes === 'string' ? sm.fileTypes : 'PDF,Word,Excel,JPG,PNG',
+        maxSize: typeof sm?.maxSize === 'string' ? sm.maxSize : '10MB',
+        description: typeof sm?.description === 'string' ? sm.description : '',
+        required: typeof sm?.required === 'boolean' ? sm.required : (parseBoolean(sm?.required) ?? false),
+        targetType: typeof sm?.targetType === 'string' ? sm.targetType : undefined,
+      };
+    });
+
+    return {
+      id,
+      code: typeof node.code === 'string' ? node.code : '',
+      name,
+      description,
+      level,
+      isLeaf: true,
+      weight,
+      dataIndicators,
+      supportingMaterials,
+    };
+  };
+
+  const payload: any = raw;
+  const treeRaw = Array.isArray(payload) ? payload : payload?.tree;
+  if (!Array.isArray(treeRaw)) {
+    throw new Error('导入失败：JSON 必须是 Indicator[] 或包含 tree: Indicator[]');
+  }
+  return treeRaw.map((n: any) => normalizeNode(n, 1));
+};
+
 const IndicatorTreeEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id: systemId } = useParams<{ id: string }>();
@@ -67,6 +186,7 @@ const IndicatorTreeEdit: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   // 弹窗状态
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -147,6 +267,55 @@ const IndicatorTreeEdit: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  // 导入指标树（JSON 文件）
+  const handleImportJsonFile = async (file: File) => {
+    if (!file) return;
+    const isJson = file.name.toLowerCase().endsWith('.json') || file.type.includes('json');
+    if (!isJson) {
+      message.error('请选择 .json 文件');
+      return;
+    }
+
+    const doImport = async () => {
+      setImporting(true);
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const normalized = normalizeImportedTree(parsed);
+        const newTree = recalculateCodes(normalized);
+        setTreeData(newTree);
+
+        // 默认展开所有节点
+        const allKeys = new Set<string>();
+        const collectKeys = (nodes: Indicator[]) => {
+          nodes.forEach(node => {
+            allKeys.add(node.id);
+            if (node.children) collectKeys(node.children);
+          });
+        };
+        collectKeys(newTree);
+        setExpandedKeys(allKeys);
+
+        message.success('导入成功（已覆盖当前指标树，记得点击“保存”）');
+      } catch (e: any) {
+        message.error(`导入失败：${e?.message || '未知错误'}`);
+        // eslint-disable-next-line no-console
+        console.error(e);
+      } finally {
+        setImporting(false);
+      }
+    };
+
+    Modal.confirm({
+      title: '导入指标树',
+      content: '导入将覆盖当前页面的指标树（未保存的修改会丢失），是否继续？',
+      okText: '继续导入',
+      cancelText: '取消',
+      okButtonProps: { danger: true, loading: importing },
+      onOk: doImport,
+    });
   };
 
   // 切换节点展开状态
@@ -815,6 +984,23 @@ const IndicatorTreeEdit: React.FC = () => {
               <ArrowLeftOutlined /> 返回
             </span>
             <h1 className={styles.pageTitle}>编辑指标</h1>
+          </div>
+          <div className={styles.headerRight}>
+            <Upload
+              accept=".json,application/json"
+              showUploadList={false}
+              beforeUpload={(file) => {
+                void handleImportJsonFile(file as unknown as File);
+                return false;
+              }}
+            >
+              <Button icon={<UploadOutlined />} loading={importing}>
+                导入JSON
+              </Button>
+            </Upload>
+            <Button type="primary" loading={saving} onClick={handleSave}>
+              保存
+            </Button>
           </div>
         </div>
 

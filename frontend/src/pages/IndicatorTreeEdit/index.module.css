@@ -18,6 +18,12 @@
   gap: 16px;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .backBtn {
   color: #666;
   cursor: pointer;
