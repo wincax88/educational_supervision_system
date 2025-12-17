@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {
   Button,
   Tag,
@@ -42,6 +44,8 @@ import type { Submission } from '../../services/submissionService';
 import { parseThreshold, validateThreshold, calculate, parseVariables } from '../../utils/formulaCalculator';
 import { sampleDataList } from '../../mock/sample-data-index';
 import styles from './index.module.css';
+
+dayjs.extend(customParseFormat);
 
 // 映射目标信息
 interface MappingTargetInfo {
@@ -94,6 +98,65 @@ interface ToolInfo {
   status: string;
 }
 
+type PickerFieldType = 'date' | 'time';
+
+const buildPickerFieldTypeMap = (fields: ExtendedFormField[]): Record<string, PickerFieldType> => {
+  const map: Record<string, PickerFieldType> = {};
+
+  const walk = (fs: ExtendedFormField[]) => {
+    fs.forEach((f) => {
+      if (f.type === 'date' || f.type === 'time') {
+        map[f.id] = f.type;
+      }
+      if (f.children?.length) {
+        walk(f.children);
+      }
+    });
+  };
+
+  walk(fields);
+  return map;
+};
+
+const normalizeValuesForPickers = (
+  fields: ExtendedFormField[],
+  values: Record<string, any>,
+): Record<string, any> => {
+  const pickerMap = buildPickerFieldTypeMap(fields);
+  const next: Record<string, any> = { ...(values || {}) };
+
+  Object.entries(pickerMap).forEach(([fieldId, type]) => {
+    const v = next[fieldId];
+    if (v === undefined || v === null || v === '') return;
+    if (dayjs.isDayjs(v)) return;
+
+    const parsed =
+      type === 'time' && typeof v === 'string'
+        ? dayjs(v, ['HH:mm:ss', 'HH:mm'], true)
+        : dayjs(v);
+
+    next[fieldId] = parsed.isValid() ? parsed : undefined;
+  });
+
+  return next;
+};
+
+const serializeValuesForSubmit = (
+  fields: ExtendedFormField[],
+  values: Record<string, any>,
+): Record<string, any> => {
+  const pickerMap = buildPickerFieldTypeMap(fields);
+  const next: Record<string, any> = { ...(values || {}) };
+
+  Object.entries(pickerMap).forEach(([fieldId, type]) => {
+    const v = next[fieldId];
+    if (!dayjs.isDayjs(v)) return;
+    next[fieldId] = type === 'date' ? v.format('YYYY-MM-DD') : v.format('HH:mm:ss');
+  });
+
+  return next;
+};
+
 const DataEntryForm: React.FC = () => {
   const navigate = useNavigate();
   const { projectId, formId } = useParams<{ projectId: string; formId: string }>();
@@ -123,6 +186,7 @@ const DataEntryForm: React.FC = () => {
       try {
         // 获取完整的工具信息和schema（含字段映射）
         const fullSchemaData = await toolService.getFullSchema(formId);
+        const schemaFields = (fullSchemaData?.schema as ExtendedFormField[] | undefined) || [];
         if (fullSchemaData) {
           setToolInfo({
             id: fullSchemaData.id,
@@ -133,9 +197,7 @@ const DataEntryForm: React.FC = () => {
             status: fullSchemaData.status,
           });
 
-          if (fullSchemaData.schema) {
-            setFormFields(fullSchemaData.schema as ExtendedFormField[]);
-          }
+          setFormFields(schemaFields);
         }
 
         // 尝试获取已有的填报记录
@@ -150,9 +212,10 @@ const DataEntryForm: React.FC = () => {
             const parsedData = typeof existingSubmission.data === 'string'
               ? JSON.parse(existingSubmission.data)
               : existingSubmission.data;
-            setFormData(parsedData);
-            setCurrentFormValues(parsedData);
-            form.setFieldsValue(parsedData);
+            const normalized = normalizeValuesForPickers(schemaFields, parsedData);
+            setFormData(normalized);
+            setCurrentFormValues(normalized);
+            form.setFieldsValue(normalized);
           }
         }
       } catch (error) {
@@ -173,11 +236,12 @@ const DataEntryForm: React.FC = () => {
     setSaving(true);
     try {
       const values = form.getFieldsValue();
+      const payloadValues = serializeValuesForSubmit(formFields, values);
 
       if (submission) {
         // 更新已有记录
         await submissionService.update(submission.id, {
-          data: values,
+          data: payloadValues,
         });
         message.success('草稿保存成功');
       } else {
@@ -187,7 +251,7 @@ const DataEntryForm: React.FC = () => {
           formId,
           submitterName: '当前用户', // 实际应从用户会话获取
           submitterOrg: '当前单位',
-          data: values,
+          data: payloadValues,
         });
         setSubmission(newSubmission);
         message.success('草稿保存成功');
@@ -211,6 +275,7 @@ const DataEntryForm: React.FC = () => {
       await form.validateFields();
 
       const values = form.getFieldsValue();
+      const payloadValues = serializeValuesForSubmit(formFields, values);
 
       // 执行阈值校验
       const warnings = performThresholdValidation(values);
@@ -251,7 +316,7 @@ const DataEntryForm: React.FC = () => {
 
       if (submission) {
         // 更新并提交
-        await submissionService.update(submission.id, { data: values });
+        await submissionService.update(submission.id, { data: payloadValues });
         await submissionService.submit(submission.id);
       } else {
         // 创建并提交
@@ -260,7 +325,7 @@ const DataEntryForm: React.FC = () => {
           formId,
           submitterName: '当前用户',
           submitterOrg: '当前单位',
-          data: values,
+          data: payloadValues,
         });
         await submissionService.submit(newSubmission.id);
       }
@@ -328,9 +393,10 @@ const DataEntryForm: React.FC = () => {
     const { _description, ...formValues } = dataToImport;
 
     // 设置表单值
-    form.setFieldsValue(formValues);
-    setCurrentFormValues(formValues);
-    setFormData(formValues);
+    const normalized = normalizeValuesForPickers(formFields, formValues);
+    form.setFieldsValue(normalized);
+    setCurrentFormValues(normalized);
+    setFormData(normalized);
 
     message.success('数据导入成功');
     setImportModalVisible(false);

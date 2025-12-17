@@ -1309,6 +1309,7 @@ router.delete('/tools/:toolId/field-mappings/:fieldId', async (req, res) => {
 });
 
 // 获取完整的表单schema（含字段映射信息）
+// 优化：使用批量查询替代 N+1 查询
 router.get('/tools/:id/full-schema', async (req, res) => {
   try {
     const toolId = req.params.id;
@@ -1334,34 +1335,61 @@ router.get('/tools/:id/full-schema', async (req, res) => {
 
     const mappings = mappingsResult.rows;
 
-    // 为每个映射获取目标详情
-    const mappingMap = {};
-    for (const mapping of mappings) {
+    // 按类型分组收集目标 ID
+    const indicatorIds = [];
+    const elementIds = [];
+    mappings.forEach(mapping => {
       if (mapping.mappingType === 'data_indicator') {
-        const indicatorResult = await db.query(`
-          SELECT di.id, di.code, di.name, di.threshold, di.description,
-                 i.name as "indicatorName", i.code as "indicatorCode"
-          FROM data_indicators di
-          LEFT JOIN indicators i ON di.indicator_id = i.id
-          WHERE di.id = $1
-        `, [mapping.targetId]);
+        indicatorIds.push(mapping.targetId);
+      } else if (mapping.mappingType === 'element') {
+        elementIds.push(mapping.targetId);
+      }
+    });
+
+    // 批量查询数据指标（一次查询所有）
+    const indicatorMap = {};
+    if (indicatorIds.length > 0) {
+      const indicatorResult = await db.query(`
+        SELECT di.id, di.code, di.name, di.threshold, di.description,
+               i.name as "indicatorName", i.code as "indicatorCode"
+        FROM data_indicators di
+        LEFT JOIN indicators i ON di.indicator_id = i.id
+        WHERE di.id = ANY($1)
+      `, [indicatorIds]);
+      indicatorResult.rows.forEach(row => {
+        indicatorMap[row.id] = row;
+      });
+    }
+
+    // 批量查询要素（一次查询所有）
+    const elementMap = {};
+    if (elementIds.length > 0) {
+      const elementResult = await db.query(`
+        SELECT id, code, name, element_type as "elementType", data_type as "dataType", formula
+        FROM elements WHERE id = ANY($1)
+      `, [elementIds]);
+      elementResult.rows.forEach(row => {
+        elementMap[row.id] = row;
+      });
+    }
+
+    // 构建映射 Map
+    const mappingMap = {};
+    mappings.forEach(mapping => {
+      if (mapping.mappingType === 'data_indicator') {
         mappingMap[mapping.fieldId] = {
           mappingType: mapping.mappingType,
           targetId: mapping.targetId,
-          targetInfo: indicatorResult.rows[0]
+          targetInfo: indicatorMap[mapping.targetId]
         };
       } else if (mapping.mappingType === 'element') {
-        const elementResult = await db.query(`
-          SELECT id, code, name, element_type as "elementType", data_type as "dataType", formula
-          FROM elements WHERE id = $1
-        `, [mapping.targetId]);
         mappingMap[mapping.fieldId] = {
           mappingType: mapping.mappingType,
           targetId: mapping.targetId,
-          targetInfo: elementResult.rows[0]
+          targetInfo: elementMap[mapping.targetId]
         };
       }
-    }
+    });
 
     // 将映射信息合并到schema中
     const enrichedSchema = schema.map(field => ({
