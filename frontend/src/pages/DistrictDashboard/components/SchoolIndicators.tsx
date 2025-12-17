@@ -69,9 +69,11 @@ const SchoolIndicators: React.FC<SchoolIndicatorsProps> = ({ districtId, project
     setDetailLoading(true);
     try {
       const detail = await getSchoolIndicatorDetail(schoolId, projectId);
+      console.log('学校详情数据:', detail);
       setSchoolDetail(detail);
     } catch (error) {
       console.error('加载学校详情失败:', error);
+      setSchoolDetail(null);
     } finally {
       setDetailLoading(false);
     }

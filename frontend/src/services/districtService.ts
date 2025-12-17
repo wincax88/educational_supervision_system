@@ -274,9 +274,26 @@ export async function getSchoolIndicatorDetail(
   schoolId: string,
   projectId: string
 ): Promise<SchoolIndicatorDetail> {
-  // 后端返回的是指标数据数组，需要同时获取学校信息并构建完整对象
-  const [indicators, school] = await Promise.all([
-    get<Array<{
+  // 后端返回完整的学校+指标数据结构
+  const response = await get<{
+    school: {
+      id: string;
+      code: string;
+      name: string;
+      schoolType: string;
+      studentCount: number;
+      teacherCount: number;
+      districtId: string;
+      districtName?: string;
+    };
+    statistics: {
+      total: number;
+      compliant: number;
+      nonCompliant: number;
+      pending: number;
+    };
+    complianceRate: number | null;
+    indicators: Array<{
       id: string;
       dataIndicatorId: string;
       value: number | null;
@@ -288,42 +305,24 @@ export async function getSchoolIndicatorDetail(
       threshold: string;
       indicatorDescription?: string;
       submissionId?: string | null;
-    }>>(`/schools/${schoolId}/indicator-data`, { projectId }),
-    get<{
-      id: string;
-      code: string;
-      name: string;
-      schoolType: string;
-      studentCount: number;
-      teacherCount: number;
-      districtId: string;
-      districtName?: string;
-    }>(`/schools/${schoolId}`)
-  ]);
+    }>;
+  }>(`/schools/${schoolId}/indicator-data`, { projectId });
 
-  // 计算统计信息
-  const stats = {
-    total: indicators.length,
-    compliant: indicators.filter(d => d.isCompliant === 1).length,
-    nonCompliant: indicators.filter(d => d.isCompliant === 0).length,
-    pending: indicators.filter(d => d.isCompliant === null).length
-  };
-
-  // 构建完整的对象结构
+  // 直接返回后端返回的数据结构
   return {
     school: {
-      id: school.id,
-      code: school.code,
-      name: school.name,
-      schoolType: school.schoolType,
-      studentCount: school.studentCount,
-      teacherCount: school.teacherCount,
-      districtId: school.districtId,
-      districtName: school.districtName || ''
+      id: response.school.id,
+      code: response.school.code,
+      name: response.school.name,
+      schoolType: response.school.schoolType,
+      studentCount: response.school.studentCount,
+      teacherCount: response.school.teacherCount,
+      districtId: response.school.districtId,
+      districtName: response.school.districtName || ''
     },
-    statistics: stats,
-    complianceRate: stats.total > 0 ? Math.round((stats.compliant / stats.total) * 10000) / 100 : null,
-    indicators: indicators.map(indicator => ({
+    statistics: response.statistics,
+    complianceRate: response.complianceRate,
+    indicators: response.indicators.map(indicator => ({
       id: indicator.id,
       dataIndicatorId: indicator.dataIndicatorId,
       value: indicator.value,
