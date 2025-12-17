@@ -18,8 +18,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import * as projectService from '../../services/projectService';
 import * as indicatorService from '../../services/indicatorService';
+import * as toolService from '../../services/toolService';
+import * as projectToolService from '../../services/projectToolService';
 import type { Project } from '../../services/projectService';
 import type { IndicatorSystem } from '../../services/indicatorService';
+import type { DataTool } from '../../services/toolService';
 import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
@@ -32,6 +35,7 @@ const ProjectPage: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [filteredList, setFilteredList] = useState<Project[]>([]);
   const [indicatorSystems, setIndicatorSystems] = useState<IndicatorSystem[]>([]);
+  const [dataTools, setDataTools] = useState<DataTool[]>([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -59,12 +63,22 @@ const ProjectPage: React.FC = () => {
     }
   }, []);
 
+  // 加载采集工具列表
+  const loadDataTools = useCallback(async () => {
+    try {
+      const data = await toolService.getTools({ status: 'published' });
+      setDataTools(data);
+    } catch (error) {
+      console.error('加载采集工具失败:', error);
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
-    Promise.all([loadProjects(), loadIndicatorSystems()]).finally(() => {
+    Promise.all([loadProjects(), loadIndicatorSystems(), loadDataTools()]).finally(() => {
       setLoading(false);
     });
-  }, [loadProjects, loadIndicatorSystems]);
+  }, [loadProjects, loadIndicatorSystems, loadDataTools]);
 
   // 计算统计数据
   const projectStats = {
@@ -108,7 +122,19 @@ const ProjectPage: React.FC = () => {
         startDate: values.startDate?.format('YYYY-MM-DD'),
         endDate: values.endDate?.format('YYYY-MM-DD'),
       };
-      await projectService.createProject(data);
+      const result = await projectService.createProject(data);
+
+      // 关联选中的采集工具
+      const toolIds: string[] = values.toolIds || [];
+      if (toolIds.length > 0 && result.id) {
+        try {
+          await projectToolService.batchAddProjectTools(result.id, toolIds);
+        } catch (err) {
+          console.error('关联采集工具失败:', err);
+          // 不阻断流程，工具可以后续在配置页面添加
+        }
+      }
+
       message.success('创建成功');
       setCreateModalVisible(false);
       form.resetFields();
@@ -417,6 +443,42 @@ const ProjectPage: React.FC = () => {
               {indicatorSystems.map(sys => (
                 <Select.Option key={sys.id} value={sys.id}>{sys.name}</Select.Option>
               ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="采集工具" name="toolIds">
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="选择采集工具（可多选，按填报对象分组）"
+              optionFilterProp="label"
+              maxTagCount="responsive"
+            >
+              {/* 按填报对象类型分组 */}
+              {(() => {
+                const targetGroups: Record<string, DataTool[]> = {};
+                dataTools.forEach(tool => {
+                  // target 可能是逗号分隔的多个对象，取第一个作为分组依据
+                  const targets = tool.target ? tool.target.split(',') : ['未分类'];
+                  const primaryTarget = targets[0] || '未分类';
+                  if (!targetGroups[primaryTarget]) {
+                    targetGroups[primaryTarget] = [];
+                  }
+                  targetGroups[primaryTarget].push(tool);
+                });
+                return Object.entries(targetGroups).map(([target, tools]) => (
+                  <Select.OptGroup key={target} label={`${target}（${tools.length}）`}>
+                    {tools.map(tool => (
+                      <Select.Option key={tool.id} value={tool.id} label={tool.name}>
+                        {tool.name}
+                        <span style={{ color: '#999', marginLeft: 8 }}>
+                          [{tool.type}]
+                        </span>
+                      </Select.Option>
+                    ))}
+                  </Select.OptGroup>
+                ));
+              })()}
             </Select>
           </Form.Item>
           <div style={{ display: 'flex', gap: 16 }}>

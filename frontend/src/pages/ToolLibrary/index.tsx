@@ -60,12 +60,14 @@ const ToolLibrary: React.FC = () => {
   };
 
   // 创建工具
-  const handleCreate = async (values: { type: string; name: string; target: string; description: string }) => {
+  const handleCreate = async (values: { type: string; name: string; target: string | string[]; description: string }) => {
     try {
+      // 多选时 target 为数组，转为逗号分隔字符串存储
+      const targetStr = Array.isArray(values.target) ? values.target.join(',') : (values.target || '');
       await toolService.createTool({
         name: values.name,
         type: values.type as '表单' | '问卷',
-        target: values.target || '',
+        target: targetStr,
         description: values.description || '',
       });
       setCreateModalVisible(false);
@@ -88,10 +90,12 @@ const ToolLibrary: React.FC = () => {
   const handleEditFromView = () => {
     setViewModalVisible(false);
     if (currentTool) {
+      // 将逗号分隔的字符串转回数组用于多选回显
+      const targetArray = currentTool.target ? currentTool.target.split(',').filter(Boolean) : [];
       editForm.setFieldsValue({
         type: currentTool.type,
         name: currentTool.name,
-        target: currentTool.target,
+        target: targetArray,
         description: currentTool.description,
       });
       setEditModalVisible(true);
@@ -99,14 +103,16 @@ const ToolLibrary: React.FC = () => {
   };
 
   // 保存编辑
-  const handleSaveEdit = async (values: { type: string; name: string; target: string; description: string }) => {
+  const handleSaveEdit = async (values: { type: string; name: string; target: string | string[]; description: string }) => {
     if (!currentTool) return;
 
     try {
+      // 多选时 target 为数组，转为逗号分隔字符串存储
+      const targetStr = Array.isArray(values.target) ? values.target.join(',') : (values.target || '');
       await toolService.updateTool(currentTool.id, {
         name: values.name,
         type: values.type as '表单' | '问卷',
-        target: values.target || '',
+        target: targetStr,
         description: values.description || '',
       });
       setEditModalVisible(false);
@@ -290,8 +296,19 @@ const ToolLibrary: React.FC = () => {
           >
             <Input placeholder="请输入工具名称" />
           </Form.Item>
-          <Form.Item label="填报对象" name="target">
-            <Input placeholder="请输入填报对象（如：区县、学校、班级等）" />
+          <Form.Item
+            label="填报对象"
+            name="target"
+            rules={[{ required: true, message: '请选择填报对象' }]}
+          >
+            <Select mode="multiple" placeholder="请选择填报对象（可多选）" maxTagCount="responsive">
+              <Select.Option value="区县">区县</Select.Option>
+              <Select.Option value="学校">学校</Select.Option>
+              <Select.Option value="教师">教师</Select.Option>
+              <Select.Option value="学生">学生</Select.Option>
+              <Select.Option value="班级">班级</Select.Option>
+              <Select.Option value="家长">家长</Select.Option>
+            </Select>
           </Form.Item>
           <Form.Item label="工具描述" name="description">
             <Input.TextArea placeholder="请输入工具描述" rows={3} />
@@ -388,8 +405,19 @@ const ToolLibrary: React.FC = () => {
           >
             <Input placeholder="请输入工具名称" />
           </Form.Item>
-          <Form.Item label="填报对象" name="target">
-            <Input placeholder="请输入填报对象（如：区县、学校、班级等）" />
+          <Form.Item
+            label="填报对象"
+            name="target"
+            rules={[{ required: true, message: '请选择填报对象' }]}
+          >
+            <Select mode="multiple" placeholder="请选择填报对象（可多选）" maxTagCount="responsive">
+              <Select.Option value="区县">区县</Select.Option>
+              <Select.Option value="学校">学校</Select.Option>
+              <Select.Option value="教师">教师</Select.Option>
+              <Select.Option value="学生">学生</Select.Option>
+              <Select.Option value="班级">班级</Select.Option>
+              <Select.Option value="家长">家长</Select.Option>
+            </Select>
           </Form.Item>
           <Form.Item label="工具描述" name="description">
             <Input.TextArea placeholder="请输入工具描述" rows={4} />
