@@ -2,14 +2,20 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Educational Supervision System Backend",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "start:legacy": "node index.js",
+    "dev": "ts-node src/index.ts",
+    "dev:legacy": "node index.js",
     "init-db": "node database/init.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:ci": "jest --ci --coverage --reporters=default"
+    "test:ci": "jest --ci --coverage --reporters=default",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "keywords": [],
   "author": "",
@@ -23,13 +29,24 @@
     "multer": "^2.0.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^25.0.3",
+    "@types/supertest": "^6.0.3",
     "jest": "^30.2.0",
-    "supertest": "^7.1.4"
+    "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["./__tests__/setup.js"],
-    "testMatch": ["**/__tests__/**/*.test.js"],
+    "setupFilesAfterEnv": [
+      "./__tests__/setup.js"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
     "collectCoverageFrom": [
       "routes/**/*.js",
       "services/**/*.js",
@@ -37,7 +54,11 @@
       "!**/node_modules/**"
     ],
     "coverageDirectory": "coverage",
-    "coverageReporters": ["text", "lcov", "html"],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
     "verbose": true
   }
 }

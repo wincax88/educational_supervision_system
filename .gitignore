@@ -29,6 +29,7 @@ frontend/.cache/
 
 # 后端数据与缓存
 backend/coverage/
+backend/dist/
 backend/database/*.db
 backend/database/*.sqlite
 backend/database/*.sqlite3
