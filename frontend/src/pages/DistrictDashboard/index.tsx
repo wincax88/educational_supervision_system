@@ -107,20 +107,24 @@ const DistrictDashboard: React.FC = () => {
             onChange={setSelectedProjectId}
             placeholder="请选择项目"
             loading={loading}
-            options={projects.map(p => ({
-              value: p.id,
-              label: (
-                <span>
-                  {p.name}
-                  <Tag
-                    color={p.status === '填报中' ? 'processing' : p.status === '评审中' ? 'warning' : 'success'}
-                    style={{ marginLeft: 8 }}
-                  >
-                    {p.status}
-                  </Tag>
-                </span>
-              ),
-            }))}
+            allowClear
+            options={[
+              { value: '', label: '全部项目' },
+              ...projects.map(p => ({
+                value: p.id,
+                label: (
+                  <span>
+                    {p.name}
+                    <Tag
+                      color={p.status === '填报中' ? 'processing' : p.status === '评审中' ? 'warning' : 'success'}
+                      style={{ marginLeft: 8 }}
+                    >
+                      {p.status}
+                    </Tag>
+                  </span>
+                ),
+              }))
+            ]}
           />
         </div>
       </div>

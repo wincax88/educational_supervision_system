@@ -87,12 +87,12 @@ const SubmissionList: React.FC<SubmissionListProps> = ({ districtId, projectId }
 
   // 加载填报记录
   useEffect(() => {
-    if (!districtId || !projectId) return;
+    if (!districtId) return;
 
     const loadData = async () => {
       setLoading(true);
       try {
-        const result = await getDistrictSubmissions(districtId, projectId, {
+        const result = await getDistrictSubmissions(districtId, projectId || undefined, {
           schoolId: selectedSchool || undefined,
           status: selectedStatus || undefined,
         });
@@ -126,7 +126,7 @@ const SubmissionList: React.FC<SubmissionListProps> = ({ districtId, projectId }
   const refreshData = async () => {
     setLoading(true);
     try {
-      const result = await getDistrictSubmissions(districtId, projectId, {
+      const result = await getDistrictSubmissions(districtId, projectId || undefined, {
         schoolId: selectedSchool || undefined,
         status: selectedStatus || undefined,
       });

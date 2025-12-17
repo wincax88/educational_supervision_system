@@ -831,10 +831,6 @@ router.get('/districts/:districtId/submissions', async (req, res) => {
     const { districtId } = req.params;
     const { projectId, schoolId, formId, status } = req.query;
 
-    if (!projectId) {
-      return res.status(400).json({ code: 400, message: '请指定项目ID' });
-    }
-
     // 验证区县存在
     const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
     if (!districtResult.rows[0]) {
@@ -850,15 +846,23 @@ router.get('/districts/:districtId/submissions', async (req, res) => {
              s.created_at as "createdAt", s.updated_at as "updatedAt",
              s.submitted_at as "submittedAt", s.approved_at as "approvedAt",
              t.name as "formName",
+             p.name as "projectName",
              sc.name as "schoolName", sc.code as "schoolCode",
              sc.school_type as "schoolType"
       FROM submissions s
       LEFT JOIN data_tools t ON COALESCE(s.form_id, s.tool_id) = t.id
+      LEFT JOIN projects p ON s.project_id = p.id
       JOIN schools sc ON s.school_id = sc.id
-      WHERE s.project_id = $1 AND sc.district_id = $2
+      WHERE sc.district_id = $1
     `;
-    const params = [projectId, districtId];
-    let paramIndex = 3;
+    const params = [districtId];
+    let paramIndex = 2;
+
+    // 按项目过滤（可选）
+    if (projectId) {
+      sql += ` AND s.project_id = $${paramIndex++}`;
+      params.push(projectId);
+    }
 
     // 按学校过滤
     if (schoolId) {

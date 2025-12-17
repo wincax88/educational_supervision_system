@@ -107,11 +107,33 @@ export async function getTaskStats(projectId: string): Promise<TaskStats> {
 export async function getMyTasks(params?: {
   projectId?: string;
   status?: TaskStatus;
-  /** 可选：当前选中的范围（用于 school_reporter / district_admin 多范围场景，避免看起来“重复”） */
+  /** 可选：当前选中的范围（用于 school_reporter / district_admin 多范围场景，避免看起来"重复"） */
   scopeType?: 'city' | 'district' | 'school';
   scopeId?: string;
 }): Promise<Task[]> {
   return get<Task[]>('/my/tasks', params as Record<string, string>);
+}
+
+// 我的项目类型
+export interface MyProject {
+  id: string;
+  name: string;
+  description?: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  indicatorSystemId?: string;
+  indicatorSystemName?: string;
+  totalTasks: number;
+  completedTasks: number;
+}
+
+// 获取采集员的项目列表（有任务的项目）
+export async function getMyProjects(params?: {
+  scopeType?: 'city' | 'district' | 'school';
+  scopeId?: string;
+}): Promise<MyProject[]> {
+  return get<MyProject[]>('/my/projects', params as Record<string, string>);
 }
 
 // 开始任务（更新状态为进行中）

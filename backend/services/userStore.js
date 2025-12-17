@@ -93,7 +93,7 @@ function seedIfEmpty() {
   const defaults = [
     { username: 'AAA', password: 'BBB', roles: ['admin'], scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
     { username: '111', password: '222', roles: ['city_admin'], scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
-    { username: '333', password: '444', roles: ['district_admin'], scopes: [{ type: 'district', id: 'heping', name: '和平区' }] },
+    { username: '333', password: '444', roles: ['district_admin'], scopes: [{ type: 'district', id: 'd-001', name: '和平区' }] },
     { username: '555', password: '666', roles: ['school_reporter'], scopes: [{ type: 'school', id: 'school1', name: '第一小学' }] },
   ];
   defaults.forEach(u => {

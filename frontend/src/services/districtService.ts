@@ -342,14 +342,15 @@ export async function getSchoolIndicatorDetail(
 // 获取区县下所有学校的填报记录
 export async function getDistrictSubmissions(
   districtId: string,
-  projectId: string,
+  projectId?: string,
   filters?: {
     schoolId?: string;
     formId?: string;
     status?: string;
   }
 ): Promise<DistrictSubmissionsResponse> {
-  const params: Record<string, string> = { projectId };
+  const params: Record<string, string> = {};
+  if (projectId) params.projectId = projectId;
   if (filters?.schoolId) params.schoolId = filters.schoolId;
   if (filters?.formId) params.formId = filters.formId;
   if (filters?.status) params.status = filters.status;

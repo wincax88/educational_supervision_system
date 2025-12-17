@@ -14,6 +14,7 @@ export type ImportFilter = 'all' | 'confirmed' | 'new' | 'conflict';
 // | 系统管理员 | 省级/国家级 | 所有工具模板 | 创建/维护工具模板、项目全局配置 |
 // | 市级管理员 | 市级 | 查看工具、汇总报表 | 查看区县进度，不可编辑数据 |
 // | 区县管理员 | 区县 | 表单审核工具、Excel汇总模板 | 审核本区县所有学校数据、退回修改 |
+// | 区县填报员 | 区县 | 在线表单、Excel填报模板 | 填报区县级采集工具数据 |
 // | 学校填报员 | 学校 | 在线表单、Excel填报模板 | 仅编辑本校原始要素 |
 
 // 角色映射：后端角色 -> 前端角色key（保持一致）
@@ -21,6 +22,7 @@ const backendToFrontendRole: Record<string, string> = {
   system_admin: 'system_admin',
   city_admin: 'city_admin',
   district_admin: 'district_admin',
+  district_reporter: 'district_reporter',
   school_reporter: 'school_reporter',
 };
 
@@ -29,6 +31,7 @@ const frontendToBackendRole: Record<string, string> = {
   system_admin: 'system_admin',
   city_admin: 'city_admin',
   district_admin: 'district_admin',
+  district_reporter: 'district_reporter',
   school_reporter: 'school_reporter',
 };
 
@@ -52,6 +55,7 @@ export function usePersonnel(projectId?: string) {
         system_admin: [],
         city_admin: [],
         district_admin: [],
+        district_reporter: [],
         school_reporter: [],
       };
 

@@ -586,4 +586,86 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
   }
 });
 
+// 获取我的项目列表（采集员视角，返回有任务的项目）
+router.get('/my/projects', verifyToken, roles.collector, async (req, res) => {
+  try {
+    const { scopeType, scopeId } = req.query;
+    const username = req.auth?.username;
+    const u = username ? userStore.getUser(username) : null;
+    let scopes = (req.auth?.scopes && Array.isArray(req.auth.scopes)) ? req.auth.scopes : (u?.scopes || []);
+
+    // 如果前端指定了当前 scope，则只取该 scope
+    if (scopeType && scopeId) {
+      const st = String(scopeType);
+      const sid = String(scopeId);
+      const matched = (scopes || []).find(s => s && s.type === st && s.id === sid);
+      if (Array.isArray(scopes) && scopes.length > 0 && !matched) {
+        return res.status(403).json({ code: 403, message: '当前账号无权访问该范围的数据' });
+      }
+      scopes = matched ? [matched] : scopes;
+    }
+
+    // scope 过滤
+    const schoolScopes = (scopes || []).filter(s => s && s.type === 'school');
+    const districtScopes = (scopes || []).filter(s => s && s.type === 'district');
+    const schoolIds = schoolScopes.map(s => s.id).filter(Boolean);
+    const schoolNames = schoolScopes.map(s => s.name).filter(Boolean);
+    const districtIds = districtScopes.map(s => s.id).filter(Boolean);
+    const districtNames = districtScopes.map(s => s.name).filter(Boolean);
+
+    let sql = `
+      SELECT DISTINCT
+        p.id,
+        p.name,
+        p.description,
+        p.status,
+        p.start_date as "startDate",
+        p.end_date as "endDate",
+        p.indicator_system_id as "indicatorSystemId",
+        isys.name as "indicatorSystemName",
+        (SELECT COUNT(*) FROM tasks t2 WHERE t2.project_id = p.id) as "totalTasks",
+        (SELECT COUNT(*) FROM tasks t3 WHERE t3.project_id = p.id AND t3.status = 'completed') as "completedTasks",
+        p.created_at as "createdAt"
+      FROM tasks t
+      LEFT JOIN projects p ON t.project_id = p.id
+      LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
+      LEFT JOIN indicator_systems isys ON p.indicator_system_id = isys.id
+      WHERE p.is_published = true
+    `;
+    const params = [];
+    let paramIndex = 1;
+
+    // 可选：按范围过滤
+    if (scopeType && scopeId) {
+      const scopeConds = [];
+      if (schoolIds.length > 0) {
+        scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
+        params.push(schoolIds);
+      }
+      if (schoolNames.length > 0) {
+        scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+        params.push(schoolNames);
+      }
+      if (districtIds.length > 0) {
+        scopeConds.push(`(t.target_type = 'district' AND t.target_id = ANY($${paramIndex++}))`);
+        params.push(districtIds);
+      }
+      if (districtNames.length > 0) {
+        scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+        params.push(districtNames);
+      }
+      if (scopeConds.length > 0) {
+        sql += ` AND (${scopeConds.join(' OR ')})`;
+      }
+    }
+
+    sql += ` ORDER BY p.created_at DESC`;
+
+    const result = await db.query(sql, params);
+    res.json({ code: 200, data: result.rows });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
 module.exports = { router, setDb };

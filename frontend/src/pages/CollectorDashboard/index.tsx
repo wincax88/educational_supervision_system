@@ -1,6 +1,6 @@
 /**
  * 数据采集员工作台
- * 显示采集员的任务列表和填报入口
+ * 显示项目列表，点击进入填报任务列表
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -35,18 +35,30 @@ import {
   SafetyCertificateOutlined,
   CloseCircleOutlined,
   InfoCircleOutlined,
+  ArrowLeftOutlined,
+  ProjectOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { useAuthStore } from '../../stores/authStore';
 import * as taskService from '../../services/taskService';
-import type { Task, TaskStatus } from '../../services/taskService';
+import type { Task, TaskStatus, MyProject } from '../../services/taskService';
 import { getSchoolCompliance, SchoolCompliance } from '../../services/schoolService';
 import styles from './index.module.css';
 
 const CollectorDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+
+  // 当前视图: 'projects' 或 'tasks'
+  const [currentView, setCurrentView] = useState<'projects' | 'tasks'>('projects');
+  const [selectedProject, setSelectedProject] = useState<MyProject | null>(null);
+
+  // 项目列表状态
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projects, setProjects] = useState<MyProject[]>([]);
+
+  // 任务列表状态
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -56,8 +68,7 @@ const CollectorDashboard: React.FC = () => {
   const [complianceLoading, setComplianceLoading] = useState(false);
   const [complianceData, setComplianceData] = useState<SchoolCompliance | null>(null);
 
-  // 采集员/学校填报员可能绑定多个范围：优先使用右上角选择的 currentScope；
-  // 如果只有一个 school/district scope，则自动选中，避免“看起来重复”的多范围任务混在一起。
+  // 采集员/学校填报员可能绑定多个范围
   const resolvedScope = useMemo(() => {
     if (!user) return null;
     if (user.currentScope) return user.currentScope;
@@ -69,45 +80,61 @@ const CollectorDashboard: React.FC = () => {
     return null;
   }, [user]);
 
+  // 加载项目列表
+  const loadProjects = useCallback(async () => {
+    setProjectsLoading(true);
+    try {
+      const data = await taskService.getMyProjects(
+        resolvedScope ? { scopeType: resolvedScope.type, scopeId: resolvedScope.id } : undefined
+      );
+      setProjects(data);
+    } catch (error) {
+      console.error('加载项目失败:', error);
+      setProjects([]);
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, [resolvedScope]);
+
   // 加载任务列表
   const loadTasks = useCallback(async () => {
+    if (!selectedProject) return;
     setLoading(true);
     try {
       const data = await taskService.getMyTasks(
-        resolvedScope ? { scopeType: resolvedScope.type, scopeId: resolvedScope.id } : undefined
+        resolvedScope
+          ? { projectId: selectedProject.id, scopeType: resolvedScope.type, scopeId: resolvedScope.id }
+          : { projectId: selectedProject.id }
       );
       setTasks(data);
     } catch (error) {
       console.error('加载任务失败:', error);
-      // 模拟数据用于开发
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [resolvedScope]);
+  }, [resolvedScope, selectedProject]);
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    loadProjects();
+  }, [loadProjects]);
+
+  useEffect(() => {
+    if (currentView === 'tasks' && selectedProject) {
+      loadTasks();
+    }
+  }, [currentView, selectedProject, loadTasks]);
 
   // 加载达标情况（当有学校scope和任务时）
   const loadCompliance = useCallback(async () => {
-    // 需要学校 scope 和至少一个任务（用于获取 projectId）
-    if (!resolvedScope || resolvedScope.type !== 'school') {
-      setComplianceData(null);
-      return;
-    }
-
-    // 从任务中获取第一个项目ID
-    const projectId = tasks.find(t => t.projectId)?.projectId;
-    if (!projectId) {
+    if (!resolvedScope || resolvedScope.type !== 'school' || !selectedProject) {
       setComplianceData(null);
       return;
     }
 
     setComplianceLoading(true);
     try {
-      const data = await getSchoolCompliance(resolvedScope.id, projectId);
+      const data = await getSchoolCompliance(resolvedScope.id, selectedProject.id);
       setComplianceData(data);
     } catch (error) {
       console.error('加载达标情况失败:', error);
@@ -115,13 +142,29 @@ const CollectorDashboard: React.FC = () => {
     } finally {
       setComplianceLoading(false);
     }
-  }, [resolvedScope, tasks]);
+  }, [resolvedScope, selectedProject]);
 
   useEffect(() => {
-    if (tasks.length > 0) {
+    if (currentView === 'tasks' && tasks.length > 0) {
       loadCompliance();
     }
-  }, [tasks, loadCompliance]);
+  }, [currentView, tasks, loadCompliance]);
+
+  // 进入项目填报
+  const handleEnterProject = (project: MyProject) => {
+    setSelectedProject(project);
+    setCurrentView('tasks');
+    setStatusFilter('');
+    setKeyword('');
+  };
+
+  // 返回项目列表
+  const handleBackToProjects = () => {
+    setCurrentView('projects');
+    setSelectedProject(null);
+    setTasks([]);
+    setComplianceData(null);
+  };
 
   // 计算统计数据
   const stats = {
@@ -151,7 +194,6 @@ const CollectorDashboard: React.FC = () => {
       if (task.status === 'pending') {
         await taskService.startTask(task.id);
       }
-      // 跳转到填报页面
       navigate(`/home/balanced/entry/${task.projectId}/form/${task.toolId}`);
     } catch (error) {
       message.error('启动任务失败');
@@ -232,16 +274,176 @@ const CollectorDashboard: React.FC = () => {
     },
   ];
 
-  return (
-    <div className={styles.collectorDashboard}>
-      {/* 欢迎区域 */}
-      <div className={styles.welcomeSection}>
-        <h1 className={styles.welcomeTitle}>
-          欢迎，{user?.username || '采集员'}
-        </h1>
-        <p className={styles.welcomeSubtitle}>
-          您有 <strong>{stats.pending + stats.inProgress}</strong> 个待完成的填报任务
-        </p>
+  // 项目列表视图
+  const renderProjectList = () => {
+    // 计算项目总体统计
+    const projectStats = {
+      total: projects.length,
+      totalTasks: projects.reduce((sum, p) => sum + (Number(p.totalTasks) || 0), 0),
+      completedTasks: projects.reduce((sum, p) => sum + (Number(p.completedTasks) || 0), 0),
+    };
+    const overallCompletionRate = projectStats.totalTasks > 0
+      ? Math.round((projectStats.completedTasks / projectStats.totalTasks) * 100)
+      : 0;
+
+    return (
+      <>
+        {/* 欢迎区域 */}
+        <div className={styles.welcomeSection}>
+          <h1 className={styles.welcomeTitle}>
+            欢迎，{user?.username || '采集员'}
+          </h1>
+          <p className={styles.welcomeSubtitle}>
+            您有 <strong>{projects.length}</strong> 个待填报的评估项目
+          </p>
+        </div>
+
+        {/* 统计卡片 */}
+        <Row gutter={16} className={styles.statsRow}>
+          <Col span={6}>
+            <Card className={styles.statCard}>
+              <Statistic
+                title="参与项目"
+                value={projectStats.total}
+                prefix={<ProjectOutlined />}
+                suffix="个"
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card className={styles.statCard}>
+              <Statistic
+                title="总任务数"
+                value={projectStats.totalTasks}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card className={styles.statCard}>
+              <Statistic
+                title="已完成"
+                value={projectStats.completedTasks}
+                valueStyle={{ color: '#52c41a' }}
+                prefix={<CheckCircleOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card className={styles.statCard}>
+              <div className={styles.progressStat}>
+                <span className={styles.progressLabel}>总完成率</span>
+                <Progress
+                  type="circle"
+                  percent={overallCompletionRate}
+                  width={60}
+                  strokeColor={overallCompletionRate === 100 ? '#52c41a' : '#1890ff'}
+                />
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 项目列表 */}
+        <Card
+          title={
+            <Space>
+              <ProjectOutlined />
+              评估项目列表
+            </Space>
+          }
+          extra={
+            <Button icon={<ReloadOutlined />} onClick={loadProjects}>
+              刷新
+            </Button>
+          }
+          className={styles.taskCard}
+        >
+          <Spin spinning={projectsLoading}>
+            {projects.length > 0 ? (
+              <div className={styles.projectList}>
+                {projects.map(project => {
+                  const totalTasks = Number(project.totalTasks) || 0;
+                  const completedTasks = Number(project.completedTasks) || 0;
+                  const projectCompletionRate = totalTasks > 0
+                    ? Math.round((completedTasks / totalTasks) * 100)
+                    : 0;
+                  const pendingTasks = totalTasks - completedTasks;
+
+                  return (
+                    <div key={project.id} className={styles.projectCard}>
+                      <div className={styles.projectCardHeader}>
+                        <div className={styles.projectMainInfo}>
+                          <span className={styles.projectName}>{project.name}</span>
+                          <Tag color={project.status === '填报中' ? 'processing' : 'default'}>
+                            {project.status}
+                          </Tag>
+                          {project.indicatorSystemName && (
+                            <Tag color="cyan">{project.indicatorSystemName}</Tag>
+                          )}
+                        </div>
+                        <div className={styles.projectProgress}>
+                          <Progress
+                            percent={projectCompletionRate}
+                            size="small"
+                            style={{ width: 120 }}
+                            strokeColor={projectCompletionRate === 100 ? '#52c41a' : '#1890ff'}
+                          />
+                        </div>
+                      </div>
+                      <p className={styles.projectDesc}>
+                        {project.description || '暂无描述'}
+                      </p>
+                      <div className={styles.projectMeta}>
+                        <span>时间: {project.startDate || '-'} ~ {project.endDate || '-'}</span>
+                        <span style={{ marginLeft: 24 }}>
+                          任务: {completedTasks}/{totalTasks} 已完成
+                          {pendingTasks > 0 && (
+                            <Tag color="warning" style={{ marginLeft: 8 }}>{pendingTasks} 待填报</Tag>
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.projectActions}>
+                        <Button
+                          type="primary"
+                          icon={<FormOutlined />}
+                          onClick={() => handleEnterProject(project)}
+                        >
+                          进入填报
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无评估项目"
+              />
+            )}
+          </Spin>
+        </Card>
+      </>
+    );
+  };
+
+  // 任务列表视图
+  const renderTaskList = () => (
+    <>
+      {/* 返回按钮和项目名称 */}
+      <div className={styles.taskListHeader}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={handleBackToProjects}
+          style={{ marginRight: 16 }}
+        >
+          返回项目列表
+        </Button>
+        <h2 className={styles.currentProjectName}>
+          {selectedProject?.name}
+          <Tag color="processing" style={{ marginLeft: 12 }}>{selectedProject?.status}</Tag>
+        </h2>
       </div>
 
       {/* 统计卡片 */}
@@ -418,7 +620,7 @@ const CollectorDashboard: React.FC = () => {
         title={
           <Space>
             <FormOutlined />
-            我的填报任务
+            填报任务列表
           </Space>
         }
         extra={
@@ -494,6 +696,12 @@ const CollectorDashboard: React.FC = () => {
           </div>
         </Card>
       )}
+    </>
+  );
+
+  return (
+    <div className={styles.collectorDashboard}>
+      {currentView === 'projects' ? renderProjectList() : renderTaskList()}
     </div>
   );
 };

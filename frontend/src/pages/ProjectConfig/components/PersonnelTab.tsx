@@ -58,6 +58,7 @@ const getRoleInfo = (role: string): RoleInfo => {
     'system_admin': { name: '系统管理员', desc: '省级/国家级，创建/维护工具模板、项目全局配置' },
     'city_admin': { name: '市级管理员', desc: '市级，查看区县进度，不可编辑数据' },
     'district_admin': { name: '区县管理员', desc: '区县，审核本区县所有学校数据、退回修改' },
+    'district_reporter': { name: '区县填报员', desc: '区县，填报区县级采集工具数据' },
     'school_reporter': { name: '学校填报员', desc: '学校，仅编辑本校原始要素' },
   };
   return roleMap[role] || { name: role, desc: '' };
@@ -106,9 +107,13 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
     return acc;
   }, {} as Record<string, ProjectTool[]>);
 
-  // 获取学校填报员列表（主要填报角色）
-  const reporters = personnel['school_reporter'] || [];
-  const filteredReporters = filterPersonnel('school_reporter');
+  // 获取区县填报员列表
+  const districtReporters = personnel['district_reporter'] || [];
+  const filteredDistrictReporters = filterPersonnel('district_reporter');
+
+  // 获取学校填报员列表
+  const schoolReporters = personnel['school_reporter'] || [];
+  const filteredSchoolReporters = filterPersonnel('school_reporter');
 
   // 自动分配采集工具
   const handleAutoAssign = async () => {
@@ -117,8 +122,9 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       return;
     }
 
-    if (reporters.length === 0) {
-      message.warning('暂无学校填报员，请先添加人员');
+    const allReporters = [...districtReporters, ...schoolReporters];
+    if (allReporters.length === 0) {
+      message.warning('暂无填报员，请先添加人员');
       return;
     }
 
@@ -137,13 +143,24 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       return;
     }
 
+    // 根据填报对象类型确定分配给哪类填报员
+    const getReportersForTarget = (target: string): Personnel[] => {
+      if (target === '区县') return districtReporters;
+      if (target === '学校') return schoolReporters;
+      return schoolReporters; // 默认分配给学校填报员
+    };
+
     Modal.confirm({
       title: '自动分配采集工具',
       content: (
         <div>
-          <p>将为 <strong>{reporters.length}</strong> 名学校填报员分配 <strong>{toolsToAssign.length}</strong> 个采集工具的任务。</p>
+          <p>将根据采集工具的填报对象自动分配任务：</p>
+          <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
+            <li>区县类工具 → 区县填报员 ({districtReporters.length} 人)</li>
+            <li>学校类工具 → 学校填报员 ({schoolReporters.length} 人)</li>
+          </ul>
           {selectedTargetType && <p>筛选条件：填报对象 = {selectedTargetType}</p>}
-          <p style={{ color: '#999', marginTop: 8 }}>每名填报员将被分配所有匹配的工具任务。</p>
+          <p style={{ color: '#999', marginTop: 8 }}>共 {toolsToAssign.length} 个采集工具待分配。</p>
         </div>
       ),
       okText: '确认分配',
@@ -154,13 +171,22 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         let failCount = 0;
 
         try {
-          // 为每个工具分配给所有填报员
+          // 为每个工具分配给对应的填报员
           for (const tool of toolsToAssign) {
             try {
+              const targets = tool.toolTarget ? tool.toolTarget.split(',') : ['学校'];
+              const primaryTarget = targets[0].trim();
+              const targetReporters = getReportersForTarget(primaryTarget);
+
+              if (targetReporters.length === 0) {
+                console.warn(`工具 ${tool.toolName} 的填报对象 ${primaryTarget} 暂无填报员`);
+                continue;
+              }
+
               await taskService.batchCreateTasks({
                 projectId,
                 toolId: tool.toolId,
-                assigneeIds: reporters.map(c => c.id),
+                assigneeIds: targetReporters.map(c => c.id),
               });
               successCount++;
             } catch (err) {
@@ -220,15 +246,23 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       {/* 统计卡片 */}
       <Card size="small" className={styles.statsCard} style={{ marginBottom: 16 }}>
         <Row gutter={24}>
-          <Col span={6}>
+          <Col span={4}>
             <Statistic
-              title="学校填报员"
-              value={reporters.length}
+              title="区县填报员"
+              value={districtReporters.length}
               suffix="人"
               prefix={<UserOutlined />}
             />
           </Col>
-          <Col span={6}>
+          <Col span={4}>
+            <Statistic
+              title="学校填报员"
+              value={schoolReporters.length}
+              suffix="人"
+              prefix={<UserOutlined />}
+            />
+          </Col>
+          <Col span={4}>
             <Statistic
               title="采集工具"
               value={tools.length}
@@ -256,13 +290,13 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
                   ))}
                 </Select>
                 {!disabled && (
-                  <Tooltip title="为所有学校填报员自动分配匹配的采集工具任务">
+                  <Tooltip title="根据采集工具的填报对象自动分配给对应的填报员">
                     <Button
                       type="primary"
                       icon={<ThunderboltOutlined />}
                       onClick={handleAutoAssign}
                       loading={autoAssigning}
-                      disabled={reporters.length === 0 || tools.length === 0}
+                      disabled={(districtReporters.length === 0 && schoolReporters.length === 0) || tools.length === 0}
                     >
                       自动分配任务
                     </Button>
@@ -297,9 +331,9 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         </Card>
       )}
 
-      {/* 人员配置标题行 */}
+      {/* 区县填报员配置 */}
       <div className={styles.personnelHeader}>
-        <h3 className={styles.sectionTitle}>学校填报员</h3>
+        <h3 className={styles.sectionTitle}>区县填报员</h3>
         <div className={styles.personnelActions}>
           <Input
             placeholder="搜索人员"
@@ -320,6 +354,36 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
             <Button
               type="primary"
               icon={<PlusOutlined />}
+              onClick={() => onAddPerson('district_reporter')}
+            >
+              添加填报员
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 区县填报员列表 */}
+      <Table
+        rowKey="id"
+        columns={personnelColumns}
+        dataSource={filteredDistrictReporters}
+        pagination={{
+          pageSize: 10,
+          showTotal: (total) => `共 ${total} 人`,
+          showSizeChanger: true,
+        }}
+        size="small"
+        className={styles.personnelTable}
+      />
+
+      {/* 学校填报员配置 */}
+      <div className={styles.personnelHeader} style={{ marginTop: 24 }}>
+        <h3 className={styles.sectionTitle}>学校填报员</h3>
+        <div className={styles.personnelActions}>
+          {!disabled && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
               onClick={() => onAddPerson('school_reporter')}
             >
               添加填报员
@@ -332,7 +396,7 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       <Table
         rowKey="id"
         columns={personnelColumns}
-        dataSource={filteredReporters}
+        dataSource={filteredSchoolReporters}
         pagination={{
           pageSize: 10,
           showTotal: (total) => `共 ${total} 人`,
