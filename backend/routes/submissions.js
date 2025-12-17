@@ -17,15 +17,32 @@ const now = () => new Date().toISOString();
 function getValueByFieldId(dataObj, fieldId) {
   if (!dataObj || typeof dataObj !== 'object' || !fieldId) return undefined;
 
-  // 优先尝试“原样 key”（很多表单会用带点号的 key 直接存储，而不是嵌套对象）
+  // 优先尝试"原样 key"（很多表单会用带点号的 key 直接存储，而不是嵌套对象）
   if (Object.prototype.hasOwnProperty.call(dataObj, fieldId)) return dataObj[fieldId];
 
   // 再尝试 a.b.c 这种路径读取
   if (typeof fieldId !== 'string' || !fieldId.includes('.')) return undefined;
   const parts = fieldId.split('.').filter(Boolean);
   let cur = dataObj;
-  for (const p of parts) {
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
     if (cur === null || cur === undefined) return undefined;
+
+    // 如果当前值是数组，提取数组中每个元素的剩余路径值并求和
+    if (Array.isArray(cur)) {
+      const remainingPath = parts.slice(i).join('.');
+      let sum = 0;
+      let hasValue = false;
+      for (const item of cur) {
+        const val = getValueByFieldId(item, remainingPath);
+        if (typeof val === 'number' && !isNaN(val)) {
+          sum += val;
+          hasValue = true;
+        }
+      }
+      return hasValue ? sum : undefined;
+    }
+
     const isIndex = /^\d+$/.test(p);
     const key = isIndex ? Number(p) : p;
     cur = cur[key];
@@ -58,6 +75,43 @@ function toIndicatorValue(raw) {
   }
 }
 
+// 安全地计算公式（用元素值替换变量后 eval）
+function evaluateFormula(formula, elementValues) {
+  if (!formula) return null;
+
+  // 提取公式中的所有变量 (E001, E002, D001 等)
+  const varPattern = /[ED]\d{3}/g;
+  const vars = formula.match(varPattern) || [];
+
+  // 检查是否所有变量都有值
+  for (const v of vars) {
+    if (elementValues[v] === undefined || elementValues[v] === null) {
+      return null; // 缺少必要变量，无法计算
+    }
+  }
+
+  // 用实际值替换变量
+  let expr = formula;
+  for (const v of vars) {
+    expr = expr.replace(new RegExp(v, 'g'), elementValues[v]);
+  }
+
+  // 安全计算表达式
+  try {
+    // 只允许数字、运算符、括号
+    if (!/^[\d\s+\-*/().]+$/.test(expr)) {
+      console.warn('[formula] unsafe expression:', expr);
+      return null;
+    }
+    // eslint-disable-next-line no-eval
+    const result = eval(expr);
+    return Number.isFinite(result) ? Math.round(result * 10000) / 10000 : null;
+  } catch (e) {
+    console.warn('[formula] eval error:', e.message, 'expr:', expr);
+    return null;
+  }
+}
+
 async function syncSubmissionIndicators(submissionId) {
   const today = new Date().toISOString().split('T')[0];
 
@@ -87,7 +141,8 @@ async function syncSubmissionIndicators(submissionId) {
     dataObj = {};
   }
 
-  const mappingsResult = await db.query(
+  // ========== 方式1: 直接映射 (field -> data_indicator) ==========
+  const directMappingsResult = await db.query(
     `
       SELECT field_id as "fieldId", target_id as "dataIndicatorId"
       FROM field_mappings
@@ -95,38 +150,117 @@ async function syncSubmissionIndicators(submissionId) {
     `,
     [submission.toolId]
   );
-  const mappings = (mappingsResult.rows || []).filter(m => m.fieldId && m.dataIndicatorId);
-  if (mappings.length === 0) return { written: 0, reason: '该工具未配置 data_indicator 映射' };
+  const directMappings = (directMappingsResult.rows || []).filter(m => m.fieldId && m.dataIndicatorId);
 
-  const extracted = mappings.map(m => {
+  // ========== 方式2: 元素映射 + 公式计算 (field -> element -> formula -> data_indicator) ==========
+  // 2.1 获取元素映射 (field -> element)
+  const elementMappingsResult = await db.query(
+    `
+      SELECT fm.field_id as "fieldId", fm.target_id as "elementId",
+             el.code as "elementCode", el.name as "elementName"
+      FROM field_mappings fm
+      LEFT JOIN elements el ON fm.target_id = el.id
+      WHERE fm.tool_id = $1 AND fm.mapping_type = 'element'
+    `,
+    [submission.toolId]
+  );
+  const elementMappings = (elementMappingsResult.rows || []).filter(m => m.fieldId && m.elementCode);
+
+  // 2.2 从提交数据中提取元素值
+  const elementValues = {};
+  for (const em of elementMappings) {
+    const raw = getValueByFieldId(dataObj, em.fieldId);
+    const { value } = toIndicatorValue(raw);
+    if (value !== null) {
+      elementValues[em.elementCode] = value;
+    }
+  }
+
+  // 2.3 获取项目关联的指标体系
+  const projectResult = await db.query(
+    `SELECT indicator_system_id as "indicatorSystemId" FROM projects WHERE id = $1`,
+    [submission.projectId]
+  );
+  const indicatorSystemId = projectResult.rows[0]?.indicatorSystemId;
+
+  // 2.4 获取数据指标及其关联的元素公式
+  let formulaIndicators = [];
+  if (indicatorSystemId && Object.keys(elementValues).length > 0) {
+    const formulaResult = await db.query(
+      `
+        SELECT di.id as "dataIndicatorId", di.code as "indicatorCode", di.name as "indicatorName",
+               di.threshold, el.formula, el.code as "elementCode"
+        FROM data_indicators di
+        JOIN indicators ind ON di.indicator_id = ind.id
+        LEFT JOIN data_indicator_elements die ON di.id = die.data_indicator_id AND die.mapping_type = 'primary'
+        LEFT JOIN elements el ON die.element_id = el.id
+        WHERE ind.system_id = $1 AND el.formula IS NOT NULL
+      `,
+      [indicatorSystemId]
+    );
+    formulaIndicators = formulaResult.rows || [];
+  }
+
+  // 合并所有需要写入的记录
+  const recordsToWrite = [];
+
+  // 处理直接映射
+  for (const m of directMappings) {
     const raw = getValueByFieldId(dataObj, m.fieldId);
     const { value, textValue } = toIndicatorValue(raw);
-    return { ...m, value, textValue };
-  });
+    if (value !== null || (textValue !== null && textValue !== '')) {
+      recordsToWrite.push({
+        dataIndicatorId: m.dataIndicatorId,
+        value,
+        textValue,
+      });
+    }
+  }
 
-  const toWrite = extracted.filter(x => x.value !== null || (x.textValue !== null && x.textValue !== ''));
-  if (toWrite.length === 0) return { written: 0, reason: '映射字段在 submission.data 中均未取到值' };
+  // 处理公式计算
+  for (const fi of formulaIndicators) {
+    if (!fi.formula) continue;
+    const calculatedValue = evaluateFormula(fi.formula, elementValues);
+    if (calculatedValue !== null) {
+      // 检查是否已被直接映射覆盖
+      const existingIdx = recordsToWrite.findIndex(r => r.dataIndicatorId === fi.dataIndicatorId);
+      if (existingIdx === -1) {
+        recordsToWrite.push({
+          dataIndicatorId: fi.dataIndicatorId,
+          value: calculatedValue,
+          textValue: null,
+          threshold: fi.threshold,
+        });
+      }
+    }
+  }
 
-  const dataIndicatorIds = Array.from(new Set(toWrite.map(x => x.dataIndicatorId)));
+  if (recordsToWrite.length === 0) {
+    return { written: 0, reason: '未找到有效的指标映射或公式计算结果' };
+  }
 
+  // 获取所有相关指标的阈值
+  const allIndicatorIds = Array.from(new Set(recordsToWrite.map(x => x.dataIndicatorId)));
   const thresholdsResult = await db.query(
     `SELECT id, threshold FROM data_indicators WHERE id = ANY($1)`,
-    [dataIndicatorIds]
+    [allIndicatorIds]
   );
   const thresholdById = new Map((thresholdsResult.rows || []).map(r => [r.id, r.threshold]));
 
+  // 获取已存在的记录
   const existingResult = await db.query(
     `
       SELECT id, data_indicator_id as "dataIndicatorId"
       FROM school_indicator_data
       WHERE project_id = $1 AND school_id = $2 AND data_indicator_id = ANY($3)
     `,
-    [submission.projectId, submission.schoolId, dataIndicatorIds]
+    [submission.projectId, submission.schoolId, allIndicatorIds]
   );
   const existingIdByIndicator = new Map((existingResult.rows || []).map(r => [r.dataIndicatorId, r.id]));
 
-  const records = toWrite.map(x => {
-    const threshold = thresholdById.get(x.dataIndicatorId) || null;
+  // 构建最终记录
+  const records = recordsToWrite.map(x => {
+    const threshold = x.threshold || thresholdById.get(x.dataIndicatorId) || null;
     const compliant = threshold && x.value !== null ? checkCompliance(x.value, threshold) : null;
     return {
       id: existingIdByIndicator.get(x.dataIndicatorId) || ('sid-' + generateId()),
@@ -152,7 +286,7 @@ async function syncSubmissionIndicators(submissionId) {
     if (error) throw error;
   }
 
-  return { written: records.length, reason: null };
+  return { written: records.length, directMappings: directMappings.length, formulaCalculated: formulaIndicators.filter(fi => fi.formula && evaluateFormula(fi.formula, elementValues) !== null).length };
 }
 
 // ==================== 项目 CRUD ====================

@@ -3,6 +3,8 @@
  * 处理用户身份验证和权限控制
  */
 
+const sessionStore = require('../services/sessionStore');
+
 /**
  * 验证 Token 中间件
  * 检查请求头中的 Authorization token
@@ -60,10 +62,13 @@ const verifyToken = (req, res, next) => {
   }
 
   // 将解析的信息附加到请求对象
+  const session = sessionStore.getSession(timestamp);
   req.auth = {
     token,
     timestamp,
-    role: parts[2] || null
+    role: parts[2] || null,
+    username: session?.username || null,
+    scopes: session?.scopes || null,
   };
 
   next();

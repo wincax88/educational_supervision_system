@@ -23,6 +23,7 @@ const { router: taskRoutes, setDb: setTaskDb } = require('./routes/tasks');
 const { router: userRoutes } = require('./routes/users');
 const uploadsRouteFactory = require('./routes/uploads');
 const userStore = require('./services/userStore');
+const sessionStore = require('./services/sessionStore');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -100,6 +101,14 @@ app.post('/api/login', loginRules, (req, res) => {
       school_reporter: '学校填报员',
       expert: '评估专家',
     };
+    const ts = Date.now();
+    // 建立会话：用 ts 绑定当前登录用户，供后续 verifyToken 注入 username/scopes
+    sessionStore.setSession(ts, {
+      username,
+      roles,
+      scopes: Array.isArray(user.scopes) ? user.scopes : [],
+    });
+
     res.json({
       code: 200,
       data: {
@@ -108,7 +117,7 @@ app.post('/api/login', loginRules, (req, res) => {
         roles,
         scopes: Array.isArray(user.scopes) ? user.scopes : [],
         roleName: (role && roleNameMap[role]) || user.roleName || '',
-        token: 'token-' + Date.now() + '-' + (role || 'anonymous'),
+        token: 'token-' + ts + '-' + (role || 'anonymous'),
       },
     });
   } else {

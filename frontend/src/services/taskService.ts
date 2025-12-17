@@ -107,6 +107,9 @@ export async function getTaskStats(projectId: string): Promise<TaskStats> {
 export async function getMyTasks(params?: {
   projectId?: string;
   status?: TaskStatus;
+  /** 可选：当前选中的范围（用于 school_reporter / district_admin 多范围场景，避免看起来“重复”） */
+  scopeType?: 'city' | 'district' | 'school';
+  scopeId?: string;
 }): Promise<Task[]> {
   return get<Task[]>('/my/tasks', params as Record<string, string>);
 }

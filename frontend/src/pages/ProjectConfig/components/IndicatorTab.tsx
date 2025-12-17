@@ -33,6 +33,8 @@ import {
   ReloadOutlined,
   EditOutlined,
   DatabaseOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
 import * as indicatorService from '../../../services/indicatorService';
@@ -487,6 +489,40 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
     });
   };
 
+  // 收集所有可展开节点的key
+  const collectAllExpandableKeys = useCallback((treeData: DataNode[]): React.Key[] => {
+    const keys: React.Key[] = [];
+    const traverse = (nodes: DataNode[]) => {
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          keys.push(node.key);
+          traverse(node.children);
+        }
+      });
+    };
+    traverse(treeData);
+    return keys;
+  }, []);
+
+  // 展开/收起全部节点
+  const handleExpandAll = useCallback(() => {
+    const treeData = buildTreeData(indicators);
+    const allKeys = collectAllExpandableKeys(treeData);
+    setExpandedKeys(allKeys);
+  }, [indicators, collectAllExpandableKeys]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedKeys([]);
+  }, []);
+
+  // 判断是否全部展开
+  const isAllExpanded = useCallback(() => {
+    if (indicators.length === 0) return false;
+    const treeData = buildTreeData(indicators);
+    const allKeys = collectAllExpandableKeys(treeData);
+    return allKeys.length > 0 && allKeys.every(key => expandedKeys.includes(key));
+  }, [indicators, expandedKeys, collectAllExpandableKeys]);
+
   // 如果没有关联指标体系
   if (!indicatorSystemId) {
     return (
@@ -580,6 +616,28 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
       {/* 指标树 */}
       <div className={styles.indicatorTreeContainer}>
+        {/* 展开/收起按钮 */}
+        {indicators.length > 0 && (
+          <div style={{ marginBottom: 8, textAlign: 'right' }}>
+            {isAllExpanded() ? (
+              <Button
+                icon={<MenuFoldOutlined />}
+                size="small"
+                onClick={handleCollapseAll}
+              >
+                收起全部
+              </Button>
+            ) : (
+              <Button
+                icon={<MenuUnfoldOutlined />}
+                size="small"
+                onClick={handleExpandAll}
+              >
+                展开全部
+              </Button>
+            )}
+          </div>
+        )}
         <Spin spinning={loading}>
           {indicators.length > 0 ? (
             <Tree

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken, roles } = require('../middleware/auth');
+const userStore = require('../services/userStore');
 
 let db = null;
 
@@ -468,29 +470,60 @@ router.post('/tasks/:id/reset', async (req, res) => {
 });
 
 // 获取我的任务列表（采集员视角）
-router.get('/my/tasks', async (req, res) => {
+router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
   try {
-    const { projectId, status } = req.query;
-    // 注意：实际应用中应该从认证信息中获取当前用户ID
-    // 这里暂时返回空数组，等认证系统完善后实现
+    const { projectId, status, scopeType, scopeId } = req.query;
+    // 通过登录会话（token.timestamp）拿到当前 username/scopes
+    const username = req.auth?.username;
+    const u = username ? userStore.getUser(username) : null;
+    let scopes = (req.auth?.scopes && Array.isArray(req.auth.scopes)) ? req.auth.scopes : (u?.scopes || []);
+
+    // 如果前端指定了当前 scope（例如：学校填报员切换到某一所学校），则只取该 scope
+    if (scopeType && scopeId) {
+      const st = String(scopeType);
+      const sid = String(scopeId);
+      const matched = (scopes || []).find(s => s && s.type === st && s.id === sid);
+      // 如果能识别到用户 scopes，则做权限校验；否则仅按 scope 参数做过滤（兼容服务重启后旧 token）
+      if (Array.isArray(scopes) && scopes.length > 0 && !matched) {
+        return res.status(403).json({ code: 403, message: '当前账号无权访问该范围的数据' });
+      }
+      scopes = matched ? [matched] : scopes;
+    }
+
+    // scope 过滤（学校/区县）
+    const schoolScopes = (scopes || []).filter(s => s && s.type === 'school');
+    const districtScopes = (scopes || []).filter(s => s && s.type === 'district');
+    const schoolIds = schoolScopes.map(s => s.id).filter(Boolean);
+    const schoolNames = schoolScopes.map(s => s.name).filter(Boolean);
+    const districtIds = districtScopes.map(s => s.id).filter(Boolean);
+    const districtNames = districtScopes.map(s => s.name).filter(Boolean);
+
+    // 去重：同一项目同一工具，只展示一个入口（避免“同名任务”出现两条）
+    const distinctOn = `DISTINCT ON (t.project_id, t.tool_id)`;
 
     let sql = `
-      SELECT
+      SELECT ${distinctOn}
         t.id,
         t.project_id as "projectId",
         t.tool_id as "toolId",
         t.assignee_id as "assigneeId",
+        t.target_type as "targetType",
+        t.target_id as "targetId",
         t.status,
         t.due_date as "dueDate",
         t.submission_id as "submissionId",
         t.completed_at as "completedAt",
         t.created_at as "createdAt",
+        t.updated_at as "updatedAt",
         dt.name as "toolName",
         dt.type as "toolType",
-        p.name as "projectName"
+        p.name as "projectName",
+        pp.name as "assigneeName",
+        pp.organization as "assigneeOrg"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
       LEFT JOIN projects p ON t.project_id = p.id
+      LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
       WHERE 1=1
     `;
     const params = [];
@@ -505,7 +538,46 @@ router.get('/my/tasks', async (req, res) => {
       params.push(status);
     }
 
-    sql += ' ORDER BY t.due_date ASC NULLS LAST, t.created_at DESC';
+    // 可选：仅在显式指定 scopeType/scopeId 时尝试按范围过滤
+    if (scopeType && scopeId) {
+      // 优先使用 target_type/target_id（若任务创建时带上），否则回退到 assignee 的 organization 匹配 scope.name
+      const scopeConds = [];
+      if (schoolIds.length > 0) {
+        scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
+        params.push(schoolIds);
+      }
+      if (schoolNames.length > 0) {
+        scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+        params.push(schoolNames);
+      }
+      if (districtIds.length > 0) {
+        scopeConds.push(`(t.target_type = 'district' AND t.target_id = ANY($${paramIndex++}))`);
+        params.push(districtIds);
+      }
+      if (districtNames.length > 0) {
+        scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+        params.push(districtNames);
+      }
+      if (scopeConds.length > 0) {
+        sql += ` AND (${scopeConds.join(' OR ')})`;
+      }
+    }
+
+    // DISTINCT ON 要求 ORDER BY 以 distinct key 作为前缀（并优先返回“更紧急”的那条）
+    sql += `
+      ORDER BY
+        t.project_id,
+        t.tool_id,
+        CASE t.status
+          WHEN 'overdue' THEN 4
+          WHEN 'in_progress' THEN 3
+          WHEN 'pending' THEN 2
+          WHEN 'completed' THEN 1
+          ELSE 0
+        END DESC,
+        t.due_date ASC NULLS LAST,
+        t.created_at DESC
+    `;
 
     const result = await db.query(sql, params);
     res.json({ code: 200, data: result.rows });

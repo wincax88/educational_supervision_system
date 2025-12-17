@@ -3,7 +3,7 @@
  * 显示采集员的任务列表和填报入口
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Card,
   Table,
@@ -46,11 +46,26 @@ const CollectorDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [keyword, setKeyword] = useState('');
 
+  // 采集员/学校填报员可能绑定多个范围：优先使用右上角选择的 currentScope；
+  // 如果只有一个 school/district scope，则自动选中，避免“看起来重复”的多范围任务混在一起。
+  const resolvedScope = useMemo(() => {
+    if (!user) return null;
+    if (user.currentScope) return user.currentScope;
+    const scopes = Array.isArray(user.scopes) ? user.scopes : [];
+    const schoolScopes = scopes.filter((s) => s.type === 'school');
+    if (schoolScopes.length === 1) return schoolScopes[0];
+    const districtScopes = scopes.filter((s) => s.type === 'district');
+    if (districtScopes.length === 1) return districtScopes[0];
+    return null;
+  }, [user]);
+
   // 加载任务列表
   const loadTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await taskService.getMyTasks();
+      const data = await taskService.getMyTasks(
+        resolvedScope ? { scopeType: resolvedScope.type, scopeId: resolvedScope.id } : undefined
+      );
       setTasks(data);
     } catch (error) {
       console.error('加载任务失败:', error);
@@ -59,7 +74,7 @@ const CollectorDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resolvedScope]);
 
   useEffect(() => {
     loadTasks();

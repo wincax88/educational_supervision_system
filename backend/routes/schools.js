@@ -417,34 +417,8 @@ router.post('/schools/import', async (req, res) => {
   }
 });
 
-// 获取学校的指标数据
-router.get('/schools/:id/indicator-data', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { projectId } = req.query;
-
-    if (!projectId) {
-      return res.status(400).json({ code: 400, message: '请提供项目ID' });
-    }
-
-    const result = await db.query(`
-      SELECT sid.id, sid.data_indicator_id as "dataIndicatorId",
-             sid.value, sid.text_value as "textValue", sid.is_compliant as "isCompliant",
-             sid.collected_at as "collectedAt",
-             di.code as "indicatorCode", di.name as "indicatorName", di.threshold
-      FROM school_indicator_data sid
-      JOIN data_indicators di ON sid.data_indicator_id = di.id
-      WHERE sid.school_id = $1 AND sid.project_id = $2
-      ORDER BY di.code
-    `, [id, projectId]);
-
-    res.json({ code: 200, data: result.rows });
-  } catch (error) {
-    res.status(500).json({ code: 500, message: error.message });
-  }
-});
-
 // 获取学校的达标情况
+// 注意：/schools/:id/indicator-data 路由已移至 statistics.js，返回完整的学校+指标数据结构
 router.get('/schools/:id/compliance', async (req, res) => {
   try {
     const { id } = req.params;
