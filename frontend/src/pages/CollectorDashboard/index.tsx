@@ -47,7 +47,8 @@ import { useAuthStore } from '../../stores/authStore';
 import * as taskService from '../../services/taskService';
 import type { Task, TaskStatus, MyProject, ToolFullSchema } from '../../services/taskService';
 import { getSchoolCompliance, getSchoolIndicatorData, SchoolCompliance, SchoolIndicatorData, SchoolIndicatorItem } from '../../services/schoolService';
-import { getSubmissions, Submission } from '../../services/submissionService';
+import { getDistrictSchoolsIndicatorSummary, DistrictSchoolsIndicatorSummary, getDistrictCV, DistrictCVData } from '../../services/districtService';
+import { getSubmissions, getSubmission, Submission } from '../../services/submissionService';
 import styles from './index.module.css';
 
 const CollectorDashboard: React.FC = () => {
@@ -79,6 +80,11 @@ const CollectorDashboard: React.FC = () => {
   const [currentTaskForIndicator, setCurrentTaskForIndicator] = useState<Task | null>(null);
   const [currentSubmission, setCurrentSubmission] = useState<Submission | null>(null);
   const [schoolIndicatorData, setSchoolIndicatorData] = useState<SchoolIndicatorData | null>(null);
+  // 区县数据按学段分开
+  const [districtPrimaryData, setDistrictPrimaryData] = useState<DistrictSchoolsIndicatorSummary | null>(null);
+  const [districtMiddleData, setDistrictMiddleData] = useState<DistrictSchoolsIndicatorSummary | null>(null);
+  const [districtPrimaryCVData, setDistrictPrimaryCVData] = useState<DistrictCVData | null>(null);
+  const [districtMiddleCVData, setDistrictMiddleCVData] = useState<DistrictCVData | null>(null);
 
   // 采集员/学校填报员可能绑定多个范围
   const resolvedScope = useMemo(() => {
@@ -169,9 +175,22 @@ const CollectorDashboard: React.FC = () => {
     setIndicatorLoading(true);
     setCurrentSubmission(null);
     setSchoolIndicatorData(null);
+    setDistrictPrimaryData(null);
+    setDistrictMiddleData(null);
+    setDistrictPrimaryCVData(null);
+    setDistrictMiddleCVData(null);
     try {
-      // 并行加载工具schema、提交数据、以及学校指标数据（如果是学校范围）
-      const promises: [Promise<ToolFullSchema>, Promise<Submission[]>, Promise<SchoolIndicatorData> | null] = [
+      // 并行加载工具schema、提交数据、以及指标数据（根据范围类型）
+      // 区县数据分小学和初中两组
+      const promises: [
+        Promise<ToolFullSchema>,
+        Promise<Submission[]>,
+        Promise<SchoolIndicatorData> | null,
+        Promise<DistrictSchoolsIndicatorSummary> | null,
+        Promise<DistrictSchoolsIndicatorSummary> | null,
+        Promise<DistrictCVData> | null,
+        Promise<DistrictCVData> | null
+      ] = [
         taskService.getToolFullSchema(task.toolId),
         getSubmissions({
           projectId: task.projectId,
@@ -181,22 +200,46 @@ const CollectorDashboard: React.FC = () => {
         resolvedScope?.type === 'school' && selectedProject
           ? getSchoolIndicatorData(resolvedScope.id, selectedProject.id)
           : null,
+        resolvedScope?.type === 'district' && selectedProject
+          ? getDistrictSchoolsIndicatorSummary(resolvedScope.id, selectedProject.id, '小学')
+          : null,
+        resolvedScope?.type === 'district' && selectedProject
+          ? getDistrictSchoolsIndicatorSummary(resolvedScope.id, selectedProject.id, '初中')
+          : null,
+        resolvedScope?.type === 'district' && selectedProject
+          ? getDistrictCV(resolvedScope.id, selectedProject.id, '小学')
+          : null,
+        resolvedScope?.type === 'district' && selectedProject
+          ? getDistrictCV(resolvedScope.id, selectedProject.id, '初中')
+          : null,
       ];
 
-      const [schema, submissions, indicatorData] = await Promise.all([
+      const [schema, submissions, schoolData, primaryData, middleData, primaryCVData, middleCVData] = await Promise.all([
         promises[0],
         promises[1],
         promises[2] || Promise.resolve(null),
+        promises[3] || Promise.resolve(null),
+        promises[4] || Promise.resolve(null),
+        promises[5] || Promise.resolve(null),
+        promises[6] || Promise.resolve(null),
       ]);
 
       setCurrentToolSchema(schema);
-      setSchoolIndicatorData(indicatorData);
+      setSchoolIndicatorData(schoolData);
+      setDistrictPrimaryData(primaryData);
+      setDistrictMiddleData(middleData);
+      setDistrictPrimaryCVData(primaryCVData);
+      setDistrictMiddleCVData(middleCVData);
 
       // 找到当前范围的提交记录（优先已提交的，其次是草稿）
+      // 然后获取完整数据（包含 data 字段）
       if (submissions.length > 0) {
         const submitted = submissions.find(s => s.status === 'submitted' || s.status === 'approved');
         const draft = submissions.find(s => s.status === 'draft');
-        setCurrentSubmission(submitted || draft || submissions[0]);
+        const targetSubmission = submitted || draft || submissions[0];
+        // 列表接口不返回 data 字段，需要单独获取完整数据
+        const fullSubmission = await getSubmission(targetSubmission.id);
+        setCurrentSubmission(fullSubmission);
       }
     } catch (error) {
       console.error('加载指标数据失败:', error);
@@ -214,6 +257,10 @@ const CollectorDashboard: React.FC = () => {
     setCurrentTaskForIndicator(null);
     setCurrentSubmission(null);
     setSchoolIndicatorData(null);
+    setDistrictPrimaryData(null);
+    setDistrictMiddleData(null);
+    setDistrictPrimaryCVData(null);
+    setDistrictMiddleCVData(null);
   }, []);
 
   // 进入项目填报
@@ -944,6 +991,324 @@ const CollectorDashboard: React.FC = () => {
                           <span>采集时间: {new Date(item.collectedAt).toLocaleString('zh-CN')}</span>
                         )}
                       </div>
+                    </div>
+                  </List.Item>
+                );
+              }}
+            />
+          </div>
+        )}
+
+        {/* 区县差异系数（区县端显示）- 小学 */}
+        {resolvedScope?.type === 'district' && districtPrimaryCVData && (
+          <div style={{ marginBottom: 24 }}>
+            <h4 style={{ marginBottom: 12 }}>
+              <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+              小学差异系数 (CV)
+              <Tag
+                color={districtPrimaryCVData.isCompliant ? 'success' : districtPrimaryCVData.isCompliant === false ? 'error' : 'default'}
+                style={{ marginLeft: 12 }}
+              >
+                {districtPrimaryCVData.isCompliant ? '达标' : districtPrimaryCVData.isCompliant === false ? '未达标' : '待评估'}
+              </Tag>
+            </h4>
+            <div style={{ padding: '16px', background: '#fafafa', borderRadius: 4, border: '1px solid #f0f0f0' }}>
+              <Row gutter={24}>
+                <Col span={6}>
+                  <Statistic
+                    title="综合差异系数"
+                    value={districtPrimaryCVData.cvComposite !== null ? (districtPrimaryCVData.cvComposite * 100).toFixed(2) : '-'}
+                    suffix="%"
+                    valueStyle={{
+                      color: districtPrimaryCVData.isCompliant ? '#52c41a' : districtPrimaryCVData.isCompliant === false ? '#ff4d4f' : '#999'
+                    }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="达标阈值"
+                    value={(districtPrimaryCVData.threshold * 100).toFixed(0)}
+                    suffix="%"
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="参与学校" value={districtPrimaryCVData.schoolCount} suffix="所" />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="学段" value="小学" />
+                </Col>
+              </Row>
+              {/* 各指标差异系数详情 */}
+              {districtPrimaryCVData.cvIndicators && Object.keys(districtPrimaryCVData.cvIndicators).length > 0 && (
+                <div style={{ marginTop: 16, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 8 }}>各指标差异系数:</div>
+                  <Row gutter={16}>
+                    {districtPrimaryCVData.cvIndicators.studentTeacherRatio && (
+                      <Col span={8}>
+                        <div style={{ padding: '8px 12px', background: '#fff', borderRadius: 4, border: '1px solid #f0f0f0' }}>
+                          <div style={{ color: '#666', fontSize: 12 }}>生师比 CV</div>
+                          <div style={{ fontSize: 18, fontWeight: 500 }}>
+                            {(districtPrimaryCVData.cvIndicators.studentTeacherRatio.cv! * 100).toFixed(2)}%
+                          </div>
+                          <div style={{ fontSize: 12, color: '#999' }}>
+                            均值: {districtPrimaryCVData.cvIndicators.studentTeacherRatio.mean.toFixed(2)} |
+                            标准差: {districtPrimaryCVData.cvIndicators.studentTeacherRatio.stdDev.toFixed(2)}
+                          </div>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 区县差异系数（区县端显示）- 初中 */}
+        {resolvedScope?.type === 'district' && districtMiddleCVData && (
+          <div style={{ marginBottom: 24 }}>
+            <h4 style={{ marginBottom: 12 }}>
+              <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+              初中差异系数 (CV)
+              <Tag
+                color={districtMiddleCVData.isCompliant ? 'success' : districtMiddleCVData.isCompliant === false ? 'error' : 'default'}
+                style={{ marginLeft: 12 }}
+              >
+                {districtMiddleCVData.isCompliant ? '达标' : districtMiddleCVData.isCompliant === false ? '未达标' : '待评估'}
+              </Tag>
+            </h4>
+            <div style={{ padding: '16px', background: '#fafafa', borderRadius: 4, border: '1px solid #f0f0f0' }}>
+              <Row gutter={24}>
+                <Col span={6}>
+                  <Statistic
+                    title="综合差异系数"
+                    value={districtMiddleCVData.cvComposite !== null ? (districtMiddleCVData.cvComposite * 100).toFixed(2) : '-'}
+                    suffix="%"
+                    valueStyle={{
+                      color: districtMiddleCVData.isCompliant ? '#52c41a' : districtMiddleCVData.isCompliant === false ? '#ff4d4f' : '#999'
+                    }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="达标阈值"
+                    value={(districtMiddleCVData.threshold * 100).toFixed(0)}
+                    suffix="%"
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="参与学校" value={districtMiddleCVData.schoolCount} suffix="所" />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="学段" value="初中" />
+                </Col>
+              </Row>
+              {/* 各指标差异系数详情 */}
+              {districtMiddleCVData.cvIndicators && Object.keys(districtMiddleCVData.cvIndicators).length > 0 && (
+                <div style={{ marginTop: 16, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 8 }}>各指标差异系数:</div>
+                  <Row gutter={16}>
+                    {districtMiddleCVData.cvIndicators.studentTeacherRatio && (
+                      <Col span={8}>
+                        <div style={{ padding: '8px 12px', background: '#fff', borderRadius: 4, border: '1px solid #f0f0f0' }}>
+                          <div style={{ color: '#666', fontSize: 12 }}>生师比 CV</div>
+                          <div style={{ fontSize: 18, fontWeight: 500 }}>
+                            {(districtMiddleCVData.cvIndicators.studentTeacherRatio.cv! * 100).toFixed(2)}%
+                          </div>
+                          <div style={{ fontSize: 12, color: '#999' }}>
+                            均值: {districtMiddleCVData.cvIndicators.studentTeacherRatio.mean.toFixed(2)} |
+                            标准差: {districtMiddleCVData.cvIndicators.studentTeacherRatio.stdDev.toFixed(2)}
+                          </div>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 区县学校指标汇总（区县端显示）- 小学 */}
+        {resolvedScope?.type === 'district' && districtPrimaryData?.schools && districtPrimaryData.schools.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <h4 style={{ marginBottom: 12 }}>
+              <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+              小学指标汇总
+              {districtPrimaryData.summary && (
+                <span style={{ fontWeight: 'normal', fontSize: 12, color: '#666', marginLeft: 12 }}>
+                  {districtPrimaryData.summary.schoolCount} 所学校 |
+                  平均达标率 {districtPrimaryData.summary.avgComplianceRate?.toFixed(1) || 0}%
+                </span>
+              )}
+            </h4>
+            {/* 汇总统计 */}
+            {districtPrimaryData.summary && (
+              <div style={{ marginBottom: 16, padding: '12px 16px', background: '#fafafa', borderRadius: 4 }}>
+                <Row gutter={24}>
+                  <Col span={6}>
+                    <Statistic title="学校数" value={districtPrimaryData.summary.schoolCount} suffix="所" />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic title="总指标数" value={districtPrimaryData.summary.totalIndicators} />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="达标"
+                      value={districtPrimaryData.summary.totalCompliant}
+                      valueStyle={{ color: '#52c41a' }}
+                    />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="未达标"
+                      value={districtPrimaryData.summary.totalNonCompliant}
+                      valueStyle={{ color: '#ff4d4f' }}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            )}
+            {/* 学校列表 */}
+            <List
+              size="small"
+              bordered
+              dataSource={districtPrimaryData.schools}
+              renderItem={(schoolItem) => {
+                const isFullyCompliant = schoolItem.statistics.nonCompliant === 0 && schoolItem.statistics.total > 0;
+                const hasNonCompliant = schoolItem.statistics.nonCompliant > 0;
+                return (
+                  <List.Item>
+                    <div style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Space>
+                          <Tag color={isFullyCompliant ? 'success' : hasNonCompliant ? 'warning' : 'default'}>
+                            {schoolItem.school.schoolType}
+                          </Tag>
+                          <span style={{ fontWeight: 500 }}>{schoolItem.school.name}</span>
+                        </Space>
+                        <Space>
+                          <span style={{ fontSize: 12, color: '#666' }}>
+                            达标率: <strong style={{ color: isFullyCompliant ? '#52c41a' : hasNonCompliant ? '#faad14' : '#999' }}>
+                              {schoolItem.complianceRate?.toFixed(1) || 0}%
+                            </strong>
+                          </span>
+                          <span style={{ fontSize: 12, color: '#52c41a' }}>
+                            {schoolItem.statistics.compliant} 达标
+                          </span>
+                          {hasNonCompliant && (
+                            <span style={{ fontSize: 12, color: '#ff4d4f' }}>
+                              {schoolItem.statistics.nonCompliant} 未达标
+                            </span>
+                          )}
+                        </Space>
+                      </div>
+                      {/* 未达标指标展示 */}
+                      {schoolItem.nonCompliantIndicators && schoolItem.nonCompliantIndicators.length > 0 && (
+                        <div style={{ marginTop: 8, paddingLeft: 12 }}>
+                          <span style={{ fontSize: 12, color: '#ff4d4f' }}>未达标指标: </span>
+                          {schoolItem.nonCompliantIndicators.map((ind, idx) => (
+                            <Tag key={idx} color="error" style={{ marginBottom: 4 }}>
+                              {ind.indicatorCode}: {ind.indicatorName}
+                              (值: {ind.value ?? ind.text_value ?? '-'}, 阈值: {ind.threshold})
+                            </Tag>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </List.Item>
+                );
+              }}
+            />
+          </div>
+        )}
+
+        {/* 区县学校指标汇总（区县端显示）- 初中 */}
+        {resolvedScope?.type === 'district' && districtMiddleData?.schools && districtMiddleData.schools.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <h4 style={{ marginBottom: 12 }}>
+              <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+              初中指标汇总
+              {districtMiddleData.summary && (
+                <span style={{ fontWeight: 'normal', fontSize: 12, color: '#666', marginLeft: 12 }}>
+                  {districtMiddleData.summary.schoolCount} 所学校 |
+                  平均达标率 {districtMiddleData.summary.avgComplianceRate?.toFixed(1) || 0}%
+                </span>
+              )}
+            </h4>
+            {/* 汇总统计 */}
+            {districtMiddleData.summary && (
+              <div style={{ marginBottom: 16, padding: '12px 16px', background: '#fafafa', borderRadius: 4 }}>
+                <Row gutter={24}>
+                  <Col span={6}>
+                    <Statistic title="学校数" value={districtMiddleData.summary.schoolCount} suffix="所" />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic title="总指标数" value={districtMiddleData.summary.totalIndicators} />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="达标"
+                      value={districtMiddleData.summary.totalCompliant}
+                      valueStyle={{ color: '#52c41a' }}
+                    />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="未达标"
+                      value={districtMiddleData.summary.totalNonCompliant}
+                      valueStyle={{ color: '#ff4d4f' }}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            )}
+            {/* 学校列表 */}
+            <List
+              size="small"
+              bordered
+              dataSource={districtMiddleData.schools}
+              renderItem={(schoolItem) => {
+                const isFullyCompliant = schoolItem.statistics.nonCompliant === 0 && schoolItem.statistics.total > 0;
+                const hasNonCompliant = schoolItem.statistics.nonCompliant > 0;
+                return (
+                  <List.Item>
+                    <div style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Space>
+                          <Tag color={isFullyCompliant ? 'success' : hasNonCompliant ? 'warning' : 'default'}>
+                            {schoolItem.school.schoolType}
+                          </Tag>
+                          <span style={{ fontWeight: 500 }}>{schoolItem.school.name}</span>
+                        </Space>
+                        <Space>
+                          <span style={{ fontSize: 12, color: '#666' }}>
+                            达标率: <strong style={{ color: isFullyCompliant ? '#52c41a' : hasNonCompliant ? '#faad14' : '#999' }}>
+                              {schoolItem.complianceRate?.toFixed(1) || 0}%
+                            </strong>
+                          </span>
+                          <span style={{ fontSize: 12, color: '#52c41a' }}>
+                            {schoolItem.statistics.compliant} 达标
+                          </span>
+                          {hasNonCompliant && (
+                            <span style={{ fontSize: 12, color: '#ff4d4f' }}>
+                              {schoolItem.statistics.nonCompliant} 未达标
+                            </span>
+                          )}
+                        </Space>
+                      </div>
+                      {/* 未达标指标展示 */}
+                      {schoolItem.nonCompliantIndicators && schoolItem.nonCompliantIndicators.length > 0 && (
+                        <div style={{ marginTop: 8, paddingLeft: 12 }}>
+                          <span style={{ fontSize: 12, color: '#ff4d4f' }}>未达标指标: </span>
+                          {schoolItem.nonCompliantIndicators.map((ind, idx) => (
+                            <Tag key={idx} color="error" style={{ marginBottom: 4 }}>
+                              {ind.indicatorCode}: {ind.indicatorName}
+                              (值: {ind.value ?? ind.text_value ?? '-'}, 阈值: {ind.threshold})
+                            </Tag>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </List.Item>
                 );

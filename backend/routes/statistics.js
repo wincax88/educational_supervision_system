@@ -804,7 +804,19 @@ router.get('/schools/:schoolId/indicator-data', async (req, res) => {
       return res.status(404).json({ code: 404, message: '学校不存在' });
     }
 
-    // 获取该学校的所有指标数据
+    // 根据学校类型构建指标过滤条件
+    // 小学: 只显示 -D1 后缀或名称包含（小学）的指标
+    // 初中: 只显示 -D2 后缀或名称包含（初中）的指标
+    // 九年一贯制/完全中学: 显示所有指标
+    let indicatorFilter = '';
+    if (school.schoolType === '小学') {
+      indicatorFilter = " AND (di.code LIKE '%-D1' OR di.name LIKE '%（小学）%' OR (di.code NOT LIKE '%-D1' AND di.code NOT LIKE '%-D2' AND di.name NOT LIKE '%（小学）%' AND di.name NOT LIKE '%（初中）%'))";
+    } else if (school.schoolType === '初中') {
+      indicatorFilter = " AND (di.code LIKE '%-D2' OR di.name LIKE '%（初中）%' OR (di.code NOT LIKE '%-D1' AND di.code NOT LIKE '%-D2' AND di.name NOT LIKE '%（小学）%' AND di.name NOT LIKE '%（初中）%'))";
+    }
+    // 九年一贯制和完全中学显示所有指标，不添加过滤条件
+
+    // 获取该学校的指标数据（根据学校类型过滤）
     const indicatorDataResult = await db.query(`
       SELECT sid.id, sid.data_indicator_id as "dataIndicatorId",
              sid.value, sid.text_value as "textValue",
@@ -815,7 +827,7 @@ router.get('/schools/:schoolId/indicator-data', async (req, res) => {
              di.threshold, di.description as "indicatorDescription"
       FROM school_indicator_data sid
       JOIN data_indicators di ON sid.data_indicator_id = di.id
-      WHERE sid.project_id = $1 AND sid.school_id = $2
+      WHERE sid.project_id = $1 AND sid.school_id = $2${indicatorFilter}
       ORDER BY di.code
     `, [projectId, schoolId]);
 

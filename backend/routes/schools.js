@@ -441,15 +441,28 @@ router.get('/schools/:id/compliance', async (req, res) => {
       return res.status(404).json({ code: 404, message: '学校不存在' });
     }
 
+    // 根据学校类型构建指标过滤条件
+    // 小学: 只统计 -D1 后缀或名称包含（小学）的指标
+    // 初中: 只统计 -D2 后缀或名称包含（初中）的指标
+    // 九年一贯制/完全中学: 统计所有指标
+    let indicatorFilter = '';
+    if (school.schoolType === '小学') {
+      indicatorFilter = " AND (di.code LIKE '%-D1' OR di.name LIKE '%（小学）%' OR (di.code NOT LIKE '%-D1' AND di.code NOT LIKE '%-D2' AND di.name NOT LIKE '%（小学）%' AND di.name NOT LIKE '%（初中）%'))";
+    } else if (school.schoolType === '初中') {
+      indicatorFilter = " AND (di.code LIKE '%-D2' OR di.name LIKE '%（初中）%' OR (di.code NOT LIKE '%-D1' AND di.code NOT LIKE '%-D2' AND di.name NOT LIKE '%（小学）%' AND di.name NOT LIKE '%（初中）%'))";
+    }
+    // 九年一贯制和完全中学统计所有指标，不添加过滤条件
+
     // 统计达标情况
     const statsResult = await db.query(`
       SELECT
         COUNT(*) as total,
-        SUM(CASE WHEN is_compliant = 1 THEN 1 ELSE 0 END) as compliant,
-        SUM(CASE WHEN is_compliant = 0 THEN 1 ELSE 0 END) as "nonCompliant",
-        SUM(CASE WHEN is_compliant IS NULL THEN 1 ELSE 0 END) as pending
-      FROM school_indicator_data
-      WHERE school_id = $1 AND project_id = $2
+        SUM(CASE WHEN sid.is_compliant = 1 THEN 1 ELSE 0 END) as compliant,
+        SUM(CASE WHEN sid.is_compliant = 0 THEN 1 ELSE 0 END) as "nonCompliant",
+        SUM(CASE WHEN sid.is_compliant IS NULL THEN 1 ELSE 0 END) as pending
+      FROM school_indicator_data sid
+      JOIN data_indicators di ON sid.data_indicator_id = di.id
+      WHERE sid.school_id = $1 AND sid.project_id = $2${indicatorFilter}
     `, [id, projectId]);
 
     const stats = statsResult.rows[0];
@@ -460,7 +473,7 @@ router.get('/schools/:id/compliance', async (req, res) => {
              di.code, di.name, di.threshold
       FROM school_indicator_data sid
       JOIN data_indicators di ON sid.data_indicator_id = di.id
-      WHERE sid.school_id = $1 AND sid.project_id = $2 AND sid.is_compliant = 0
+      WHERE sid.school_id = $1 AND sid.project_id = $2 AND sid.is_compliant = 0${indicatorFilter}
     `, [id, projectId]);
 
     res.json({

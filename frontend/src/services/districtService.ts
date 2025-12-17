@@ -355,3 +355,39 @@ export async function getDistrictSubmissions(
   if (filters?.status) params.status = filters.status;
   return get<DistrictSubmissionsResponse>(`/districts/${districtId}/submissions`, params);
 }
+
+// 差异系数指标项
+export interface CVIndicatorItem {
+  cv: number | null;
+  mean: number;
+  stdDev: number;
+  count: number;
+}
+
+// 区县差异系数响应
+export interface DistrictCVData {
+  district: {
+    id: string;
+    name: string;
+  };
+  schoolType: string;
+  schoolCount: number;
+  cvIndicators: {
+    studentTeacherRatio?: CVIndicatorItem | null;
+    [key: string]: CVIndicatorItem | null | undefined;
+  };
+  cvComposite: number | null;
+  threshold: number;
+  isCompliant: boolean | null;
+}
+
+// 获取区县差异系数
+export async function getDistrictCV(
+  districtId: string,
+  projectId: string,
+  schoolType?: string
+): Promise<DistrictCVData> {
+  const params: Record<string, string> = { projectId };
+  if (schoolType) params.schoolType = schoolType;
+  return get<DistrictCVData>(`/districts/${districtId}/cv`, params);
+}
