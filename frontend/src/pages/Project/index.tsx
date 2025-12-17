@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Input, Select, Modal, Form, DatePicker, message, Spin, Tag, Popconfirm } from 'antd';
+import { Button, Input, Select, Modal, Form, DatePicker, message, Spin, Tag, Popconfirm, Empty } from 'antd';
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -14,8 +14,12 @@ import {
   SendOutlined,
   StopOutlined,
   EyeOutlined,
+  InfoCircleOutlined,
+  CloseOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 import * as projectService from '../../services/projectService';
 import * as indicatorService from '../../services/indicatorService';
 import * as toolService from '../../services/toolService';
@@ -39,7 +43,11 @@ const ProjectPage: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [editInfoModalVisible, setEditInfoModalVisible] = useState(false);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   // 加载项目列表
   const loadProjects = useCallback(async () => {
@@ -176,16 +184,74 @@ const ProjectPage: React.FC = () => {
     }
   };
 
+  // 查看项目信息
+  const handleViewInfo = (project: Project) => {
+    setCurrentProject(project);
+    setInfoModalVisible(true);
+  };
+
+  // 进入编辑模式
+  const handleEditInfo = () => {
+    if (currentProject) {
+      editForm.setFieldsValue({
+        name: currentProject.name,
+        keywords: Array.isArray(currentProject.keywords)
+          ? currentProject.keywords.join(',')
+          : currentProject.keywords || '',
+        description: currentProject.description,
+        indicatorSystemIds: currentProject.indicatorSystemId ? [currentProject.indicatorSystemId] : [],
+        startDate: currentProject.startDate ? dayjs(currentProject.startDate) : null,
+        endDate: currentProject.endDate ? dayjs(currentProject.endDate) : null,
+      });
+      setInfoModalVisible(false);
+      setEditInfoModalVisible(true);
+    }
+  };
+
+  // 保存编辑
+  const handleSaveInfo = async (values: any) => {
+    if (!currentProject) return;
+    setSaving(true);
+    try {
+      const indicatorSystemIds: string[] = Array.isArray(values.indicatorSystemIds)
+        ? values.indicatorSystemIds
+        : (values.indicatorSystemIds ? [values.indicatorSystemIds] : []);
+      const indicatorSystemId: string | undefined = indicatorSystemIds[0];
+
+      await projectService.updateProject(currentProject.id, {
+        name: values.name,
+        keywords: values.keywords ? values.keywords.split(/[,，;；|\s]+/).filter(Boolean) : [],
+        description: values.description || '',
+        indicatorSystemId,
+        startDate: values.startDate?.format('YYYY-MM-DD'),
+        endDate: values.endDate?.format('YYYY-MM-DD'),
+      });
+      setEditInfoModalVisible(false);
+      message.success('保存成功');
+      await loadProjects();
+    } catch (error: any) {
+      message.error(error.message || '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 状态颜色映射
+  const statusColorMap: Record<string, { tagColor: string; borderColor: string }> = {
+    '配置中': { tagColor: 'default', borderColor: '#d9d9d9' },
+    '填报中': { tagColor: 'processing', borderColor: '#1890ff' },
+    '评审中': { tagColor: 'warning', borderColor: '#fa8c16' },
+    '已中止': { tagColor: 'error', borderColor: '#ff4d4f' },
+    '已完成': { tagColor: 'success', borderColor: '#52c41a' },
+  };
+
   const getStatusTag = (status: string) => {
-    const statusMap: Record<string, { color: string; text: string }> = {
-      '配置中': { color: 'default', text: '配置中' },
-      '填报中': { color: 'processing', text: '填报中' },
-      '评审中': { color: 'warning', text: '评审中' },
-      '已中止': { color: 'error', text: '已中止' },
-      '已完成': { color: 'success', text: '已完成' },
-    };
-    const config = statusMap[status] || { color: 'default', text: status };
-    return <Tag color={config.color}>{config.text}</Tag>;
+    const config = statusColorMap[status] || { tagColor: 'default', borderColor: '#d9d9d9' };
+    return <Tag color={config.tagColor}>{status}</Tag>;
+  };
+
+  const getStatusBorderColor = (status: string) => {
+    return statusColorMap[status]?.borderColor || '#d9d9d9';
   };
 
   // 生成年份选项
@@ -290,35 +356,47 @@ const ProjectPage: React.FC = () => {
           </div>
         ) : (
           filteredList.map(project => (
-            <div key={project.id} className={styles.projectCard}>
-              <div className={styles.projectInfo}>
-                <div className={styles.projectHeader}>
-                  <h4>{project.name}</h4>
+            <div
+              key={project.id}
+              className={styles.projectCard}
+              style={{ borderLeftColor: getStatusBorderColor(project.status) }}
+            >
+              <div className={styles.projectCardHeader}>
+                <div className={styles.projectMainInfo}>
+                  <span className={styles.projectName}>{project.name}</span>
                   {getStatusTag(project.status)}
+                  {project.indicatorSystemName && (
+                    <Tag color="cyan">指标体系: {project.indicatorSystemName}</Tag>
+                  )}
+                </div>
+                <div className={styles.projectStats}>
+                  <span>时间: {project.startDate || '-'} ~ {project.endDate || '-'}</span>
                   {project.isPublished ? (
                     <Tag color="green">已发布</Tag>
                   ) : (
                     <Tag color="default">未发布</Tag>
                   )}
                 </div>
-                <p>{project.description || '暂无描述'}</p>
-                <div className={styles.projectMeta}>
-                  <span>时间: {project.startDate || '-'} ~ {project.endDate || '-'}</span>
-                </div>
+              </div>
+              <p className={styles.projectDesc}>{project.description || '暂无描述'}</p>
+              <div className={styles.projectMeta}>
+                创建时间: {project.createdAt || '-'} &nbsp;&nbsp;
+                创建人: {project.createdBy || '-'} &nbsp;&nbsp;
+                更新时间: {project.updatedAt || '-'} &nbsp;&nbsp;
+                更新人: {project.createdBy || '-'}
               </div>
               <div className={styles.projectActions}>
-                {/* 未发布状态：配置 + 发布 + 删除 */}
+                <span className={styles.actionBtn} onClick={() => handleViewInfo(project)}>
+                  <InfoCircleOutlined /> 基础信息
+                </span>
+                {permissions.canConfigProject && (
+                  <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}>
+                    <SettingOutlined /> 项目配置
+                  </span>
+                )}
+                {/* 未发布状态：发布 + 删除 */}
                 {!project.isPublished && (
                   <>
-                    {permissions.canConfigProject && (
-                      <Button
-                        type="primary"
-                        icon={<SettingOutlined />}
-                        onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
-                      >
-                        配置
-                      </Button>
-                    )}
                     {permissions.canConfigProject && (
                       <Popconfirm
                         title="确认发布"
@@ -327,9 +405,7 @@ const ProjectPage: React.FC = () => {
                         okText="发布"
                         cancelText="取消"
                       >
-                        <Button type="primary" ghost icon={<SendOutlined />}>
-                          发布
-                        </Button>
+                        <span className={styles.actionBtn}>发布</span>
                       </Popconfirm>
                     )}
                     {permissions.canConfigProject && (
@@ -339,26 +415,18 @@ const ProjectPage: React.FC = () => {
                         onConfirm={() => handleDelete(project)}
                         okText="删除"
                         cancelText="取消"
+                        okButtonProps={{ danger: true }}
                       >
-                        <Button danger icon={<DeleteOutlined />}>
-                          删除
-                        </Button>
+                        <span className={`${styles.actionBtn} ${styles.danger}`}>
+                          <DeleteOutlined /> 删除
+                        </span>
                       </Popconfirm>
                     )}
                   </>
                 )}
-                {/* 已发布状态：配置 + 取消发布 + 详情 + 差异系数 + 达标率 */}
+                {/* 已发布状态：取消发布 + 详情 + 差异系数 + 达标率 */}
                 {project.isPublished && (
                   <>
-                    {permissions.canConfigProject && (
-                      <Button
-                        type="primary"
-                        icon={<SettingOutlined />}
-                        onClick={() => navigate(`/home/balanced/project/${project.id}/config`)}
-                      >
-                        配置
-                      </Button>
-                    )}
                     {permissions.canConfigProject && project.status === '配置中' && (
                       <Popconfirm
                         title="确认取消发布"
@@ -367,29 +435,18 @@ const ProjectPage: React.FC = () => {
                         okText="确定"
                         cancelText="取消"
                       >
-                        <Button icon={<StopOutlined />}>
-                          取消发布
-                        </Button>
+                        <span className={styles.actionBtn}>取消发布</span>
                       </Popconfirm>
                     )}
-                    <Button
-                      icon={<EyeOutlined />}
-                      onClick={() => navigate(`/home/balanced/project/${project.id}/detail`)}
-                    >
-                      详情
-                    </Button>
-                    <Button
-                      icon={<BarChartOutlined />}
-                      onClick={() => navigate(`/home/balanced/project/${project.id}/cv-analysis`)}
-                    >
-                      差异系数
-                    </Button>
-                    <Button
-                      icon={<CheckCircleOutlined />}
-                      onClick={() => navigate(`/home/balanced/project/${project.id}/compliance`)}
-                    >
-                      达标率
-                    </Button>
+                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/detail`)}>
+                      <EyeOutlined /> 详情
+                    </span>
+                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/cv-analysis`)}>
+                      <BarChartOutlined /> 差异系数
+                    </span>
+                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/compliance`)}>
+                      <CheckCircleOutlined /> 达标率
+                    </span>
                   </>
                 )}
               </div>
@@ -495,6 +552,127 @@ const ProjectPage: React.FC = () => {
             </Button>
             <Button type="primary" htmlType="submit" loading={saving}>
               确定
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 项目信息查看弹窗 */}
+      <Modal
+        open={infoModalVisible}
+        onCancel={() => setInfoModalVisible(false)}
+        footer={null}
+        width={700}
+        closeIcon={<CloseOutlined />}
+        className={styles.infoModal}
+      >
+        {currentProject && (
+          <div className={styles.infoModalContent}>
+            <div className={styles.infoModalHeader}>
+              <h2 className={styles.infoModalTitle}>{currentProject.name}</h2>
+              <Tag color={currentProject.isPublished ? 'green' : 'default'} className={styles.infoStatusTag}>
+                {currentProject.isPublished ? '已发布' : '未发布'}
+              </Tag>
+            </div>
+            <div className={styles.infoModalMeta}>
+              创建时间: {currentProject.createdAt || '-'} | 创建人: {currentProject.createdBy || '-'} | 更新时间: {currentProject.updatedAt || '-'} | 更新人: {currentProject.createdBy || '-'}
+            </div>
+            <div className={styles.infoModalTags}>
+              {getStatusTag(currentProject.status)}
+              {currentProject.indicatorSystemName && (
+                <Tag color="cyan">指标体系: {currentProject.indicatorSystemName}</Tag>
+              )}
+            </div>
+            <div className={styles.infoModalKeywords}>
+              {(Array.isArray(currentProject.keywords) ? currentProject.keywords : (currentProject.keywords || '').split(/[,，;；|\s]+/).filter(Boolean)).map((keyword: string) => (
+                <Tag key={keyword} color="blue">{keyword}</Tag>
+              ))}
+            </div>
+            <p className={styles.infoModalDesc}>{currentProject.description || '暂无描述'}</p>
+            <div className={styles.infoModalTime}>
+              <span>项目时间: {currentProject.startDate || '-'} ~ {currentProject.endDate || '-'}</span>
+            </div>
+
+            <div className={styles.infoModalAttachments}>
+              <h4>附件 (0)</h4>
+              <div className={styles.attachmentList}>
+                <Empty description="暂无附件" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            </div>
+
+            <div className={styles.infoModalFooter}>
+              <Button onClick={() => setInfoModalVisible(false)}>关闭</Button>
+              {permissions.canConfigProject && (
+                <Button type="primary" icon={<EditOutlined />} onClick={handleEditInfo}>编辑</Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 项目信息编辑弹窗 */}
+      <Modal
+        title="项目信息编辑"
+        open={editInfoModalVisible}
+        onCancel={() => setEditInfoModalVisible(false)}
+        footer={null}
+        width={600}
+        className={styles.editInfoModal}
+      >
+        <p style={{ color: '#666', marginBottom: 24 }}>编辑项目的基本信息</p>
+        <Form form={editForm} onFinish={handleSaveInfo} layout="vertical">
+          <Form.Item
+            label="项目名称"
+            name="name"
+            rules={[{ required: true, message: '请输入项目名称' }]}
+          >
+            <Input placeholder="请输入项目名称" />
+          </Form.Item>
+          <Form.Item label="关键字" name="keywords">
+            <Input placeholder="用逗号、分号、|或空格分割" />
+          </Form.Item>
+          <Form.Item label="项目描述" name="description">
+            <Input.TextArea placeholder="请输入项目描述" rows={3} />
+          </Form.Item>
+          <Form.Item
+            label="指标体系"
+            name="indicatorSystemIds"
+            rules={[
+              {
+                validator: async (_, v) => {
+                  if (Array.isArray(v) && v.length > 0) return;
+                  throw new Error('请选择评估指标体系');
+                }
+              }
+            ]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="选择评估指标体系（可多选）"
+              optionFilterProp="children"
+              maxTagCount="responsive"
+            >
+              {indicatorSystems.map(sys => (
+                <Select.Option key={sys.id} value={sys.id}>{sys.name}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item label="开始时间" name="startDate" style={{ flex: 1 }}>
+              <DatePicker style={{ width: '100%' }} placeholder="年 / 月 / 日" />
+            </Form.Item>
+            <Form.Item label="结束时间" name="endDate" style={{ flex: 1 }}>
+              <DatePicker style={{ width: '100%' }} placeholder="年 / 月 / 日" />
+            </Form.Item>
+          </div>
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Button style={{ marginRight: 8 }} onClick={() => setEditInfoModalVisible(false)}>
+              取消
+            </Button>
+            <Button type="primary" htmlType="submit" loading={saving}>
+              保存
             </Button>
           </Form.Item>
         </Form>

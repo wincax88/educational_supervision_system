@@ -35,6 +35,7 @@ import {
   DatabaseOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
+  FilterOutlined,
 } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
 import * as indicatorService from '../../../services/indicatorService';
@@ -115,6 +116,9 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
   // 要素关联统计
   const [stats, setStats] = useState<ElementAssociationStats>({ total: 0, associated: 0, unassociated: 0 });
+
+  // 筛选状态：all=全部, unassociated=未关联要素
+  const [filterMode, setFilterMode] = useState<'all' | 'unassociated'>('all');
 
   // 自动关联要素（按要素库）
   const [autoLinkModalVisible, setAutoLinkModalVisible] = useState(false);
@@ -413,6 +417,40 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
     );
   };
 
+  // 根据筛选条件过滤指标树
+  const filterIndicatorsByMode = useCallback((indicatorList: Indicator[]): Indicator[] => {
+    if (filterMode === 'all') return indicatorList;
+
+    // 递归过滤，只保留有未关联要素的数据指标的指标节点
+    const filterRecursive = (items: Indicator[]): Indicator[] => {
+      const result: Indicator[] = [];
+
+      for (const ind of items) {
+        // 递归过滤子指标
+        const filteredChildren = ind.children ? filterRecursive(ind.children) : [];
+
+        // 过滤数据指标，只保留未关联要素的
+        const filteredDataIndicators = ind.dataIndicators?.filter(di => {
+          const assoc = elementAssociations.get(di.id);
+          return !assoc?.elements || assoc.elements.length === 0;
+        }) || [];
+
+        // 如果有未关联的数据指标或有子节点包含未关联的，则保留该节点
+        if (filteredDataIndicators.length > 0 || filteredChildren.length > 0) {
+          result.push({
+            ...ind,
+            children: filteredChildren.length > 0 ? filteredChildren : undefined,
+            dataIndicators: filteredDataIndicators.length > 0 ? filteredDataIndicators : undefined,
+          });
+        }
+      }
+
+      return result;
+    };
+
+    return filterRecursive(indicatorList);
+  }, [filterMode, elementAssociations]);
+
   // 构建树形数据
   const buildTreeData = (indicatorList: Indicator[]): DataNode[] => {
     return indicatorList.map(indicator => {
@@ -506,10 +544,11 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
   // 展开/收起全部节点
   const handleExpandAll = useCallback(() => {
-    const treeData = buildTreeData(indicators);
+    const filteredIndicators = filterIndicatorsByMode(indicators);
+    const treeData = buildTreeData(filteredIndicators);
     const allKeys = collectAllExpandableKeys(treeData);
     setExpandedKeys(allKeys);
-  }, [indicators, collectAllExpandableKeys]);
+  }, [indicators, collectAllExpandableKeys, filterIndicatorsByMode]);
 
   const handleCollapseAll = useCallback(() => {
     setExpandedKeys([]);
@@ -517,11 +556,12 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
   // 判断是否全部展开
   const isAllExpanded = useCallback(() => {
-    if (indicators.length === 0) return false;
-    const treeData = buildTreeData(indicators);
+    const filteredIndicators = filterIndicatorsByMode(indicators);
+    if (filteredIndicators.length === 0) return false;
+    const treeData = buildTreeData(filteredIndicators);
     const allKeys = collectAllExpandableKeys(treeData);
     return allKeys.length > 0 && allKeys.every(key => expandedKeys.includes(key));
-  }, [indicators, expandedKeys, collectAllExpandableKeys]);
+  }, [indicators, expandedKeys, collectAllExpandableKeys, filterIndicatorsByMode]);
 
   // 如果没有关联指标体系
   if (!indicatorSystemId) {
@@ -616,41 +656,71 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
       {/* 指标树 */}
       <div className={styles.indicatorTreeContainer}>
-        {/* 展开/收起按钮 */}
+        {/* 筛选和展开/收起按钮 */}
         {indicators.length > 0 && (
-          <div style={{ marginBottom: 8, textAlign: 'right' }}>
-            {isAllExpanded() ? (
-              <Button
-                icon={<MenuFoldOutlined />}
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Space>
+              <FilterOutlined style={{ color: '#666' }} />
+              <Select
+                value={filterMode}
+                onChange={setFilterMode}
+                style={{ width: 140 }}
                 size="small"
-                onClick={handleCollapseAll}
-              >
-                收起全部
-              </Button>
-            ) : (
-              <Button
-                icon={<MenuUnfoldOutlined />}
-                size="small"
-                onClick={handleExpandAll}
-              >
-                展开全部
-              </Button>
-            )}
+                options={[
+                  { value: 'all', label: '全部指标' },
+                  { value: 'unassociated', label: '未关联要素' },
+                ]}
+              />
+              {filterMode === 'unassociated' && stats.unassociated > 0 && (
+                <Tag color="warning">{stats.unassociated} 项未关联</Tag>
+              )}
+            </Space>
+            <Space>
+              {isAllExpanded() ? (
+                <Button
+                  icon={<MenuFoldOutlined />}
+                  size="small"
+                  onClick={handleCollapseAll}
+                >
+                  收起全部
+                </Button>
+              ) : (
+                <Button
+                  icon={<MenuUnfoldOutlined />}
+                  size="small"
+                  onClick={handleExpandAll}
+                >
+                  展开全部
+                </Button>
+              )}
+            </Space>
           </div>
         )}
         <Spin spinning={loading}>
-          {indicators.length > 0 ? (
-            <Tree
-              showLine={{ showLeafIcon: false }}
-              showIcon
-              expandedKeys={expandedKeys}
-              onExpand={(keys) => setExpandedKeys(keys)}
-              treeData={buildTreeData(indicators)}
-              className={styles.indicatorTree}
-            />
-          ) : (
-            <Empty description="暂无指标数据" />
-          )}
+          {(() => {
+            const filteredIndicators = filterIndicatorsByMode(indicators);
+            if (filteredIndicators.length > 0) {
+              return (
+                <Tree
+                  showLine={{ showLeafIcon: false }}
+                  showIcon
+                  expandedKeys={expandedKeys}
+                  onExpand={(keys) => setExpandedKeys(keys)}
+                  treeData={buildTreeData(filteredIndicators)}
+                  className={styles.indicatorTree}
+                />
+              );
+            } else if (indicators.length > 0 && filterMode === 'unassociated') {
+              return (
+                <Empty
+                  description="所有数据指标均已关联要素"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              );
+            } else {
+              return <Empty description="暂无指标数据" />;
+            }
+          })()}
         </Spin>
       </div>
 

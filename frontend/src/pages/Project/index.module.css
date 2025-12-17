@@ -102,46 +102,72 @@
   border-radius: 8px;
   padding: 20px;
   border-left: 4px solid #1890ff;
+}
+
+.projectCardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-}
-
-.projectInfo {
-  flex: 1;
-}
-
-.projectHeader {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.projectHeader h4 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  margin: 0;
-}
-
-.projectInfo p {
-  color: #666;
-  font-size: 14px;
   margin-bottom: 12px;
 }
 
-.projectMeta {
+.projectMainInfo {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  gap: 8px;
+}
+
+.projectName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.projectStats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.projectDesc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.projectMeta {
   font-size: 12px;
   color: #999;
+  margin-bottom: 16px;
 }
 
 .projectActions {
   display: flex;
-  gap: 8px;
-  margin-left: 16px;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  align-items: center;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.actionBtn:hover {
+  color: #1890ff;
+}
+
+.danger:hover {
+  color: #ff4d4f;
 }
 
 .loadingContainer {
@@ -157,4 +183,111 @@
   padding: 60px 20px;
   text-align: center;
   color: #999;
+}
+
+/* 项目信息弹窗样式 */
+.infoModalContent {
+  position: relative;
+}
+
+.infoModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.infoModalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.infoStatusTag {
+  margin-left: 16px;
+}
+
+.infoModalMeta {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.infoModalTags {
+  margin-bottom: 12px;
+}
+
+.infoModalKeywords {
+  margin-bottom: 16px;
+}
+
+.infoModalDesc {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.infoModalTime {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.infoModalAttachments {
+  margin-bottom: 24px;
+}
+
+.infoModalAttachments h4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.attachmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.attachmentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachmentIcon {
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.attachmentName {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.attachmentSize {
+  color: #999;
+  font-size: 13px;
+}
+
+.infoModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
 }
