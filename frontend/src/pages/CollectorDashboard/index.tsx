@@ -20,6 +20,8 @@ import {
   Progress,
   Input,
   Select,
+  Tooltip,
+  List,
 } from 'antd';
 import {
   FormOutlined,
@@ -30,12 +32,16 @@ import {
   SearchOutlined,
   ReloadOutlined,
   RightOutlined,
+  SafetyCertificateOutlined,
+  CloseCircleOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { useAuthStore } from '../../stores/authStore';
 import * as taskService from '../../services/taskService';
 import type { Task, TaskStatus } from '../../services/taskService';
+import { getSchoolCompliance, SchoolCompliance } from '../../services/schoolService';
 import styles from './index.module.css';
 
 const CollectorDashboard: React.FC = () => {
@@ -45,6 +51,10 @@ const CollectorDashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [keyword, setKeyword] = useState('');
+
+  // 达标情况状态
+  const [complianceLoading, setComplianceLoading] = useState(false);
+  const [complianceData, setComplianceData] = useState<SchoolCompliance | null>(null);
 
   // 采集员/学校填报员可能绑定多个范围：优先使用右上角选择的 currentScope；
   // 如果只有一个 school/district scope，则自动选中，避免“看起来重复”的多范围任务混在一起。
@@ -79,6 +89,39 @@ const CollectorDashboard: React.FC = () => {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  // 加载达标情况（当有学校scope和任务时）
+  const loadCompliance = useCallback(async () => {
+    // 需要学校 scope 和至少一个任务（用于获取 projectId）
+    if (!resolvedScope || resolvedScope.type !== 'school') {
+      setComplianceData(null);
+      return;
+    }
+
+    // 从任务中获取第一个项目ID
+    const projectId = tasks.find(t => t.projectId)?.projectId;
+    if (!projectId) {
+      setComplianceData(null);
+      return;
+    }
+
+    setComplianceLoading(true);
+    try {
+      const data = await getSchoolCompliance(resolvedScope.id, projectId);
+      setComplianceData(data);
+    } catch (error) {
+      console.error('加载达标情况失败:', error);
+      setComplianceData(null);
+    } finally {
+      setComplianceLoading(false);
+    }
+  }, [resolvedScope, tasks]);
+
+  useEffect(() => {
+    if (tasks.length > 0) {
+      loadCompliance();
+    }
+  }, [tasks, loadCompliance]);
 
   // 计算统计数据
   const stats = {
@@ -256,6 +299,119 @@ const CollectorDashboard: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* 达标情况展示（仅学校端显示） */}
+      {resolvedScope?.type === 'school' && (
+        <Card
+          title={
+            <Space>
+              <SafetyCertificateOutlined />
+              本校达标情况
+              <Tooltip title="显示提交后的指标达标统计，暂存数据不计入">
+                <InfoCircleOutlined style={{ color: '#999' }} />
+              </Tooltip>
+            </Space>
+          }
+          className={styles.taskCard}
+          style={{ marginBottom: 16 }}
+          extra={
+            <Button
+              icon={<ReloadOutlined />}
+              size="small"
+              onClick={loadCompliance}
+              loading={complianceLoading}
+            >
+              刷新
+            </Button>
+          }
+        >
+          <Spin spinning={complianceLoading}>
+            {complianceData && complianceData.statistics ? (
+              <div>
+                <Row gutter={16} style={{ marginBottom: 16 }}>
+                  <Col span={6}>
+                    <Statistic
+                      title="达标率"
+                      value={complianceData.complianceRate ? parseFloat(complianceData.complianceRate) : 0}
+                      suffix="%"
+                      valueStyle={{
+                        color: parseFloat(complianceData.complianceRate || '0') >= 80
+                          ? '#52c41a'
+                          : parseFloat(complianceData.complianceRate || '0') >= 60
+                          ? '#faad14'
+                          : '#ff4d4f'
+                      }}
+                    />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="已评估指标"
+                      value={complianceData.statistics.total}
+                      suffix="项"
+                    />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="达标"
+                      value={complianceData.statistics.compliant}
+                      valueStyle={{ color: '#52c41a' }}
+                      prefix={<CheckCircleOutlined />}
+                    />
+                  </Col>
+                  <Col span={6}>
+                    <Statistic
+                      title="未达标"
+                      value={complianceData.statistics.nonCompliant}
+                      valueStyle={{ color: '#ff4d4f' }}
+                      prefix={<CloseCircleOutlined />}
+                    />
+                  </Col>
+                </Row>
+
+                {/* 未达标指标列表 */}
+                {complianceData.nonCompliantIndicators && complianceData.nonCompliantIndicators.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontWeight: 500, marginBottom: 8, color: '#ff4d4f' }}>
+                      <ExclamationCircleOutlined style={{ marginRight: 8 }} />
+                      未达标指标详情
+                    </div>
+                    <List
+                      size="small"
+                      bordered
+                      dataSource={complianceData.nonCompliantIndicators}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <Space>
+                            <Tag color="error">{item.code}</Tag>
+                            <span>{item.name}</span>
+                            <span style={{ color: '#999' }}>
+                              (实际值: {item.value}, 阈值: {item.threshold})
+                            </span>
+                          </Space>
+                        </List.Item>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* 全部达标提示 */}
+                {complianceData.statistics.total > 0 &&
+                  complianceData.statistics.nonCompliant === 0 && (
+                  <div style={{ textAlign: 'center', padding: 16, color: '#52c41a' }}>
+                    <CheckCircleOutlined style={{ fontSize: 24, marginRight: 8 }} />
+                    所有指标均已达标
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无达标数据，请先提交填报内容"
+              />
+            )}
+          </Spin>
+        </Card>
+      )}
 
       {/* 任务列表 */}
       <Card
