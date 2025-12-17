@@ -274,7 +274,69 @@ export async function getSchoolIndicatorDetail(
   schoolId: string,
   projectId: string
 ): Promise<SchoolIndicatorDetail> {
-  return get<SchoolIndicatorDetail>(`/schools/${schoolId}/indicator-data`, { projectId });
+  // 后端返回的是指标数据数组，需要同时获取学校信息并构建完整对象
+  const [indicators, school] = await Promise.all([
+    get<Array<{
+      id: string;
+      dataIndicatorId: string;
+      value: number | null;
+      textValue: string | null;
+      isCompliant: number | null;
+      collectedAt: string;
+      indicatorCode: string;
+      indicatorName: string;
+      threshold: string;
+      indicatorDescription?: string;
+      submissionId?: string | null;
+    }>>(`/schools/${schoolId}/indicator-data`, { projectId }),
+    get<{
+      id: string;
+      code: string;
+      name: string;
+      schoolType: string;
+      studentCount: number;
+      teacherCount: number;
+      districtId: string;
+      districtName?: string;
+    }>(`/schools/${schoolId}`)
+  ]);
+
+  // 计算统计信息
+  const stats = {
+    total: indicators.length,
+    compliant: indicators.filter(d => d.isCompliant === 1).length,
+    nonCompliant: indicators.filter(d => d.isCompliant === 0).length,
+    pending: indicators.filter(d => d.isCompliant === null).length
+  };
+
+  // 构建完整的对象结构
+  return {
+    school: {
+      id: school.id,
+      code: school.code,
+      name: school.name,
+      schoolType: school.schoolType,
+      studentCount: school.studentCount,
+      teacherCount: school.teacherCount,
+      districtId: school.districtId,
+      districtName: school.districtName || ''
+    },
+    statistics: stats,
+    complianceRate: stats.total > 0 ? Math.round((stats.compliant / stats.total) * 10000) / 100 : null,
+    indicators: indicators.map(indicator => ({
+      id: indicator.id,
+      dataIndicatorId: indicator.dataIndicatorId,
+      value: indicator.value,
+      textValue: indicator.textValue,
+      isCompliant: indicator.isCompliant,
+      collectedAt: indicator.collectedAt,
+      submissionId: indicator.submissionId || null,
+      indicatorCode: indicator.indicatorCode,
+      indicatorName: indicator.indicatorName,
+      threshold: indicator.threshold,
+      indicatorDescription: indicator.indicatorDescription || ''
+    }))
+  };
 }
 
 // 获取区县下所有学校的填报记录
