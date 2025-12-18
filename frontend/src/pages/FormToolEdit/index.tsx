@@ -233,6 +233,10 @@ const FormToolEdit: React.FC = () => {
   const [propertyTab, setPropertyTab] = useState<string>('basic');
   const [formFields, setFormFields] = useState<FormField[]>([]);
   const [selectedField, setSelectedField] = useState<FormField | null>(null);
+  
+  // 拆分配置状态
+  const [splitConfig, setSplitConfig] = useState<any>(null);
+  const [configModalVisible, setConfigModalVisible] = useState(false);
 
   // 拖拽相关状态
   const [isDraggingControl, setIsDraggingControl] = useState(false);
@@ -253,6 +257,7 @@ const FormToolEdit: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [pendingImportFields, setPendingImportFields] = useState<FormField[]>([]);
+  const [pendingImportConfig, setPendingImportConfig] = useState<any>(null);
 
   // 预览相关状态
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
@@ -275,7 +280,16 @@ const FormToolEdit: React.FC = () => {
         try {
           const schemaResponse = await toolService.getSchema(id);
           if (schemaResponse.schema && schemaResponse.schema.length > 0) {
-            setFormFields(schemaResponse.schema as FormField[]);
+            const rawSchema = schemaResponse.schema as any[];
+            
+            // 分离 config 和字段
+            const configItem = rawSchema.find((item: any) => item.type === 'config' && item.id === '_split_config');
+            const fields = rawSchema.filter((item: any) => item.type !== 'config') as FormField[];
+            
+            if (configItem) {
+              setSplitConfig(configItem);
+            }
+            setFormFields(fields);
           }
         } catch (schemaError) {
           // schema 可能不存在，忽略错误
@@ -295,12 +309,71 @@ const FormToolEdit: React.FC = () => {
     if (!id) return;
 
     try {
-      await toolService.saveToolSchema(id, formFields as any);
+      // 合并 config 和 fields
+      const schemaToSave: any[] = [...formFields];
+      if (splitConfig) {
+        schemaToSave.unshift(splitConfig);
+      }
+      
+      await toolService.saveToolSchema(id, schemaToSave as any);
       message.success('保存成功');
     } catch (error) {
       console.error('保存失败:', error);
       message.error('保存失败');
     }
+  };
+
+  // 初始化拆分配置
+  const handleInitSplitConfig = () => {
+    const defaultConfig = {
+      id: '_split_config',
+      type: 'config',
+      label: '一贯制学校/完全中学数据拆分配置',
+      description: '网络多媒体教室数、教学仪器设备值、体育运动场馆面积、教学及辅助用房面积等四项指标需要做拆分处理',
+      splitRules: {
+        nine_year: {
+          label: '九年一贯制学校',
+          description: '根据小学、初中各自规模，按照一个小学生:一个初中生=1:1.1的比例进行拆分',
+          weights: {
+            primary: 1.0,
+            junior: 1.1
+          },
+          formula: '小学部占比 = (小学生人数 * 1.0) / (小学生人数 * 1.0 + 初中生人数 * 1.1)'
+        },
+        complete_secondary: {
+          label: '完全中学',
+          description: '根据初中、高中各自规模，按照一个初中生:一个高中生=1:1.2的比例进行拆分',
+          weights: {
+            junior: 1.0,
+            senior: 1.2
+          },
+          formula: '初中部占比 = (初中生人数 * 1.0) / (初中生人数 * 1.0 + 高中生人数 * 1.2)'
+        },
+        twelve_year: {
+          label: '十二年一贯制学校',
+          description: '根据小学、初中、高中各自规模，按照一个小学生:一个初中生:一个高中生=1:1.1:1.32的比例进行拆分',
+          weights: {
+            primary: 1.0,
+            junior: 1.1,
+            senior: 1.32
+          },
+          formula: '小学部占比 = (小学生人数 * 1.0) / (小学生人数 * 1.0 + 初中生人数 * 1.1 + 高中生人数 * 1.32)'
+        }
+      },
+      splitFields: [
+        'teaching_auxiliary_area',
+        'sports_venue_total_area',
+        'teaching_equipment_value',
+        'multimedia_classroom_count'
+      ],
+      studentCountFields: {
+        primary: 'primary_student_count',
+        junior: 'junior_student_count',
+        senior: 'senior_student_count'
+      }
+    };
+    setSplitConfig(defaultConfig);
+    setConfigModalVisible(true);
   };
 
   // 控件拖拽开始
@@ -707,11 +780,20 @@ const FormToolEdit: React.FC = () => {
           return;
         }
 
+        // 分离 config 和字段
+        const configItem = fieldsToImport.find((item: any) => item.type === 'config' && item.id === '_split_config');
+        const fieldsOnly = fieldsToImport.filter((item: any) => item.type !== 'config');
+
+        // 如果导入数据中包含 config，保存到待导入状态
+        if (configItem) {
+          setPendingImportConfig(configItem);
+        }
+
         // 验证每个字段
         const validFields: FormField[] = [];
         const invalidCount = { count: 0 };
 
-        fieldsToImport.forEach((field, index) => {
+        fieldsOnly.forEach((field, index) => {
           if (validateImportedField(field)) {
             validFields.push(field as FormField);
           } else {
@@ -745,7 +827,14 @@ const FormToolEdit: React.FC = () => {
             message.warning(`导入内容存在重复字段ID（如：${dupIds.slice(0, 3).join('、')}），可能影响条件显示/联动`);
           }
           setFormFields(normalizedFields);
-          message.success(`成功导入 ${normalizedFields.length} 个字段`);
+          // 如果有 config，同时设置
+          if (pendingImportConfig) {
+            setSplitConfig(pendingImportConfig);
+            setPendingImportConfig(null);
+            message.success(`成功导入 ${normalizedFields.length} 个字段，已识别拆分配置`);
+          } else {
+            message.success(`成功导入 ${normalizedFields.length} 个字段`);
+          }
         }
       } catch (error) {
         console.error('解析 JSON 失败:', error);
@@ -773,8 +862,15 @@ const FormToolEdit: React.FC = () => {
     setFormFields(pendingImportFields);
     setSelectedField(null);
     setImportModalVisible(false);
+    // 如果有待导入的 config，同时设置
+    if (pendingImportConfig) {
+      setSplitConfig(pendingImportConfig);
+      setPendingImportConfig(null);
+      message.success(`成功导入 ${pendingImportFields.length} 个字段（已覆盖原有字段），已更新拆分配置`);
+    } else {
+      message.success(`成功导入 ${pendingImportFields.length} 个字段（已覆盖原有字段）`);
+    }
     setPendingImportFields([]);
-    message.success(`成功导入 ${pendingImportFields.length} 个字段（已覆盖原有字段）`);
   };
 
   // 确认导入 - 追加到现有字段
@@ -783,11 +879,23 @@ const FormToolEdit: React.FC = () => {
     const incomingIds = collectAllIds(pendingImportFields);
     const hasCollision = incomingIds.some((id) => existingIds.has(id));
 
+    // 保存 config 状态（在设置前保存，因为后面会清空）
+    const hasConfig = !!pendingImportConfig;
+
+    // 如果有待导入的 config，同时设置（追加时也更新 config）
+    if (pendingImportConfig) {
+      setSplitConfig(pendingImportConfig);
+      setPendingImportConfig(null);
+    }
+
     if (!hasCollision) {
       setFormFields([...formFields, ...pendingImportFields]);
       setImportModalVisible(false);
       setPendingImportFields([]);
-      message.success(`成功追加 ${pendingImportFields.length} 个字段`);
+      const successMsg = hasConfig 
+        ? `成功追加 ${pendingImportFields.length} 个字段，已更新拆分配置`
+        : `成功追加 ${pendingImportFields.length} 个字段`;
+      message.success(successMsg);
       return;
     }
 
@@ -806,6 +914,7 @@ const FormToolEdit: React.FC = () => {
   const handleImportCancel = () => {
     setImportModalVisible(false);
     setPendingImportFields([]);
+    setPendingImportConfig(null);
   };
 
   // 检查字段是否应该显示（基于 showWhen 条件）
@@ -1594,6 +1703,12 @@ const FormToolEdit: React.FC = () => {
                 setDynamicListData({});
                 setPreviewModalVisible(true);
               }}>预览</Button>
+              <Button 
+                onClick={() => splitConfig ? setConfigModalVisible(true) : handleInitSplitConfig()}
+                icon={<SwapOutlined />}
+              >
+                {splitConfig ? '编辑拆分配置' : '添加拆分配置'}
+              </Button>
               <Button type="primary" onClick={handleSaveSchema}>
                 保存
               </Button>
@@ -2214,6 +2329,66 @@ const FormToolEdit: React.FC = () => {
             {formFields.map(field => renderPreviewFormField(field)).filter(Boolean)}
           </div>
         </div>
+      </Modal>
+
+      {/* 拆分配置编辑弹窗 */}
+      <Modal
+        title="拆分配置"
+        open={configModalVisible}
+        onCancel={() => setConfigModalVisible(false)}
+        onOk={() => {
+          setConfigModalVisible(false);
+          message.success('配置已更新');
+        }}
+        okText="确定"
+        cancelText="取消"
+        width={800}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 8, fontWeight: 500 }}>配置说明：</div>
+          <div style={{ color: '#666', fontSize: 12, lineHeight: 1.6 }}>
+            {splitConfig?.description || '此配置用于自动计算一贯制学校和完全中学的数据拆分'}
+          </div>
+        </div>
+
+        {splitConfig && (
+          <div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 8, fontWeight: 500 }}>拆分规则：</div>
+              {Object.entries(splitConfig.splitRules || {}).map(([key, rule]: [string, any]) => (
+                <div key={key} style={{ marginBottom: 12, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 4 }}>{rule.label}</div>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>{rule.description}</div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    权重: {Object.entries(rule.weights || {}).map(([k, v]) => `${k}: ${v}`).join(', ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 8, fontWeight: 500 }}>需要拆分的字段：</div>
+              <div style={{ fontSize: 12, color: '#666' }}>
+                {splitConfig.splitFields?.join(', ') || '无'}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 8, fontWeight: 500 }}>学生人数字段映射：</div>
+              <div style={{ fontSize: 12, color: '#666' }}>
+                小学: {splitConfig.studentCountFields?.primary || '未设置'}<br />
+                初中: {splitConfig.studentCountFields?.junior || '未设置'}<br />
+                高中: {splitConfig.studentCountFields?.senior || '未设置'}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, padding: 12, background: '#fff7e6', borderRadius: 4, border: '1px solid #ffd591' }}>
+              <div style={{ fontSize: 12, color: '#d46b08' }}>
+                💡 提示：配置已自动保存，点击"确定"关闭窗口。如需修改配置内容，请直接编辑 JSON 文件或联系开发人员。
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

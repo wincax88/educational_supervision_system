@@ -1014,6 +1014,23 @@ router.put('/submissions/:id', async (req, res) => {
     const { data, submitterName, submitterOrg } = req.body;
     const timestamp = now();
 
+    // 先查询当前记录的状态
+    const { data: existing, error: fetchError } = await db
+      .from('submissions')
+      .select('id, status')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!existing) {
+      return res.status(404).json({ code: 404, message: '填报记录不存在' });
+    }
+
+    // 只允许更新草稿状态或驳回状态的记录
+    if (existing.status !== 'draft' && existing.status !== 'rejected') {
+      return res.status(400).json({ code: 400, message: '只能更新草稿状态或驳回状态的填报记录' });
+    }
+
     const { data: updated, error } = await db
       .from('submissions')
       .update({
@@ -1023,12 +1040,12 @@ router.put('/submissions/:id', async (req, res) => {
         updated_at: timestamp,
       })
       .eq('id', req.params.id)
-      .eq('status', 'draft')
+      .in('status', ['draft', 'rejected'])
       .select('id');
 
     if (error) throw error;
     if (!updated || updated.length === 0) {
-      return res.status(400).json({ code: 400, message: '只能更新草稿状态的填报记录' });
+      return res.status(400).json({ code: 400, message: '更新失败' });
     }
 
     return res.json({ code: 200, message: '保存成功' });
@@ -1045,12 +1062,12 @@ router.post('/submissions/:id/submit', async (req, res) => {
       .from('submissions')
       .update({ status: 'submitted', submitted_at: timestamp, updated_at: timestamp })
       .eq('id', req.params.id)
-      .eq('status', 'draft')
+      .in('status', ['draft', 'rejected'])
       .select('id');
 
     if (error) throw error;
     if (!data || data.length === 0) {
-      return res.status(400).json({ code: 400, message: '只能提交草稿状态的填报记录' });
+      return res.status(400).json({ code: 400, message: '只能提交草稿或被驳回状态的填报记录' });
     }
 
     // 提交后同步一次指标数据（有映射则写入 school_indicator_data）

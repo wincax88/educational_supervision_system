@@ -5,6 +5,24 @@
     "label": "一贯制学校/完全中学数据拆分配置",
     "description": "网络多媒体教室数、教学仪器设备值、体育运动场馆面积、教学及辅助用房面积等四项指标需要做拆分处理",
     "splitRules": {
+      "primary": {
+        "label": "小学",
+        "description": "小学类型学校，源字段值按1:1比例直接填充到小学部字段",
+        "weights": {
+          "primary": 1.0
+        },
+        "formula": "小学部值 = 源字段值 * 1.0",
+        "isDirectFill": true
+      },
+      "junior": {
+        "label": "初中",
+        "description": "初中类型学校，源字段值按1:1比例直接填充到初中部字段",
+        "weights": {
+          "junior": 1.0
+        },
+        "formula": "初中部值 = 源字段值 * 1.0",
+        "isDirectFill": true
+      },
       "nine_year": {
         "label": "九年一贯制学校",
         "description": "根据小学、初中各自规模，按照一个小学生:一个初中生=1:1.1的比例进行拆分",
@@ -711,7 +729,7 @@
         "label": "教学及辅助用房面积",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -729,7 +747,7 @@
         "label": "体育运动场馆面积",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -747,7 +765,7 @@
         "label": "教学仪器设备资产值",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -765,7 +783,7 @@
         "label": "网络多媒体教室间数",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "整数",
@@ -1036,7 +1054,7 @@
         "label": "教学及辅助用房面积",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -1054,7 +1072,7 @@
         "label": "体育运动场馆面积",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -1072,7 +1090,7 @@
         "label": "教学仪器设备资产值",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "2位小数",
@@ -1090,7 +1108,7 @@
         "label": "网络多媒体教室间数",
         "placeholder": "系统自动计算",
         "width": "25%",
-        "required": false,
+        "required": true,
         "readonly": true,
         "computed": true,
         "decimalPlaces": "整数",
