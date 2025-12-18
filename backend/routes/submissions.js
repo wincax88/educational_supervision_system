@@ -1058,16 +1058,53 @@ router.put('/submissions/:id', async (req, res) => {
 router.post('/submissions/:id/submit', async (req, res) => {
   try {
     const timestamp = now();
-    const { data, error } = await db
+
+    // 先获取提交记录信息，用于后续匹配任务
+    const { data: submission, error: fetchError } = await db
+      .from('submissions')
+      .select('id, project_id, form_id, tool_id, school_id, status')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!submission) {
+      return res.status(404).json({ code: 404, message: '填报记录不存在' });
+    }
+    if (submission.status !== 'draft' && submission.status !== 'rejected') {
+      return res.status(400).json({ code: 400, message: '只能提交草稿或被驳回状态的填报记录' });
+    }
+
+    const wasRejected = submission.status === 'rejected';
+
+    // 更新提交状态
+    const { error } = await db
       .from('submissions')
       .update({ status: 'submitted', submitted_at: timestamp, updated_at: timestamp })
-      .eq('id', req.params.id)
-      .in('status', ['draft', 'rejected'])
-      .select('id');
+      .eq('id', req.params.id);
 
     if (error) throw error;
-    if (!data || data.length === 0) {
-      return res.status(400).json({ code: 400, message: '只能提交草稿或被驳回状态的填报记录' });
+
+    // 如果是从被驳回状态重新提交，同步更新任务状态为 in_progress
+    if (wasRejected) {
+      const toolId = submission.form_id || submission.tool_id;
+      if (toolId && submission.project_id) {
+        // 方式1：通过 submission_id 匹配
+        await db
+          .from('tasks')
+          .update({ status: 'in_progress', updated_at: timestamp })
+          .eq('submission_id', req.params.id);
+
+        // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
+        if (submission.school_id) {
+          await db
+            .from('tasks')
+            .update({ status: 'in_progress', updated_at: timestamp })
+            .eq('project_id', submission.project_id)
+            .eq('tool_id', toolId)
+            .eq('target_id', submission.school_id)
+            .eq('status', 'rejected'); // 只更新被驳回状态的任务
+        }
+      }
     }
 
     // 提交后同步一次指标数据（有映射则写入 school_indicator_data）
@@ -1128,16 +1165,49 @@ router.post('/submissions/:id/reject', async (req, res) => {
   try {
     const { reason } = req.body;
     const timestamp = now();
-    const { data, error } = await db
+
+    // 先获取提交记录信息，用于后续匹配任务
+    const { data: submission, error: fetchError } = await db
+      .from('submissions')
+      .select('id, project_id, form_id, tool_id, school_id, status')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!submission) {
+      return res.status(404).json({ code: 404, message: '填报记录不存在' });
+    }
+    if (submission.status !== 'submitted') {
+      return res.status(400).json({ code: 400, message: '只能驳回已提交状态的填报记录' });
+    }
+
+    // 更新提交状态为驳回
+    const { error } = await db
       .from('submissions')
       .update({ status: 'rejected', reject_reason: reason || '', updated_at: timestamp })
-      .eq('id', req.params.id)
-      .eq('status', 'submitted')
-      .select('id');
+      .eq('id', req.params.id);
 
     if (error) throw error;
-    if (!data || data.length === 0) {
-      return res.status(400).json({ code: 400, message: '只能驳回已提交状态的填报记录' });
+
+    // 同步更新关联任务的状态为 rejected
+    const toolId = submission.form_id || submission.tool_id;
+    if (toolId && submission.project_id) {
+      // 方式1：通过 submission_id 匹配
+      await db
+        .from('tasks')
+        .update({ status: 'rejected', updated_at: timestamp })
+        .eq('submission_id', req.params.id);
+
+      // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
+      if (submission.school_id) {
+        await db
+          .from('tasks')
+          .update({ status: 'rejected', updated_at: timestamp })
+          .eq('project_id', submission.project_id)
+          .eq('tool_id', toolId)
+          .eq('target_id', submission.school_id)
+          .neq('status', 'rejected'); // 避免重复更新
+      }
     }
 
     return res.json({ code: 200, message: '已驳回' });

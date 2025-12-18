@@ -93,6 +93,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
         inProgress: 0,
         completed: 0,
         overdue: 0,
+        rejected: 0,
         completionRate: 0,
       });
     } finally {

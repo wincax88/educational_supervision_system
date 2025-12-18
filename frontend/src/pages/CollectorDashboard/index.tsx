@@ -299,6 +299,7 @@ const CollectorDashboard: React.FC = () => {
     inProgress: tasks.filter(t => t.status === 'in_progress').length,
     completed: tasks.filter(t => t.status === 'completed').length,
     overdue: tasks.filter(t => t.status === 'overdue').length,
+    rejected: tasks.filter(t => t.status === 'rejected').length,
   };
 
   const completionRate = stats.total > 0
@@ -581,7 +582,7 @@ const CollectorDashboard: React.FC = () => {
 
       {/* 统计卡片 */}
       <Row gutter={16} className={styles.statsRow}>
-        <Col span={5}>
+        <Col span={4}>
           <Card className={styles.statCard}>
             <Statistic
               title="总任务数"
@@ -590,7 +591,7 @@ const CollectorDashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={5}>
+        <Col span={4}>
           <Card className={styles.statCard}>
             <Statistic
               title="待开始"
@@ -600,7 +601,7 @@ const CollectorDashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={5}>
+        <Col span={4}>
           <Card className={styles.statCard}>
             <Statistic
               title="进行中"
@@ -610,13 +611,23 @@ const CollectorDashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={5}>
+        <Col span={4}>
           <Card className={styles.statCard}>
             <Statistic
               title="已完成"
               value={stats.completed}
               valueStyle={{ color: '#52c41a' }}
               prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card className={styles.statCard}>
+            <Statistic
+              title="已驳回"
+              value={stats.rejected}
+              valueStyle={{ color: '#faad14' }}
+              prefix={<ExclamationCircleOutlined />}
             />
           </Card>
         </Col>
@@ -768,6 +779,7 @@ const CollectorDashboard: React.FC = () => {
               <Select.Option value="pending">待开始</Select.Option>
               <Select.Option value="in_progress">进行中</Select.Option>
               <Select.Option value="completed">已完成</Select.Option>
+              <Select.Option value="rejected">已驳回</Select.Option>
               <Select.Option value="overdue">已逾期</Select.Option>
             </Select>
             <Input

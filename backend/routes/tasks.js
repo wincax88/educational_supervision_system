@@ -86,7 +86,8 @@ router.get('/projects/:projectId/tasks/stats', async (req, res) => {
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as "inProgress",
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue
+        SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
       FROM tasks
       WHERE project_id = $1
     `, [projectId]);
@@ -104,6 +105,7 @@ router.get('/projects/:projectId/tasks/stats', async (req, res) => {
         inProgress: parseInt(stats.inProgress) || 0,
         completed,
         overdue: parseInt(stats.overdue) || 0,
+        rejected: parseInt(stats.rejected) || 0,
         completionRate,
       },
     });
@@ -633,7 +635,8 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         t.project_id,
         t.tool_id,
         CASE t.status
-          WHEN 'overdue' THEN 4
+          WHEN 'overdue' THEN 5
+          WHEN 'rejected' THEN 4
           WHEN 'in_progress' THEN 3
           WHEN 'pending' THEN 2
           WHEN 'completed' THEN 1

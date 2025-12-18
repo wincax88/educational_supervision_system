@@ -3,7 +3,7 @@
 import { get, post, put, del } from './api';
 
 // 任务状态
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'overdue';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'overdue' | 'rejected';
 
 // 任务分配类型
 export interface Task {
@@ -33,6 +33,7 @@ export interface TaskStats {
   inProgress: number;
   completed: number;
   overdue: number;
+  rejected: number;
   completionRate: number;
 }
 
@@ -157,6 +158,7 @@ export const taskStatusConfig: Record<TaskStatus, { text: string; color: string 
   in_progress: { text: '进行中', color: 'processing' },
   completed: { text: '已完成', color: 'success' },
   overdue: { text: '已逾期', color: 'error' },
+  rejected: { text: '已驳回', color: 'warning' },
 };
 
 // 目标类型显示配置

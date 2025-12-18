@@ -369,7 +369,18 @@ const DataEntryForm: React.FC = () => {
   const handleSubmit = async () => {
     if (!formId || !projectId) return;
 
+    setSubmitting(true);
+
     try {
+      // 提交前先执行自动计算
+      const currentValues = form.getFieldsValue();
+      const computedValues = computeDerivedValues(currentValues);
+      const splitValues = splitConfig ? computeSplitValues(currentValues) : {};
+      const allComputedValues = { ...computedValues, ...splitValues };
+      if (Object.keys(allComputedValues).length > 0) {
+        form.setFieldsValue(allComputedValues);
+      }
+
       // 验证表单
       await form.validateFields();
 
@@ -382,6 +393,7 @@ const DataEntryForm: React.FC = () => {
 
       // 如果有警告，显示确认框
       if (warnings.length > 0) {
+        setSubmitting(false); // 显示弹窗时暂停 loading
         const confirmed = await new Promise<boolean>((resolve) => {
           import('antd').then(({ Modal }) => {
             Modal.confirm({
@@ -409,9 +421,8 @@ const DataEntryForm: React.FC = () => {
         if (!confirmed) {
           return;
         }
+        setSubmitting(true); // 确认后恢复 loading
       }
-
-      setSubmitting(true);
 
       if (submission) {
         // 更新并提交
@@ -501,6 +512,17 @@ const DataEntryForm: React.FC = () => {
     // 设置表单值
     const normalized = normalizeValuesForPickers(formFields, formValues);
     form.setFieldsValue(normalized);
+
+    // 导入后执行自动计算
+    const computedValues = computeDerivedValues(normalized);
+    const splitValues = splitConfig ? computeSplitValues(normalized) : {};
+    const allComputedValues = { ...computedValues, ...splitValues };
+    if (Object.keys(allComputedValues).length > 0) {
+      form.setFieldsValue(allComputedValues);
+      // 合并计算结果到 normalized
+      Object.assign(normalized, allComputedValues);
+    }
+
     setCurrentFormValues(normalized);
     setFormData(normalized);
 
@@ -816,60 +838,67 @@ const DataEntryForm: React.FC = () => {
     return true;
   }, []);
 
+  // 执行自动计算（内部函数，不显示消息）
+  const performAutoCalculate = useCallback((values: Record<string, any>): Record<string, number> => {
+    const computedValues: Record<string, number> = {};
+
+    // 计算派生字段
+    if (calculateDerivedFields.length > 0) {
+      const derivedValues = computeDerivedValues(values);
+      Object.assign(computedValues, derivedValues);
+    }
+
+    // 计算拆分字段
+    if (splitConfig) {
+      const splitValues = computeSplitValues(values);
+      Object.assign(computedValues, splitValues);
+    }
+
+    return computedValues;
+  }, [calculateDerivedFields, computeDerivedValues, splitConfig, computeSplitValues]);
+
   // 手动触发计算所有计算字段
   const handleManualCalculate = useCallback(() => {
     const allValues = form.getFieldsValue();
-    const computedValues: Record<string, number> = {};
-    
-    // 计算派生字段
-    if (calculateDerivedFields.length > 0) {
-      const derivedValues = computeDerivedValues(allValues);
-      Object.assign(computedValues, derivedValues);
-    }
-    
-    // 计算拆分字段
-    if (splitConfig) {
-      const splitValues = computeSplitValues(allValues);
-      Object.assign(computedValues, splitValues);
-      
-      // 如果拆分计算没有结果，检查原因
-      if (Object.keys(splitValues).length === 0) {
-        const schoolType = allValues.school_type;
-        if (!schoolType) {
-          message.warning('请先选择学校类型');
-          return;
-        }
-        
-        // 对于 primary 和 junior 类型，按1:1填充，不需要检查拆分类型
-        const needSplitTypes = ['nine_year', 'twelve_year', 'complete_secondary'];
-        if (!needSplitTypes.includes(schoolType) && schoolType !== 'primary' && schoolType !== 'junior') {
-          message.info('当前学校类型不需要计算');
-          return;
-        }
-        
-        // 检查学生人数是否填写
-        const primaryCount = splitConfig.studentCountFields?.primary ? allValues[splitConfig.studentCountFields.primary] : undefined;
-        const juniorCount = splitConfig.studentCountFields?.junior ? allValues[splitConfig.studentCountFields.junior] : undefined;
-        const seniorCount = splitConfig.studentCountFields?.senior ? allValues[splitConfig.studentCountFields.senior] : undefined;
-        
-        if (!primaryCount && !juniorCount && !seniorCount) {
-          message.warning('请先填写学生人数');
-          return;
-        }
-        
-        // 检查源字段是否有值
-        const hasSourceValue = splitConfig.splitFields?.some((fieldId: string) => {
-          const value = allValues[fieldId];
-          return typeof value === 'number' && value > 0;
-        });
-        
-        if (!hasSourceValue) {
-          message.warning('请先填写需要拆分的源字段值（如教学及辅助用房面积等）');
-          return;
-        }
+    const computedValues = performAutoCalculate(allValues);
+
+    // 计算拆分字段时的额外检查（用于显示提示）
+    if (splitConfig && Object.keys(computedValues).length === 0) {
+      const schoolType = allValues.school_type;
+      if (!schoolType) {
+        message.warning('请先选择学校类型');
+        return;
+      }
+
+      // 对于 primary 和 junior 类型，按1:1填充，不需要检查拆分类型
+      const needSplitTypes = ['nine_year', 'twelve_year', 'complete_secondary'];
+      if (!needSplitTypes.includes(schoolType) && schoolType !== 'primary' && schoolType !== 'junior') {
+        message.info('当前学校类型不需要计算');
+        return;
+      }
+
+      // 检查学生人数是否填写
+      const primaryCount = splitConfig.studentCountFields?.primary ? allValues[splitConfig.studentCountFields.primary] : undefined;
+      const juniorCount = splitConfig.studentCountFields?.junior ? allValues[splitConfig.studentCountFields.junior] : undefined;
+      const seniorCount = splitConfig.studentCountFields?.senior ? allValues[splitConfig.studentCountFields.senior] : undefined;
+
+      if (!primaryCount && !juniorCount && !seniorCount) {
+        message.warning('请先填写学生人数');
+        return;
+      }
+
+      // 检查源字段是否有值
+      const hasSourceValue = splitConfig.splitFields?.some((fieldId: string) => {
+        const value = allValues[fieldId];
+        return typeof value === 'number' && value > 0;
+      });
+
+      if (!hasSourceValue) {
+        message.warning('请先填写需要拆分的源字段值（如教学及辅助用房面积等）');
+        return;
       }
     }
-    
+
     if (Object.keys(computedValues).length > 0) {
       form.setFieldsValue(computedValues);
       message.success(`计算完成，已更新 ${Object.keys(computedValues).length} 个字段`);
@@ -879,7 +908,7 @@ const DataEntryForm: React.FC = () => {
         message.info('当前表单没有配置自动计算字段');
       }
     }
-  }, [form, calculateDerivedFields, computeDerivedValues, splitConfig, computeSplitValues]);
+  }, [form, performAutoCalculate, splitConfig, calculateDerivedFields]);
 
   // 渲染表单字段（使用 useCallback 优化）
   const renderFormField = useCallback((field: ExtendedFormField, currentValues?: Record<string, any>) => {
@@ -1348,7 +1377,17 @@ const DataEntryForm: React.FC = () => {
       {submission?.status === 'rejected' && (
         <Alert
           message="表单已退回"
-          description="您的填报已被退回，请根据反馈修改后重新提交。"
+          description={
+            <div>
+              <div>您的填报已被退回，请根据反馈修改后重新提交。</div>
+              {submission.rejectReason && (
+                <div style={{ marginTop: 8 }}>
+                  <strong>驳回原因：</strong>
+                  <span style={{ color: '#d46b08' }}>{submission.rejectReason}</span>
+                </div>
+              )}
+            </div>
+          }
           type="warning"
           showIcon
           className={styles.statusAlert}
