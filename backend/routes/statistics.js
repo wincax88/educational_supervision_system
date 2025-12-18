@@ -14,6 +14,17 @@ function calculateCV(values) {
   if (validValues.length === 0) return null;
   const n = validValues.length;
   const mean = validValues.reduce((sum, v) => sum + v, 0) / n;
+
+  // 只有 1 个样本时，标准差/CV 没有统计意义：返回 cv=null（保留 mean/count 便于前端展示）
+  if (n < 2) {
+    return {
+      cv: null,
+      mean: Math.round(mean * 100) / 100,
+      stdDev: null,
+      count: n
+    };
+  }
+
   if (mean === 0) return { cv: 0, mean: 0, stdDev: 0, count: n };
   const variance = validValues.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / n;
   const stdDev = Math.sqrt(variance);
@@ -1781,7 +1792,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
     // 判断差异系数是否全部达标
     const compliantCvCount = cvIndicators.filter(cv => cv.isCompliant === true).length;
     const totalCvCount = cvIndicators.filter(cv => cv.cv !== null).length;
-    const allCvCompliant = totalCvCount > 0 && compliantCvCount === totalCvCount;
+    const allCvCompliant = totalCvCount > 0 ? (compliantCvCount === totalCvCount) : null;
 
     // 统计学校综合达标情况（至少6项达标，余项≥85%）
     const overallCompliantSchools = schoolIndicators.filter(s => s.isOverallCompliant === true).length;
@@ -1799,7 +1810,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           compliantCvCount,
           totalCvCount,
           allCvCompliant,  // 差异系数是否全部达标
-          allCompliant: allCvCompliant,  // 向后兼容别名
+          allCompliant: allCvCompliant,  // 向后兼容别名（无可计算CV时为 null）
           // 学校综合达标统计（至少6项达标，余项≥85%）
           overallCompliance: {
             rule: OVERALL_COMPLIANCE_CONFIG.description || '每所学校至少6项指标达标，余项不低于标准的85%',

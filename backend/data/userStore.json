@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-17T13:09:13.472Z",
+  "updatedAt": "2025-12-18T14:16:41.687Z",
   "users": [
     {
       "username": "AAA",
@@ -46,11 +46,21 @@
           "type": "district",
           "id": "d-010",
           "name": "辽中区"
+        },
+        {
+          "type": "school",
+          "id": "s-011",
+          "name": "沈阳市辽中区茨榆坨中心小学"
+        },
+        {
+          "type": "school",
+          "id": "s-009",
+          "name": "沈阳市辽中区第一初级中学"
         }
       ],
       "status": "active",
       "createdAt": "2025-12-17",
-      "updatedAt": "2025-12-17"
+      "updatedAt": "2025-12-18"
     },
     {
       "username": "111",

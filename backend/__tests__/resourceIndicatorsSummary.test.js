@@ -183,6 +183,60 @@ describe('GET /api/districts/:districtId/resource-indicators-summary', () => {
     expect(school.schoolType).toBe('完全中学');
     expect(school.name).toBe('某完全中学（初中部）');
   });
+
+  it('should not report cv=0 when there is only 1 valid sample (cv should be null)', async () => {
+    const projectId = 'p-001';
+    const districtId = 'd-010';
+
+    // 1 所学校有数据，另 1 所学校无 submission -> 有效样本数=1
+    const db = {
+      query: jest.fn(async (sql, params = []) => {
+        if (sql.includes('FROM districts') && sql.includes('WHERE id = $1')) {
+          return { rows: [{ id: districtId, code: '210115', name: '辽中区' }], rowCount: 1 };
+        }
+
+        if (sql.includes('FROM schools s') && sql.includes('WHERE s.district_id = $1')) {
+          return {
+            rows: [
+              { id: 's-010', code: 'x1', name: '一贯制学校', schoolType: '九年一贯制', studentCount: 800, teacherCount: 50 },
+              { id: 's-011', code: 'x2', name: '小学', schoolType: '小学', studentCount: 450, teacherCount: 30 },
+            ],
+            rowCount: 2,
+          };
+        }
+
+        if (sql.includes('FROM submissions s') && sql.includes("s.status IN ('approved', 'submitted', 'rejected')")) {
+          // 只有 s-010 有 submission，s-011 返回空
+          const schoolId = params[0];
+          if (schoolId === 's-010') {
+            return {
+              rows: [{
+                form_data: JSON.stringify({ primary_student_count: 1000, primary_bachelor_degree_teacher_count: 40 }),
+                submission_status: 'approved',
+                submitted_at: '2025-12-18T09:22:51.278Z',
+              }],
+              rowCount: 1,
+            };
+          }
+          return { rows: [], rowCount: 0 };
+        }
+
+        return { rows: [], rowCount: 0 };
+      }),
+    };
+
+    const app = createApp(db);
+    const res = await request(app)
+      .get(`/api/districts/${districtId}/resource-indicators-summary?projectId=${projectId}&schoolType=${encodeURIComponent('小学')}`)
+      .expect(200);
+
+    // 有效样本数不足 2 时，cv 应为 null
+    const cvL1 = res.body.data.summary.cvIndicators.find(i => i.code === 'L1');
+    expect(cvL1).toBeDefined();
+    expect(cvL1.count).toBe(1);
+    expect(cvL1.cv).toBeNull();
+    expect(res.body.data.summary.allCvCompliant).toBeNull();
+  });
 });
 
 
