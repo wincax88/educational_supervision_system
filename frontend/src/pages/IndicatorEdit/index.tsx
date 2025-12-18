@@ -125,6 +125,19 @@ const IndicatorEdit: React.FC = () => {
   const [selectedAutoLinkToolId, setSelectedAutoLinkToolId] = useState<string | undefined>();
   const [autoLinking, setAutoLinking] = useState(false);
 
+  // 修复错误关联弹窗状态
+  interface IncorrectLinkItem {
+    element: Element;
+    currentFieldId: string;
+    currentFieldLabel?: string;
+    suggestedFieldId?: string;
+    suggestedFieldLabel?: string;
+    canFix: boolean;
+  }
+  const [fixLinkModalVisible, setFixLinkModalVisible] = useState(false);
+  const [incorrectLinks, setIncorrectLinks] = useState<IncorrectLinkItem[]>([]);
+  const [fixingLinks, setFixingLinks] = useState(false);
+
   // 筛选状态: 'all' | 'unlinked' | 'linked'
   const [filterType, setFilterType] = useState<'all' | 'unlinked' | 'linked'>('all');
 
@@ -540,8 +553,43 @@ const IndicatorEdit: React.FC = () => {
     }
   };
 
+  // 验证要素名称和字段ID是否匹配（检查小学/初中/高中前缀）
+  const validateElementFieldMatch = (elementName: string, fieldId: string): boolean => {
+    const hasPrimary = elementName.includes('小学');
+    const hasJunior = elementName.includes('初中');
+    const hasSenior = elementName.includes('高中');
+    
+    const fieldIsPrimary = fieldId.includes('primary_');
+    const fieldIsJunior = fieldId.includes('junior_');
+    const fieldIsSenior = fieldId.includes('senior_');
+    
+    // 如果要素名称包含"小学"，字段ID应该包含"primary_"
+    if (hasPrimary && !fieldIsPrimary) return false;
+    if (fieldIsPrimary && !hasPrimary) return false;
+    
+    // 如果要素名称包含"初中"，字段ID应该包含"junior_"
+    if (hasJunior && !fieldIsJunior) return false;
+    if (fieldIsJunior && !hasJunior) return false;
+    
+    // 如果要素名称包含"高中"，字段ID应该包含"senior_"
+    if (hasSenior && !fieldIsSenior) return false;
+    if (fieldIsSenior && !hasSenior) return false;
+    
+    return true;
+  };
+
   // 智能匹配要素名称和表单字段
-  const matchElementToField = (elementName: string, fields: FlattenedField[]): FlattenedField | null => {
+  const matchElementToField = (elementName: string, fields: FlattenedField[], elementFieldId?: string): FlattenedField | null => {
+    // 策略0: 如果要素有 fieldId，优先使用 fieldId 进行精确匹配
+    // 但需要验证前缀是否正确，避免初中要素关联到小学字段
+    if (elementFieldId) {
+      const fieldIdMatch = fields.find(f => f.id === elementFieldId);
+      if (fieldIdMatch && validateElementFieldMatch(elementName, fieldIdMatch.id)) {
+        return fieldIdMatch;
+      }
+      // 如果 fieldId 存在但前缀不匹配，忽略它，继续使用其他策略
+    }
+
     // 清理要素名称（去除单位等）
     const cleanName = elementName
       .replace(/（[^）]*）/g, '') // 去除括号内容如（万人）、（元）
@@ -552,27 +600,235 @@ const IndicatorEdit: React.FC = () => {
     const exactMatch = fields.find(f => f.label === elementName || f.label === cleanName);
     if (exactMatch) return exactMatch;
 
-    // 策略2: 字段标签包含要素名
-    const fieldContainsElement = fields.find(f =>
-      f.label.includes(cleanName) || cleanName.includes(f.label)
-    );
-    if (fieldContainsElement) return fieldContainsElement;
+    // 策略2: 改进的包含匹配 - 避免"初中体育运动场馆面积"匹配到"体育运动场馆面积"
+    // 只有当要素名称去除"小学"/"初中"前缀后等于字段标签时，才认为是匹配
+    // 并且优先匹配字段ID前缀正确的字段
+    const removePrefix = (name: string) => {
+      return name.replace(/^(小学|初中|高中)/, '').trim();
+    };
+    const elementNameWithoutPrefix = removePrefix(cleanName);
+    
+    // 先尝试匹配字段ID前缀正确的字段
+    const hasPrimary = cleanName.includes('小学');
+    const hasJunior = cleanName.includes('初中');
+    const hasSenior = cleanName.includes('高中');
+    
+    const candidates = fields.filter(f => {
+      const fieldLabelWithoutPrefix = removePrefix(f.label);
+      // 精确匹配去除前缀后的名称
+      if (fieldLabelWithoutPrefix === elementNameWithoutPrefix && elementNameWithoutPrefix.length > 0) {
+        return true;
+      }
+      // 或者字段标签完全等于要素名称（去除前缀后）
+      if (f.label === elementNameWithoutPrefix) {
+        return true;
+      }
+      return false;
+    });
+    
+    // 如果有多个候选，优先选择字段ID前缀匹配的
+    if (candidates.length > 0) {
+      const exactPrefixMatch = candidates.find(f => {
+        if (hasPrimary && f.id.includes('primary_')) return true;
+        if (hasJunior && f.id.includes('junior_')) return true;
+        if (hasSenior && f.id.includes('senior_')) return true;
+        return false;
+      });
+      if (exactPrefixMatch) return exactPrefixMatch;
+      // 如果没有精确匹配，返回第一个候选（可能是通用字段）
+      return candidates[0];
+    }
 
-    // 策略3: 关键词匹配（至少3个字符的公共子串）
+    // 策略3: 字段标签包含要素名（但要求更严格，避免误匹配）
+    // 只有当要素名称长度 >= 字段标签长度，且字段标签是要素名称的子串时，才匹配
+    const containsCandidates = fields.filter(f => {
+      // 如果字段标签是要素名称的子串，且长度至少为5个字符（避免太短的误匹配）
+      if (cleanName.includes(f.label) && f.label.length >= 5) {
+        return true;
+      }
+      // 如果要素名称是字段标签的子串，且要素名称长度至少为5个字符
+      if (f.label.includes(cleanName) && cleanName.length >= 5) {
+        return true;
+      }
+      return false;
+    });
+    if (containsCandidates.length > 0) {
+      // 优先选择字段ID前缀匹配的
+      const prefixMatch = containsCandidates.find(f => {
+        if (hasPrimary && f.id.includes('primary_')) return true;
+        if (hasJunior && f.id.includes('junior_')) return true;
+        if (hasSenior && f.id.includes('senior_')) return true;
+        return false;
+      });
+      if (prefixMatch) return prefixMatch;
+      // 如果没有精确前缀匹配，返回第一个候选
+      return containsCandidates[0];
+    }
+
+    // 策略4: 关键词匹配（至少5个字符的公共子串，提高匹配精度）
+    const keywordCandidates: FlattenedField[] = [];
     for (const field of fields) {
       const fieldLabel = field.label;
-      // 检查是否有足够长的公共子串
-      for (let len = Math.min(cleanName.length, fieldLabel.length); len >= 3; len--) {
-        for (let i = 0; i <= cleanName.length - len; i++) {
+      // 检查是否有足够长的公共子串（至少5个字符）
+      let matched = false;
+      for (let len = Math.min(cleanName.length, fieldLabel.length); len >= 5 && !matched; len--) {
+        for (let i = 0; i <= cleanName.length - len && !matched; i++) {
           const substr = cleanName.substring(i, i + len);
           if (fieldLabel.includes(substr)) {
-            return field;
+            keywordCandidates.push(field);
+            matched = true;
           }
         }
       }
     }
+    if (keywordCandidates.length > 0) {
+      // 优先选择字段ID前缀匹配的
+      const prefixMatch = keywordCandidates.find(f => {
+        if (hasPrimary && f.id.includes('primary_')) return true;
+        if (hasJunior && f.id.includes('junior_')) return true;
+        if (hasSenior && f.id.includes('senior_')) return true;
+        return false;
+      });
+      if (prefixMatch) return prefixMatch;
+      // 如果没有精确前缀匹配，返回第一个候选
+      return keywordCandidates[0];
+    }
 
     return null;
+  };
+
+  // 检测错误关联并显示预览弹窗
+  const handleFixIncorrectLinks = async () => {
+    if (!library) {
+      message.warning('请先加载要素库');
+      return;
+    }
+
+    // 找出所有已关联但关联错误的要素
+    const incorrectElements = library.elements.filter(el => {
+      if (el.elementType !== '基础要素') return false;
+      if (!el.toolId || !el.fieldId) return false;
+      // 验证关联是否正确
+      return !validateElementFieldMatch(el.name, el.fieldId);
+    });
+
+    if (incorrectElements.length === 0) {
+      message.success('未发现错误关联');
+      return;
+    }
+
+    // 需要知道这些要素关联到哪个工具，以便加载对应的schema
+    const toolIds = new Set(incorrectElements.map(el => el.toolId).filter(Boolean));
+
+    if (toolIds.size === 0) {
+      message.warning('无法确定关联的工具');
+      return;
+    }
+
+    // 加载所有相关工具的schema
+    const allFields: FlattenedField[] = [];
+    const toolIdArray = Array.from(toolIds).filter(Boolean) as string[];
+    for (const toolId of toolIdArray) {
+      try {
+        const schema = await loadToolSchema(toolId);
+        allFields.push(...flattenFormFields(schema));
+      } catch (error) {
+        console.error(`加载工具 ${toolId} 的schema失败:`, error);
+      }
+    }
+
+    if (allFields.length === 0) {
+      message.error('加载表单字段失败');
+      return;
+    }
+
+    // 分析每个错误关联，找出修复建议
+    const items: IncorrectLinkItem[] = incorrectElements.map(element => {
+      // 根据要素名称推断正确的fieldId前缀
+      let expectedFieldIdPrefix = '';
+      if (element.name.includes('小学')) {
+        expectedFieldIdPrefix = 'primary_';
+      } else if (element.name.includes('初中')) {
+        expectedFieldIdPrefix = 'junior_';
+      } else if (element.name.includes('高中')) {
+        expectedFieldIdPrefix = 'senior_';
+      }
+
+      // 如果当前fieldId有错误的前缀，尝试根据名称推断正确的fieldId
+      let correctFieldId: string | undefined = element.fieldId;
+      if (expectedFieldIdPrefix && element.fieldId && !element.fieldId.startsWith(expectedFieldIdPrefix)) {
+        // 尝试替换前缀
+        const currentFieldId = element.fieldId;
+        if (currentFieldId.startsWith('primary_')) {
+          correctFieldId = currentFieldId.replace(/^primary_/, expectedFieldIdPrefix);
+        } else if (currentFieldId.startsWith('junior_')) {
+          correctFieldId = currentFieldId.replace(/^junior_/, expectedFieldIdPrefix);
+        } else if (currentFieldId.startsWith('senior_')) {
+          correctFieldId = currentFieldId.replace(/^senior_/, expectedFieldIdPrefix);
+        } else {
+          correctFieldId = expectedFieldIdPrefix + currentFieldId;
+        }
+      }
+
+      // 尝试匹配正确的字段
+      const matchedField = matchElementToField(element.name, allFields, correctFieldId);
+      const canFix = matchedField !== null && validateElementFieldMatch(element.name, matchedField.id);
+
+      return {
+        element,
+        currentFieldId: element.fieldId || '',
+        currentFieldLabel: element.fieldLabel,
+        suggestedFieldId: canFix ? matchedField?.id : undefined,
+        suggestedFieldLabel: canFix ? matchedField?.path : undefined,
+        canFix,
+      };
+    });
+
+    setIncorrectLinks(items);
+    setFixLinkModalVisible(true);
+  };
+
+  // 确认修复错误关联
+  const handleConfirmFixLinks = async () => {
+    if (!library || incorrectLinks.length === 0) return;
+
+    setFixingLinks(true);
+
+    let fixedCount = 0;
+    let failedCount = 0;
+
+    const updatedElements = library.elements.map(element => {
+      const item = incorrectLinks.find(i => i.element.id === element.id);
+      if (item && item.canFix && item.suggestedFieldId) {
+        fixedCount++;
+        return {
+          ...element,
+          fieldId: item.suggestedFieldId,
+          fieldLabel: item.suggestedFieldLabel,
+        };
+      } else if (item && !item.canFix) {
+        failedCount++;
+      }
+      return element;
+    });
+
+    setLibrary({ ...library, elements: updatedElements });
+
+    // 更新选中的要素（如果有的话）
+    if (selectedElement) {
+      const updated = updatedElements.find(el => el.id === selectedElement.id);
+      if (updated) setSelectedElement(updated);
+    }
+
+    setFixingLinks(false);
+    setFixLinkModalVisible(false);
+    setIncorrectLinks([]);
+
+    if (fixedCount > 0) {
+      message.success(`修复完成：成功修复 ${fixedCount} 个错误关联${failedCount > 0 ? `，${failedCount} 个无法修复` : ''}`);
+    } else {
+      message.warning(`无法修复任何错误关联${failedCount > 0 ? `（${failedCount} 个无法匹配到正确字段）` : ''}`);
+    }
   };
 
   // 打开自动关联弹窗
@@ -637,15 +893,27 @@ const IndicatorEdit: React.FC = () => {
         return element;
       }
 
-      // 已关联到当前工具且有 fieldId，跳过
+      // 已关联到当前工具且有 fieldId，验证关联是否正确
       if (normalizeOptionalId(element.toolId) === selectedAutoLinkToolId && normalizeOptionalId(element.fieldId)) {
-        alreadyLinkedCount++;
-        return element;
+        // 验证关联是否正确（检查小学/初中/高中前缀是否匹配）
+        if (element.fieldId && validateElementFieldMatch(element.name, element.fieldId)) {
+          alreadyLinkedCount++;
+          return element;
+        } else {
+          // 关联不正确，需要重新匹配
+          console.log(`[自动关联] 检测到错误关联: 要素"${element.name}" 关联到错误的字段 "${element.fieldId}"，将重新匹配`);
+        }
       }
 
-      // 尝试匹配字段（没有 fieldId 的都尝试匹配）
-      const matchedField = matchElementToField(element.name, fields);
-      console.log(`[自动关联] 要素"${element.name}" 匹配结果:`, matchedField);
+      // 尝试匹配字段（没有 fieldId 的都尝试匹配，或关联错误的也需要重新匹配）
+      // 如果要素已经有 fieldId（比如从JSON导入时），优先使用 fieldId 进行精确匹配
+      const matchedField = matchElementToField(element.name, fields, element.fieldId);
+      console.log(`[自动关联] 要素"${element.name}" (fieldId: ${element.fieldId || '无'}) 匹配结果:`, matchedField);
+      
+      // 验证匹配结果是否正确
+      if (matchedField && !validateElementFieldMatch(element.name, matchedField.id)) {
+        console.warn(`[自动关联] 警告: 要素"${element.name}" 匹配到字段 "${matchedField.id}" 可能不正确，但继续关联`);
+      }
 
       if (matchedField) {
         linkedCount++;
@@ -829,6 +1097,13 @@ const IndicatorEdit: React.FC = () => {
               </Button>
               <Button icon={<ThunderboltOutlined />} onClick={handleAutoLink}>
                 自动关联
+              </Button>
+              <Button 
+                icon={<ThunderboltOutlined />} 
+                onClick={handleFixIncorrectLinks}
+                title="检测并修复错误的字段关联（如初中要素关联到小学字段）"
+              >
+                修复错误关联
               </Button>
               <Button type="primary" icon={<PlusOutlined />} onClick={handleAddElement}>
                 添加要素
@@ -1629,6 +1904,100 @@ const IndicatorEdit: React.FC = () => {
             disabled={!selectedAutoLinkToolId}
           >
             开始关联
+          </Button>
+        </div>
+      </Modal>
+
+      {/* 修复错误关联预览弹窗 */}
+      <Modal
+        title="修复错误关联"
+        open={fixLinkModalVisible}
+        onCancel={() => {
+          setFixLinkModalVisible(false);
+          setIncorrectLinks([]);
+        }}
+        footer={null}
+        width={720}
+        className={styles.elementModal}
+      >
+        <p className={styles.modalSubtitle}>
+          发现 {incorrectLinks.length} 个疑似错误关联的要素，请确认后修复
+        </p>
+
+        <div style={{ maxHeight: 400, overflow: 'auto', marginBottom: 16 }}>
+          {incorrectLinks.map((item, index) => (
+            <div
+              key={item.element.id}
+              style={{
+                padding: 12,
+                marginBottom: 8,
+                background: item.canFix ? '#f6ffed' : '#fff2f0',
+                border: `1px solid ${item.canFix ? '#b7eb8f' : '#ffccc7'}`,
+                borderRadius: 4,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 4 }}>
+                    <Tag color="blue">{item.element.code}</Tag>
+                    {item.element.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    <div style={{ marginBottom: 4 }}>
+                      <span style={{ color: '#ff4d4f' }}>当前关联：</span>
+                      {item.currentFieldLabel || item.currentFieldId}
+                      <span style={{ color: '#999', marginLeft: 4 }}>({item.currentFieldId})</span>
+                    </div>
+                    {item.canFix ? (
+                      <div>
+                        <span style={{ color: '#52c41a' }}>建议修复为：</span>
+                        {item.suggestedFieldLabel || item.suggestedFieldId}
+                        <span style={{ color: '#999', marginLeft: 4 }}>({item.suggestedFieldId})</span>
+                      </div>
+                    ) : (
+                      <div style={{ color: '#ff4d4f' }}>
+                        无法找到匹配的正确字段，需要手动修复
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Tag color={item.canFix ? 'success' : 'error'}>
+                  {item.canFix ? '可自动修复' : '需手动修复'}
+                </Tag>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: '#666' }}>
+            <div>
+              可自动修复：{incorrectLinks.filter(i => i.canFix).length} 个 &nbsp;|&nbsp;
+              需手动修复：{incorrectLinks.filter(i => !i.canFix).length} 个
+            </div>
+            <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>
+              修复后请点击"保存要素库"保存更改
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'right', marginTop: 24 }}>
+          <Button
+            style={{ marginRight: 8 }}
+            onClick={() => {
+              setFixLinkModalVisible(false);
+              setIncorrectLinks([]);
+            }}
+          >
+            取消
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleConfirmFixLinks}
+            loading={fixingLinks}
+            disabled={incorrectLinks.filter(i => i.canFix).length === 0}
+          >
+            确认修复 ({incorrectLinks.filter(i => i.canFix).length} 个)
           </Button>
         </div>
       </Modal>
