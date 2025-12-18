@@ -1514,15 +1514,26 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
 
     for (const school of schools) {
       // 从 submissions 数据中获取学校的基础数据
+      // 规则：优先使用 approved；若没有 approved，则回退到最新的 submitted/rejected（避免“没有 approved 就全是 0”的误导）
+      // 注意：draft 通常是未完成数据，不纳入统计
       const submissionResult = await db.query(`
-        SELECT s.data as form_data
+        SELECT s.data as form_data,
+               s.status as submission_status,
+               s.submitted_at as submitted_at
         FROM submissions s
-        WHERE s.school_id = $1 AND s.project_id = $2 AND s.status = 'approved'
-        ORDER BY s.submitted_at DESC
+        WHERE s.school_id = $1 AND s.project_id = $2
+          AND s.status IN ('approved', 'submitted', 'rejected')
+        ORDER BY
+          CASE WHEN s.status = 'approved' THEN 0 ELSE 1 END,
+          s.submitted_at DESC
         LIMIT 1
       `, [school.id, projectId]);
 
       let formData = {};
+      const submissionStatus = submissionResult.rows?.[0]?.submission_status || null;
+      const submittedAt = submissionResult.rows?.[0]?.submitted_at || null;
+      const hasSubmission = submissionResult.rows.length > 0;
+
       if (submissionResult.rows.length > 0 && submissionResult.rows[0].form_data) {
         // 如果 data 是 JSON 字符串，需要解析
         const rawData = submissionResult.rows[0].form_data;
@@ -1539,15 +1550,21 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
 
       // 计算7项指标
       // 根据学校类型确定学生数（小学用小学部学生数，初中用初中部学生数）
+      // 重要：如果没有任何有效 submission（approved/submitted/rejected），则不应将缺失字段当作 0 参与计算；
+      // 否则会出现“全 0 且未达标”的假象。这里保持 studentCount 用于展示，但指标值返回 null。
       let studentCount = 0;
-      if (schoolType === '小学') {
-        studentCount = formData.primary_student_count || school.studentCount || formData.student_count || 0;
+      if (hasSubmission) {
+        if (schoolType === '小学') {
+          studentCount = formData.primary_student_count || formData.student_count || school.studentCount || 0;
+        } else {
+          studentCount = formData.junior_student_count || formData.student_count || school.studentCount || 0;
+        }
       } else {
-        studentCount = formData.junior_student_count || school.studentCount || formData.student_count || 0;
+        studentCount = school.studentCount || 0;
       }
       const indicators = {};
 
-      if (studentCount > 0) {
+      if (hasSubmission && studentCount > 0) {
         // L1: 每百名学生拥有高学历教师数
         // 小学: (专科+本科+硕士+博士) / 学生数 * 100
         // 初中: (本科+硕士+博士) / 学生数 * 100
@@ -1572,7 +1589,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L1.threshold,
           isCompliant: L1Value >= indicatorConfig.L1.threshold
         };
-        if (L1Value > 0) indicatorValuesMap.L1.push(L1Value);
+        indicatorValuesMap.L1.push(L1Value);
 
         // L2: 每百名学生拥有骨干教师数
         const backboneTeachers = schoolType === '小学'
@@ -1584,7 +1601,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L2.threshold,
           isCompliant: L2Value >= indicatorConfig.L2.threshold
         };
-        if (backboneTeachers > 0 || studentCount > 0) indicatorValuesMap.L2.push(L2Value);
+        indicatorValuesMap.L2.push(L2Value);
 
         // L3: 每百名学生拥有体艺教师数
         let peArtTeachers = 0;
@@ -1607,7 +1624,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L3.threshold,
           isCompliant: L3Value >= indicatorConfig.L3.threshold
         };
-        if (peArtTeachers > 0 || studentCount > 0) indicatorValuesMap.L3.push(L3Value);
+        indicatorValuesMap.L3.push(L3Value);
 
         // L4: 生均教学及辅助用房面积
         const teachingArea = schoolType === '小学'
@@ -1619,7 +1636,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L4.threshold,
           isCompliant: L4Value >= indicatorConfig.L4.threshold
         };
-        if (teachingArea > 0 || studentCount > 0) indicatorValuesMap.L4.push(L4Value);
+        indicatorValuesMap.L4.push(L4Value);
 
         // L5: 生均体育运动场馆面积
         const sportsArea = schoolType === '小学'
@@ -1631,7 +1648,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L5.threshold,
           isCompliant: L5Value >= indicatorConfig.L5.threshold
         };
-        if (sportsArea > 0 || studentCount > 0) indicatorValuesMap.L5.push(L5Value);
+        indicatorValuesMap.L5.push(L5Value);
 
         // L6: 生均教学仪器设备值（万元转元）
         const equipmentValue = schoolType === '小学'
@@ -1643,7 +1660,7 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L6.threshold,
           isCompliant: L6Value >= indicatorConfig.L6.threshold
         };
-        if (equipmentValue > 0 || studentCount > 0) indicatorValuesMap.L6.push(L6Value);
+        indicatorValuesMap.L6.push(L6Value);
 
         // L7: 每百名学生拥有多媒体教室数
         const multimediaRooms = schoolType === '小学'
@@ -1655,9 +1672,9 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           threshold: indicatorConfig.L7.threshold,
           isCompliant: L7Value >= indicatorConfig.L7.threshold
         };
-        if (multimediaRooms > 0 || studentCount > 0) indicatorValuesMap.L7.push(L7Value);
+        indicatorValuesMap.L7.push(L7Value);
       } else {
-        // 学生数为0，所有指标设为null
+        // 没有有效 submission 或学生数为0：所有指标设为 null（避免误把缺失数据当作 0）
         ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7'].forEach(key => {
           indicators[key] = { value: null, threshold: indicatorConfig[key].threshold, isCompliant: null };
         });
@@ -1714,12 +1731,24 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
         overallComplianceMessage = `综合未达标：${reasons.join('；')}`;
       }
 
+      // 名称展示：九年一贯制/完全中学在不同学段下加后缀（用于区县管理员工作台展示）
+      let displayName = school.name;
+      const needSuffix = school.schoolType === '九年一贯制' || school.schoolType === '完全中学';
+      if (needSuffix && (schoolType === '小学' || schoolType === '初中')) {
+        const suffix = schoolType === '小学' ? '（小学部）' : '（初中部）';
+        if (!displayName.endsWith(suffix)) {
+          displayName = `${displayName}${suffix}`;
+        }
+      }
+
       schoolIndicators.push({
         id: school.id,
         code: school.code,
-        name: school.name,
+        name: displayName,
         schoolType: school.schoolType,
         studentCount: studentCount,
+        submissionStatus,
+        submittedAt,
         indicators,
         compliantCount,
         totalCount,
