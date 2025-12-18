@@ -1123,25 +1123,32 @@ router.get('/projects/:projectId/urban-rural-comparison', async (req, res) => {
 
 // ==================== 资源配置7项指标汇总（区县管理员专用） ====================
 
-// 7项资源配置指标定义
+// 综合达标规则配置：每所学校至少6项达标，余项不低于85%
+const OVERALL_COMPLIANCE_CONFIG = {
+  minCompliantCount: 6,
+  minThresholdPercent: 0.85,
+  description: '每所学校至少6项指标达标，余项不低于标准的85%'
+};
+
+// 7项资源配置指标定义（含85%最低阈值 thresholdMin）
 const RESOURCE_INDICATORS = {
   primary: { // 小学
-    L1: { name: '每百名学生拥有高学历教师数', threshold: 4.2, unit: '人', cvThreshold: 0.50 },
-    L2: { name: '每百名学生拥有骨干教师数', threshold: 1.0, unit: '人', cvThreshold: 0.50 },
-    L3: { name: '每百名学生拥有体艺教师数', threshold: 0.9, unit: '人', cvThreshold: 0.50 },
-    L4: { name: '生均教学及辅助用房面积', threshold: 4.5, unit: '㎡', cvThreshold: 0.50 },
-    L5: { name: '生均体育运动场馆面积', threshold: 7.5, unit: '㎡', cvThreshold: 0.50 },
-    L6: { name: '生均教学仪器设备值', threshold: 2000, unit: '元', cvThreshold: 0.50 },
-    L7: { name: '每百名学生拥有多媒体教室数', threshold: 2.3, unit: '间', cvThreshold: 0.50 },
+    L1: { name: '每百名学生拥有高学历教师数', threshold: 4.2, thresholdMin: 3.57, unit: '人', cvThreshold: 0.50 },
+    L2: { name: '每百名学生拥有骨干教师数', threshold: 1.0, thresholdMin: 0.85, unit: '人', cvThreshold: 0.50 },
+    L3: { name: '每百名学生拥有体艺教师数', threshold: 0.9, thresholdMin: 0.765, unit: '人', cvThreshold: 0.50 },
+    L4: { name: '生均教学及辅助用房面积', threshold: 4.5, thresholdMin: 3.825, unit: '㎡', cvThreshold: 0.50 },
+    L5: { name: '生均体育运动场馆面积', threshold: 7.5, thresholdMin: 6.375, unit: '㎡', cvThreshold: 0.50 },
+    L6: { name: '生均教学仪器设备值', threshold: 2000, thresholdMin: 1700, unit: '元', cvThreshold: 0.50 },
+    L7: { name: '每百名学生拥有多媒体教室数', threshold: 2.3, thresholdMin: 1.955, unit: '间', cvThreshold: 0.50 },
   },
   junior: { // 初中
-    L1: { name: '每百名学生拥有高学历教师数', threshold: 5.3, unit: '人', cvThreshold: 0.45 },
-    L2: { name: '每百名学生拥有骨干教师数', threshold: 1.0, unit: '人', cvThreshold: 0.45 },
-    L3: { name: '每百名学生拥有体艺教师数', threshold: 0.9, unit: '人', cvThreshold: 0.45 },
-    L4: { name: '生均教学及辅助用房面积', threshold: 5.8, unit: '㎡', cvThreshold: 0.45 },
-    L5: { name: '生均体育运动场馆面积', threshold: 10.2, unit: '㎡', cvThreshold: 0.45 },
-    L6: { name: '生均教学仪器设备值', threshold: 2500, unit: '元', cvThreshold: 0.45 },
-    L7: { name: '每百名学生拥有多媒体教室数', threshold: 2.4, unit: '间', cvThreshold: 0.45 },
+    L1: { name: '每百名学生拥有高学历教师数', threshold: 5.3, thresholdMin: 4.505, unit: '人', cvThreshold: 0.45 },
+    L2: { name: '每百名学生拥有骨干教师数', threshold: 1.0, thresholdMin: 0.85, unit: '人', cvThreshold: 0.45 },
+    L3: { name: '每百名学生拥有体艺教师数', threshold: 0.9, thresholdMin: 0.765, unit: '人', cvThreshold: 0.45 },
+    L4: { name: '生均教学及辅助用房面积', threshold: 5.8, thresholdMin: 4.93, unit: '㎡', cvThreshold: 0.45 },
+    L5: { name: '生均体育运动场馆面积', threshold: 10.2, thresholdMin: 8.67, unit: '㎡', cvThreshold: 0.45 },
+    L6: { name: '生均教学仪器设备值', threshold: 2500, thresholdMin: 2125, unit: '元', cvThreshold: 0.45 },
+    L7: { name: '每百名学生拥有多媒体教室数', threshold: 2.4, thresholdMin: 2.04, unit: '间', cvThreshold: 0.45 },
   }
 };
 
@@ -1360,6 +1367,53 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
       const compliantCount = Object.values(indicators).filter(ind => ind.isCompliant === true).length;
       const totalCount = Object.values(indicators).filter(ind => ind.value !== null).length;
 
+      // 综合达标判定：至少6项达标，余项不低于85%（使用配置的 thresholdMin）
+      let isOverallCompliant = null;
+      let belowMinThresholdCount = 0;
+      const overallComplianceDetails = [];
+
+      if (totalCount > 0) {
+        // 检查未达标项是否高于 thresholdMin
+        for (const [key, ind] of Object.entries(indicators)) {
+          if (ind.isCompliant === false && ind.value !== null) {
+            const minThreshold = indicatorConfig[key].thresholdMin;
+            if (ind.value < minThreshold) {
+              belowMinThresholdCount++;
+              overallComplianceDetails.push(
+                `${indicatorConfig[key].name}: ${ind.value}${indicatorConfig[key].unit} 低于最低要求 ${minThreshold}${indicatorConfig[key].unit}（标准的85%）`
+              );
+            } else {
+              overallComplianceDetails.push(
+                `${indicatorConfig[key].name}: ${ind.value}${indicatorConfig[key].unit} 未达标准 ${ind.threshold}${indicatorConfig[key].unit}，但高于最低要求 ${minThreshold}${indicatorConfig[key].unit}`
+              );
+            }
+          }
+        }
+
+        // 综合判定：至少6项达标 AND 未达标项都不低于85%
+        const meetsMinCompliant = compliantCount >= OVERALL_COMPLIANCE_CONFIG.minCompliantCount;
+        const allAboveMinThreshold = belowMinThresholdCount === 0;
+        isOverallCompliant = meetsMinCompliant && allAboveMinThreshold;
+      }
+
+      // 生成综合达标消息
+      let overallComplianceMessage = '';
+      if (isOverallCompliant === true) {
+        overallComplianceMessage = `综合达标：${compliantCount}/${totalCount}项达标`;
+        if (compliantCount < totalCount) {
+          overallComplianceMessage += `，${totalCount - compliantCount}项未达标但高于85%标准`;
+        }
+      } else if (isOverallCompliant === false) {
+        const reasons = [];
+        if (compliantCount < OVERALL_COMPLIANCE_CONFIG.minCompliantCount) {
+          reasons.push(`达标项仅${compliantCount}项（需至少${OVERALL_COMPLIANCE_CONFIG.minCompliantCount}项）`);
+        }
+        if (belowMinThresholdCount > 0) {
+          reasons.push(`${belowMinThresholdCount}项低于标准的85%`);
+        }
+        overallComplianceMessage = `综合未达标：${reasons.join('；')}`;
+      }
+
       schoolIndicators.push({
         id: school.id,
         code: school.code,
@@ -1368,7 +1422,12 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
         studentCount: studentCount,
         indicators,
         compliantCount,
-        totalCount
+        totalCount,
+        // 综合达标判定结果
+        isOverallCompliant,
+        overallComplianceMessage,
+        belowMinThresholdCount,
+        overallComplianceDetails
       });
     }
 
@@ -1390,10 +1449,15 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
       });
     }
 
-    // 判断是否全部达标
+    // 判断差异系数是否全部达标
     const compliantCvCount = cvIndicators.filter(cv => cv.isCompliant === true).length;
     const totalCvCount = cvIndicators.filter(cv => cv.cv !== null).length;
-    const allCompliant = totalCvCount > 0 && compliantCvCount === totalCvCount;
+    const allCvCompliant = totalCvCount > 0 && compliantCvCount === totalCvCount;
+
+    // 统计学校综合达标情况（至少6项达标，余项≥85%）
+    const overallCompliantSchools = schoolIndicators.filter(s => s.isOverallCompliant === true).length;
+    const overallNonCompliantSchools = schoolIndicators.filter(s => s.isOverallCompliant === false).length;
+    const overallPendingSchools = schoolIndicators.filter(s => s.isOverallCompliant === null).length;
 
     res.json({
       code: 200,
@@ -1405,7 +1469,21 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
           cvIndicators,
           compliantCvCount,
           totalCvCount,
-          allCompliant
+          allCvCompliant,  // 差异系数是否全部达标
+          allCompliant: allCvCompliant,  // 向后兼容别名
+          // 学校综合达标统计（至少6项达标，余项≥85%）
+          overallCompliance: {
+            rule: OVERALL_COMPLIANCE_CONFIG.description || '每所学校至少6项指标达标，余项不低于标准的85%',
+            minCompliantCount: OVERALL_COMPLIANCE_CONFIG.minCompliantCount,
+            minThresholdPercent: OVERALL_COMPLIANCE_CONFIG.minThresholdPercent,
+            compliantSchools: overallCompliantSchools,
+            nonCompliantSchools: overallNonCompliantSchools,
+            pendingSchools: overallPendingSchools,
+            complianceRate: schools.length > 0
+              ? Math.round((overallCompliantSchools / schools.length) * 10000) / 100
+              : null,
+            allSchoolsCompliant: overallCompliantSchools === schools.length && schools.length > 0
+          }
         },
         schools: schoolIndicators
       }
