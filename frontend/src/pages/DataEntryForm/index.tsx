@@ -938,6 +938,7 @@ const DataEntryForm: React.FC = () => {
           <Form.Item
             key={field.id}
             name={field.id}
+            required={field.required}
             label={
               <span>
                 {field.label}
@@ -965,9 +966,9 @@ const DataEntryForm: React.FC = () => {
                       e.stopPropagation();
                       handleManualCalculate();
                     }}
-                    style={{ 
-                      padding: 0, 
-                      height: 'auto', 
+                    style={{
+                      padding: 0,
+                      height: 'auto',
                       fontSize: '12px',
                       color: '#1890ff',
                       marginLeft: 4
