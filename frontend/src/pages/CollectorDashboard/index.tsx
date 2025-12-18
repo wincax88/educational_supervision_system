@@ -41,7 +41,7 @@ import {
   EyeOutlined,
   DatabaseOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { useAuthStore } from '../../stores/authStore';
 import * as taskService from '../../services/taskService';
@@ -53,10 +53,11 @@ import styles from './index.module.css';
 
 const CollectorDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId?: string }>();
   const { user } = useAuthStore();
 
-  // 当前视图: 'projects' 或 'tasks'
-  const [currentView, setCurrentView] = useState<'projects' | 'tasks'>('projects');
+  // 根据路由参数决定当前视图
+  const currentView = projectId ? 'tasks' : 'projects';
   const [selectedProject, setSelectedProject] = useState<MyProject | null>(null);
 
   // 项目列表状态
@@ -136,6 +137,21 @@ const CollectorDashboard: React.FC = () => {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  // 根据路由参数加载项目信息
+  useEffect(() => {
+    if (projectId && projects.length > 0) {
+      const project = projects.find(p => p.id === projectId);
+      if (project) {
+        setSelectedProject(project);
+      }
+    } else if (!projectId) {
+      setSelectedProject(null);
+      // 返回项目列表时重置过滤条件
+      setStatusFilter('');
+      setKeyword('');
+    }
+  }, [projectId, projects]);
 
   useEffect(() => {
     if (currentView === 'tasks' && selectedProject) {
@@ -263,17 +279,14 @@ const CollectorDashboard: React.FC = () => {
     setDistrictMiddleCVData(null);
   }, []);
 
-  // 进入项目填报
+  // 进入项目填报 - 跳转到新路由
   const handleEnterProject = (project: MyProject) => {
-    setSelectedProject(project);
-    setCurrentView('tasks');
-    setStatusFilter('');
-    setKeyword('');
+    navigate(`/collector/${project.id}`);
   };
 
-  // 返回项目列表
+  // 返回项目列表 - 跳转回项目列表路由
   const handleBackToProjects = () => {
-    setCurrentView('projects');
+    navigate('/collector');
     setSelectedProject(null);
     setTasks([]);
     setComplianceData(null);

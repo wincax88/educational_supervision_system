@@ -142,6 +142,11 @@ const App: React.FC = () => {
                 <CollectorDashboard />
               </ProtectedRoute>
             } />
+            <Route path="collector/:projectId" element={
+              <ProtectedRoute requiredPermission="canCollectData">
+                <CollectorDashboard />
+              </ProtectedRoute>
+            } />
 
             {/* 专家评审专用路由 */}
             <Route path="expert" element={
