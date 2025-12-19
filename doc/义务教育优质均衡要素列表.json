@@ -2650,6 +2650,136 @@
       "description": "（毕业学生数 - 三年转入 + 三年转出）÷（三年前初一在校生数 - 三年死亡）×100。需基于全区县所有初中数据汇总计算。",
       "calculationLevel": "district",
       "category": "教育质量"
+    },
+    {
+      "code": "D061",
+      "name": "小学所需音乐美术教室数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "CEIL(E047 / 12)",
+      "unit": "间",
+      "description": "小学部每12个班级需配备音乐、美术专用教室各1间，向上取整。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D062",
+      "name": "初中所需音乐美术教室数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "CEIL(E048 / 12)",
+      "unit": "间",
+      "description": "初中部每12个班级需配备音乐、美术专用教室各1间，向上取整。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D063",
+      "name": "音乐教室面积标准",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "IF(E104 == 'yes', IF(E047 > 0, 54, 61), IF(YEAR(E091) <= 2016, 73, 96))",
+      "unit": "平方米",
+      "description": "根据学校条件确定的音乐教室面积标准：农村小规模小学54㎡/初中61㎡，2016年前建校73㎡，其他96㎡。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D064",
+      "name": "美术教室面积标准",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "IF(E104 == 'yes', IF(E047 > 0, 54, 61), IF(YEAR(E091) <= 2016, 67, 90))",
+      "unit": "平方米",
+      "description": "根据学校条件确定的美术教室面积标准：农村小规模小学54㎡/初中61㎡，2016年前建校67㎡，其他90㎡。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D065",
+      "name": "音乐教室总数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "LEN(E065)",
+      "unit": "间",
+      "description": "学校音乐教室总间数（数组长度）。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D066",
+      "name": "美术教室总数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "LEN(E066)",
+      "unit": "间",
+      "description": "学校美术教室总间数（数组长度）。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D067",
+      "name": "面积达标音乐教室数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "COUNT_IF(E065, 'music_room_area', '>=', D063)",
+      "unit": "间",
+      "description": "面积达到标准的音乐教室数量。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D068",
+      "name": "面积达标美术教室数",
+      "elementType": "派生要素",
+      "dataType": "数字",
+      "formula": "COUNT_IF(E066, 'art_room_area', '>=', D064)",
+      "unit": "间",
+      "description": "面积达到标准的美术教室数量。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D069",
+      "name": "小学音乐教室达标",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "E047 == 0 OR D067 >= D061",
+      "standard": "达标",
+      "description": "小学音乐教室数量和面积是否均达标。无小学部时默认达标。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D070",
+      "name": "小学美术教室达标",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "E047 == 0 OR D068 >= D061",
+      "standard": "达标",
+      "description": "小学美术教室数量和面积是否均达标。无小学部时默认达标。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D071",
+      "name": "初中音乐教室达标",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "E048 == 0 OR D067 >= D062",
+      "standard": "达标",
+      "description": "初中音乐教室数量和面积是否均达标。无初中部时默认达标。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D072",
+      "name": "初中美术教室达标",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "E048 == 0 OR D068 >= D062",
+      "standard": "达标",
+      "description": "初中美术教室数量和面积是否均达标。无初中部时默认达标。",
+      "category": "政府保障"
+    },
+    {
+      "code": "D073",
+      "name": "音乐美术教室综合达标",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "D069 AND D070 AND D071 AND D072",
+      "standard": "达标",
+      "description": "学校音乐美术教室配置综合达标判定。小学部和初中部的音乐、美术教室均需达标。",
+      "category": "政府保障"
     }
   ]
 }

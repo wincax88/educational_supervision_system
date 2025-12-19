@@ -4,6 +4,10 @@ const { projectRules, submissionRules, idParamRules } = require('../middleware/v
 const { validateEnum } = require('../constants/enums');
 const { deleteProject } = require('../services/cascadeService');
 const { checkCompliance } = require('../services/statisticsService');
+const {
+  EXTENDED_FUNCTION_KEYWORDS,
+  calculateDerivedValueForSample
+} = require('../services/aggregationService');
 
 let db = null;
 
@@ -201,6 +205,32 @@ async function syncSubmissionIndicators(submissionId) {
     formulaIndicators = formulaResult.rows || [];
   }
 
+  // 2.5 加载所有要素定义（用于扩展公式计算）
+  let allElements = [];
+  const elementsResult = await db.query(`
+    SELECT e.code, e.name, e.element_type, e.data_type, e.formula, e.field_id
+    FROM elements e
+    WHERE e.library_id = (SELECT id FROM element_libraries WHERE name = '义务教育优质均衡要素库' LIMIT 1)
+  `);
+  if (elementsResult.rows) {
+    allElements = elementsResult.rows.map(e => ({
+      code: e.code,
+      name: e.name,
+      elementType: e.element_type,
+      dataType: e.data_type,
+      formula: e.formula,
+      fieldId: e.field_id
+    }));
+  }
+
+  // 2.6 构建扩展公式计算所需的样本数据（包含数组等复杂类型）
+  const extendedSampleData = {};
+  for (const em of elementMappings) {
+    const raw = getValueByFieldId(dataObj, em.fieldId);
+    // 对于扩展计算，保留原始值（包括数组）
+    extendedSampleData[em.fieldId] = raw;
+  }
+
   // 合并所有需要写入的记录
   const recordsToWrite = [];
 
@@ -220,7 +250,28 @@ async function syncSubmissionIndicators(submissionId) {
   // 处理公式计算
   for (const fi of formulaIndicators) {
     if (!fi.formula) continue;
-    const calculatedValue = evaluateFormula(fi.formula, elementValues);
+
+    // 检查公式是否包含扩展函数
+    const hasExtendedFunction = EXTENDED_FUNCTION_KEYWORDS.some(keyword =>
+      fi.formula.toUpperCase().includes(keyword)
+    );
+
+    let calculatedValue = null;
+    if (hasExtendedFunction && allElements.length > 0) {
+      // 使用扩展公式计算
+      const calculatedCache = new Map();
+      const result = calculateDerivedValueForSample(fi.elementCode, allElements, extendedSampleData, calculatedCache);
+      // 对于布尔类型结果，转换为 1/0
+      if (typeof result === 'boolean') {
+        calculatedValue = result ? 1 : 0;
+      } else if (typeof result === 'number' && Number.isFinite(result)) {
+        calculatedValue = Math.round(result * 10000) / 10000;
+      }
+    } else {
+      // 使用简单公式计算
+      calculatedValue = evaluateFormula(fi.formula, elementValues);
+    }
+
     if (calculatedValue !== null) {
       // 检查是否已被直接映射覆盖
       const existingIdx = recordsToWrite.findIndex(r => r.dataIndicatorId === fi.dataIndicatorId);

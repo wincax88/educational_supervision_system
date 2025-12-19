@@ -6,6 +6,420 @@
 const { calculateCV } = require('./statisticsService');
 
 /**
+ * ==========================================
+ * 扩展公式函数（用于派生要素计算）
+ * ==========================================
+ */
+
+/**
+ * 扩展函数关键字列表（用于公式解析时排除）
+ */
+const EXTENDED_FUNCTION_KEYWORDS = ['CEIL', 'FLOOR', 'LEN', 'YEAR', 'IF', 'COUNT_IF', 'SUM_ARRAY', 'OR', 'AND'];
+
+/**
+ * 向上取整
+ * @param {number} value
+ * @returns {number|null}
+ */
+function extCeil(value) {
+  if (value === null || value === undefined || isNaN(value)) return null;
+  return Math.ceil(Number(value));
+}
+
+/**
+ * 向下取整
+ * @param {number} value
+ * @returns {number|null}
+ */
+function extFloor(value) {
+  if (value === null || value === undefined || isNaN(value)) return null;
+  return Math.floor(Number(value));
+}
+
+/**
+ * 获取数组长度
+ * @param {Array} arr
+ * @returns {number}
+ */
+function extLen(arr) {
+  if (!Array.isArray(arr)) return 0;
+  return arr.length;
+}
+
+/**
+ * 从日期字符串提取年份
+ * @param {string} dateStr - 日期字符串，格式 YYYY-MM-DD 或 YYYY
+ * @returns {number|null}
+ */
+function extYear(dateStr) {
+  if (!dateStr) return null;
+  const match = String(dateStr).match(/^(\d{4})/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+/**
+ * 条件计数 - 统计数组中满足条件的元素个数
+ * @param {Array} arr - 数组
+ * @param {string} field - 要比较的字段名
+ * @param {string} operator - 比较操作符 ('>=', '>', '<=', '<', '==', '!=')
+ * @param {number} threshold - 阈值
+ * @returns {number}
+ */
+function extCountIf(arr, field, operator, threshold) {
+  if (!Array.isArray(arr)) return 0;
+  if (threshold === null || threshold === undefined) return 0;
+
+  const thresholdNum = Number(threshold);
+  if (isNaN(thresholdNum)) return 0;
+
+  const operators = {
+    '>=': (a, b) => a >= b,
+    '>': (a, b) => a > b,
+    '<=': (a, b) => a <= b,
+    '<': (a, b) => a < b,
+    '==': (a, b) => a === b,
+    '!=': (a, b) => a !== b
+  };
+
+  const compareFn = operators[operator];
+  if (!compareFn) return 0;
+
+  return arr.filter(item => {
+    const value = item[field];
+    if (value === null || value === undefined || isNaN(value)) return false;
+    return compareFn(Number(value), thresholdNum);
+  }).length;
+}
+
+/**
+ * 数组字段求和
+ * @param {Array} arr - 数组
+ * @param {string} field - 要求和的字段名
+ * @returns {number}
+ */
+function extSumArray(arr, field) {
+  if (!Array.isArray(arr)) return 0;
+  return arr.reduce((sum, item) => {
+    const value = field ? item[field] : item;
+    const num = Number(value);
+    return sum + (isNaN(num) ? 0 : num);
+  }, 0);
+}
+
+/**
+ * 评估子表达式（支持变量替换和基本运算）
+ * @param {string} expr - 表达式字符串
+ * @param {Object} context - 上下文，包含变量值
+ * @returns {*} 计算结果
+ */
+function evaluateSubExpression(expr, context) {
+  if (expr === null || expr === undefined) return null;
+
+  const trimmed = String(expr).trim();
+
+  // 如果是带引号的字符串，去掉引号返回
+  if ((trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+      (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+    return trimmed.slice(1, -1);
+  }
+
+  // 如果是纯数字，直接返回
+  if (!isNaN(trimmed) && trimmed !== '') {
+    return Number(trimmed);
+  }
+
+  // 如果是变量引用
+  if (context[trimmed] !== undefined) {
+    return context[trimmed];
+  }
+
+  // 尝试计算表达式
+  let result = trimmed;
+  const varNames = Object.keys(context).sort((a, b) => b.length - a.length);
+  for (const varName of varNames) {
+    const regex = new RegExp(`\\b${varName}\\b`, 'g');
+    const value = context[varName];
+    if (typeof value === 'string') {
+      result = result.replace(regex, `'${value}'`);
+    } else if (value === null || value === undefined) {
+      result = result.replace(regex, 'null');
+    } else {
+      result = result.replace(regex, String(value));
+    }
+  }
+
+  try {
+    // 只允许安全的表达式
+    if (/^[\d\s+\-*/%().null]+$/.test(result)) {
+      return new Function(`return (${result})`)();
+    }
+    return result;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 评估布尔表达式
+ * @param {string} expr - 布尔表达式
+ * @param {Object} context - 上下文
+ * @returns {boolean}
+ */
+function evaluateBooleanExpression(expr, context) {
+  let result = String(expr).trim();
+
+  // 替换变量（从长到短排序）
+  const varNames = Object.keys(context).sort((a, b) => b.length - a.length);
+  for (const varName of varNames) {
+    const regex = new RegExp(`\\b${varName}\\b`, 'g');
+    const value = context[varName];
+    if (typeof value === 'string') {
+      result = result.replace(regex, `'${value}'`);
+    } else if (value === null || value === undefined) {
+      result = result.replace(regex, 'null');
+    } else {
+      result = result.replace(regex, String(value));
+    }
+  }
+
+  // 处理比较操作符
+  result = result.replace(/(?<![=!<>])={2}(?!=)/g, '===');
+  result = result.replace(/!=(?!=)/g, '!==');
+
+  try {
+    return Boolean(new Function(`return (${result})`)());
+  } catch (e) {
+    console.warn('Boolean expression evaluation error:', expr, e.message);
+    return false;
+  }
+}
+
+/**
+ * 解析嵌套的IF语句，正确处理平衡括号
+ * @param {string} formula - 公式字符串
+ * @param {number} startIndex - IF开始位置的索引
+ * @returns {Object|null} { fullMatch, condition, trueExpr, falseExpr, endIndex } 或 null
+ */
+function parseNestedIf(formula, startIndex) {
+  // 确保从IF(开始
+  if (formula.substring(startIndex, startIndex + 3) !== 'IF(') {
+    return null;
+  }
+
+  let depth = 0;
+  let partStart = startIndex + 3; // IF( 之后
+  let parts = [];
+  let i = startIndex + 2; // 指向 '('
+
+  for (; i < formula.length; i++) {
+    const char = formula[i];
+
+    if (char === '(') {
+      depth++;
+    } else if (char === ')') {
+      depth--;
+      if (depth === 0) {
+        // 找到匹配的结束括号
+        parts.push(formula.substring(partStart, i).trim());
+        break;
+      }
+    } else if (char === ',' && depth === 1) {
+      // 顶层逗号，分隔参数
+      parts.push(formula.substring(partStart, i).trim());
+      partStart = i + 1;
+    }
+  }
+
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  return {
+    fullMatch: formula.substring(startIndex, i + 1),
+    condition: parts[0],
+    trueExpr: parts[1],
+    falseExpr: parts[2],
+    endIndex: i
+  };
+}
+
+/**
+ * 解析并执行扩展函数
+ * @param {string} formula - 公式字符串
+ * @param {Object} context - 上下文（包含要素值和数组数据）
+ * @returns {string|number|boolean} 处理后的表达式或最终结果
+ */
+function parseExtendedFunctions(formula, context) {
+  let result = formula;
+  let changed = true;
+  let iterations = 0;
+  const maxIterations = 20; // 防止无限循环
+
+  while (changed && iterations < maxIterations) {
+    changed = false;
+    iterations++;
+
+    // 解析 CEIL(expr)
+    const ceilMatch = result.match(/CEIL\(([^()]+)\)/);
+    if (ceilMatch) {
+      const value = evaluateSubExpression(ceilMatch[1], context);
+      const ceilResult = extCeil(value);
+      result = result.replace(ceilMatch[0], ceilResult === null ? 'null' : String(ceilResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 FLOOR(expr)
+    const floorMatch = result.match(/FLOOR\(([^()]+)\)/);
+    if (floorMatch) {
+      const value = evaluateSubExpression(floorMatch[1], context);
+      const floorResult = extFloor(value);
+      result = result.replace(floorMatch[0], floorResult === null ? 'null' : String(floorResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 LEN(arrayCode)
+    const lenMatch = result.match(/LEN\(([^()]+)\)/);
+    if (lenMatch) {
+      const arrayCode = lenMatch[1].trim();
+      const arr = context[arrayCode];
+      const lenResult = extLen(arr);
+      result = result.replace(lenMatch[0], String(lenResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 YEAR(dateCode)
+    const yearMatch = result.match(/YEAR\(([^()]+)\)/);
+    if (yearMatch) {
+      const dateCode = yearMatch[1].trim();
+      const dateStr = context[dateCode];
+      const yearResult = extYear(dateStr);
+      result = result.replace(yearMatch[0], yearResult === null ? 'null' : String(yearResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 COUNT_IF(arrayCode, 'field', 'operator', threshold)
+    const countIfMatch = result.match(/COUNT_IF\(\s*([^,]+)\s*,\s*'([^']+)'\s*,\s*'([^']+)'\s*,\s*([^)]+)\s*\)/);
+    if (countIfMatch) {
+      const arrayCode = countIfMatch[1].trim();
+      const field = countIfMatch[2];
+      const operator = countIfMatch[3];
+      const thresholdExpr = countIfMatch[4].trim();
+
+      const arr = context[arrayCode];
+      const threshold = evaluateSubExpression(thresholdExpr, context);
+      const countResult = extCountIf(arr, field, operator, threshold);
+      result = result.replace(countIfMatch[0], String(countResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 SUM_ARRAY(arrayCode, 'field')
+    const sumArrayMatch = result.match(/SUM_ARRAY\(\s*([^,]+)\s*,\s*'([^']+)'\s*\)/);
+    if (sumArrayMatch) {
+      const arrayCode = sumArrayMatch[1].trim();
+      const field = sumArrayMatch[2];
+      const arr = context[arrayCode];
+      const sumResult = extSumArray(arr, field);
+      result = result.replace(sumArrayMatch[0], String(sumResult));
+      changed = true;
+      continue;
+    }
+
+    // 解析 IF(condition, trueValue, falseValue) - 使用平衡括号解析器处理嵌套
+    const ifIndex = result.indexOf('IF(');
+    if (ifIndex !== -1) {
+      const ifParsed = parseNestedIf(result, ifIndex);
+      if (ifParsed) {
+        const { fullMatch, condition: condExpr, trueExpr, falseExpr } = ifParsed;
+
+        // 先递归处理嵌套的IF（如果存在）
+        let resolvedTrueExpr = trueExpr;
+        let resolvedFalseExpr = falseExpr;
+
+        if (trueExpr.includes('IF(')) {
+          resolvedTrueExpr = parseExtendedFunctions(trueExpr, context);
+        }
+        if (falseExpr.includes('IF(')) {
+          resolvedFalseExpr = parseExtendedFunctions(falseExpr, context);
+        }
+
+        const condition = evaluateBooleanExpression(condExpr, context);
+        const resultValue = condition
+          ? evaluateSubExpression(resolvedTrueExpr, context)
+          : evaluateSubExpression(resolvedFalseExpr, context);
+
+        result = result.replace(fullMatch, resultValue === null ? 'null' : String(resultValue));
+        changed = true;
+        continue;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * 计算扩展公式（支持扩展函数）
+ * @param {string} formula - 公式字符串
+ * @param {Object} context - 上下文（包含变量值和数组数据）
+ * @returns {number|boolean|null} 计算结果
+ */
+function calculateExtendedFormula(formula, context) {
+  // 先解析扩展函数
+  let processedFormula = parseExtendedFunctions(formula, context);
+
+  // 处理逻辑运算符
+  processedFormula = processedFormula.replace(/\bOR\b/gi, '||').replace(/\bAND\b/gi, '&&');
+
+  // 替换剩余变量
+  const varNames = Object.keys(context).sort((a, b) => b.length - a.length);
+  for (const varName of varNames) {
+    const regex = new RegExp(`\\b${varName}\\b`, 'g');
+    const value = context[varName];
+    if (typeof value === 'string') {
+      processedFormula = processedFormula.replace(regex, `'${value}'`);
+    } else if (value === null || value === undefined) {
+      processedFormula = processedFormula.replace(regex, 'null');
+    } else if (typeof value !== 'object') { // 排除数组等对象类型
+      processedFormula = processedFormula.replace(regex, String(value));
+    }
+  }
+
+  // 处理比较操作符
+  processedFormula = processedFormula.replace(/(?<![=!<>])={2}(?!=)/g, '===');
+  processedFormula = processedFormula.replace(/!=(?!=)/g, '!==');
+
+  try {
+    const fn = new Function(`return (${processedFormula})`);
+    const result = fn();
+
+    // 处理布尔结果
+    if (typeof result === 'boolean') {
+      return result;
+    }
+
+    // 处理数值结果
+    if (typeof result === 'number' && isFinite(result)) {
+      return result;
+    }
+
+    // 处理 null
+    if (result === null) {
+      return null;
+    }
+
+    return null;
+  } catch (error) {
+    console.warn(`[扩展公式计算] 计算失败: ${processedFormula}`, error.message);
+    return null;
+  }
+}
+
+/**
  * 聚合函数类型
  */
 const AGGREGATE_FUNCTIONS = {
@@ -543,13 +957,14 @@ function parseFormulaVariables(formula) {
 
   const variables = new Set();
 
-  // 匹配字母开头的标识符（如 E001, E002）
+  // 匹配字母开头的标识符（如 E001, E002, D001）
   const identifierPattern = /\b([A-Za-z][A-Za-z0-9_]*)\b/g;
   let match;
   while ((match = identifierPattern.exec(formula)) !== null) {
-    // 排除数学关键字
     const identifier = match[1];
-    if (!['Math', 'PI', 'E'].includes(identifier)) {
+    // 排除数学关键字和扩展函数关键字
+    if (!['Math', 'PI'].includes(identifier) &&
+        !EXTENDED_FUNCTION_KEYWORDS.includes(identifier.toUpperCase())) {
       variables.add(identifier);
     }
   }
@@ -608,12 +1023,12 @@ function calculateFormula(formula, values) {
 }
 
 /**
- * 计算单个样本的派生要素值
+ * 计算单个样本的派生要素值（支持扩展公式）
  * @param {string} elementCode - 要素编码
  * @param {Array} elements - 所有要素定义
  * @param {Object} sampleData - 单个样本的填报数据
  * @param {Map} calculatedCache - 已计算的要素值缓存
- * @returns {number|null} 计算结果
+ * @returns {number|boolean|null} 计算结果
  */
 function calculateDerivedValueForSample(elementCode, elements, sampleData, calculatedCache = new Map()) {
   // 如果已经计算过，直接返回缓存
@@ -627,14 +1042,37 @@ function calculateDerivedValueForSample(elementCode, elements, sampleData, calcu
     return null;
   }
 
+  const elementType = element.element_type || element.elementType;
+  const dataType = element.data_type || element.dataType;
+
   // 基础要素：直接从填报数据中获取
-  if (element.element_type === '基础要素' || element.elementType === '基础要素') {
+  if (elementType === '基础要素') {
     const fieldId = element.field_id || element.fieldId;
     if (!fieldId) {
       console.warn(`[派生计算] 基础要素 ${elementCode} 没有关联字段`);
       return null;
     }
     const value = sampleData[fieldId];
+
+    // 数组类型：直接返回数组
+    if (dataType === '数组') {
+      calculatedCache.set(elementCode, value || []);
+      return value || [];
+    }
+
+    // 日期类型：返回字符串
+    if (dataType === '日期') {
+      calculatedCache.set(elementCode, value || null);
+      return value || null;
+    }
+
+    // 逻辑类型：返回字符串值（如 'yes'/'no'）
+    if (dataType === '逻辑') {
+      calculatedCache.set(elementCode, value || null);
+      return value || null;
+    }
+
+    // 数字类型
     if (value === undefined || value === null || value === '') {
       return null;
     }
@@ -647,7 +1085,7 @@ function calculateDerivedValueForSample(elementCode, elements, sampleData, calcu
   }
 
   // 派生要素：通过公式计算
-  if (element.element_type === '派生要素' || element.elementType === '派生要素') {
+  if (elementType === '派生要素') {
     if (!element.formula) {
       console.warn(`[派生计算] 派生要素 ${elementCode} 没有公式`);
       return null;
@@ -655,24 +1093,38 @@ function calculateDerivedValueForSample(elementCode, elements, sampleData, calcu
 
     // 解析公式中引用的要素
     const referencedCodes = parseFormulaVariables(element.formula);
-    const values = {};
+    const context = {};
 
     // 递归计算每个引用的要素
     for (const refCode of referencedCodes) {
       const refValue = calculateDerivedValueForSample(refCode, elements, sampleData, calculatedCache);
-      if (refValue === null) {
-        return null;
-      }
-      values[refCode] = refValue;
+      // 允许 null 值参与计算（由公式决定如何处理）
+      context[refCode] = refValue;
     }
+
+    // 检查公式是否包含扩展函数
+    const hasExtendedFunction = EXTENDED_FUNCTION_KEYWORDS.some(keyword =>
+      element.formula.toUpperCase().includes(keyword)
+    );
 
     // 计算公式
     try {
-      const result = calculateFormula(element.formula, values);
+      let result;
+      if (hasExtendedFunction) {
+        // 使用扩展公式计算
+        result = calculateExtendedFormula(element.formula, context);
+      } else {
+        // 使用传统公式计算（要求所有值非空）
+        const hasNullValue = Object.values(context).some(v => v === null || v === undefined);
+        if (hasNullValue) {
+          return null;
+        }
+        result = calculateFormula(element.formula, context);
+      }
       calculatedCache.set(elementCode, result);
       return result;
     } catch (error) {
-      console.warn(`[派生计算] 计算公式失败: ${element.formula}`, error);
+      console.warn(`[派生计算] 计算公式失败: ${element.formula}`, error.message);
       return null;
     }
   }
@@ -882,10 +1334,19 @@ module.exports = {
   calculateCompositeCV,
   executeAggregationRule,
   generateDistrictReport,
-  // 新增：派生要素聚合支持
+  // 派生要素聚合支持
   parseFormulaVariables,
   calculateFormula,
   calculateDerivedValueForSample,
   calculateDerivedElementAggregation,
   calculateAllElementsAggregation,
+  // 扩展公式函数
+  EXTENDED_FUNCTION_KEYWORDS,
+  calculateExtendedFormula,
+  extCeil,
+  extFloor,
+  extLen,
+  extYear,
+  extCountIf,
+  extSumArray,
 };
