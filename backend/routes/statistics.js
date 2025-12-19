@@ -22,6 +22,26 @@ const setDb = (database) => {
  */
 async function calculateIndicatorValueFromElements(code, projectId, districtId, districtFormData) {
   try {
+    const safeEvalFormula = (formula, valuesByCode) => {
+      if (!formula) return null;
+      let expr = String(formula);
+      for (const [k, v] of Object.entries(valuesByCode || {})) {
+        if (v === null || v === undefined || Number.isNaN(v)) return null;
+        // 用单词边界替换变量，避免 E00 覆盖 E001
+        expr = expr.replace(new RegExp(`\\b${k}\\b`, 'g'), String(v));
+      }
+      // 仅允许数字、空白、运算符与括号
+      // 注意：字符集中的 '-' 容易触发“区间”解析问题，放到末尾最稳妥；'/' 也显式转义
+      if (!/^[\d\s+*()\/.\-]+$/.test(expr)) return null;
+      try {
+        // eslint-disable-next-line no-new-func
+        const out = new Function(`return (${expr})`)();
+        return (typeof out === 'number' && Number.isFinite(out)) ? out : null;
+      } catch {
+        return null;
+      }
+    };
+
     // 1. 首先尝试按数据指标编码查找
     const dataIndicatorResult = await db.query(`
       SELECT di.id, di.code, di.name, di.threshold
@@ -186,6 +206,37 @@ async function calculateIndicatorValueFromElements(code, projectId, districtId, 
         });
       }
 
+      // ====== 业务特判：G9(D015) 的分母应为“县域专任教师总人数” ======
+      // 当前库里 E004 往往指向学校表单字段（如 primary_full_time_teacher_count），会导致区县计算分母偏小。
+      // 若区县表单已填 primary_teacher_count/junior_teacher_count，则优先用其合计覆盖 E004。
+      if (primaryElement.element_code === 'D015' && referencedCodes.includes('E004')) {
+        const primaryTeachers = parseFloat(districtFormData.primary_teacher_count);
+        const juniorTeachers = parseFloat(districtFormData.junior_teacher_count);
+        const denom =
+          (Number.isFinite(primaryTeachers) ? primaryTeachers : 0) +
+          (Number.isFinite(juniorTeachers) ? juniorTeachers : 0);
+        if (denom > 0) {
+          context.E004 = denom;
+          const idx = details.findIndex(d => d.code === 'E004');
+          if (idx >= 0) {
+            details[idx] = {
+              ...details[idx],
+              value: denom,
+              displayValue: String(denom),
+              note: '分母使用区县填报：小学专任教师数+初中专任教师数',
+            };
+          } else {
+            details.push({
+              code: 'E004',
+              name: '专任教师总人数',
+              value: denom,
+              displayValue: String(denom),
+              note: '分母使用区县填报：小学专任教师数+初中专任教师数',
+            });
+          }
+        }
+      }
+
       // 检查是否所有引用的值都存在
       const hasAllValues = referencedCodes.every(code => {
         const v = context[code];
@@ -193,22 +244,8 @@ async function calculateIndicatorValueFromElements(code, projectId, districtId, 
       });
 
       if (hasAllValues) {
-        // 计算公式
-        try {
-          calculatedValue = calculateDerivedValueForSample(
-            primaryElement.code,
-            allElements.map(e => ({
-              ...e,
-              elementType: e.element_type,
-              fieldId: e.field_id,
-              toolId: e.tool_id
-            })),
-            context,
-            new Map()
-          );
-        } catch (err) {
-          console.error(`[要素计算] 公式计算失败: ${formula}`, err);
-        }
+        // 计算公式（使用 code->value 上下文直接求值）
+        calculatedValue = safeEvalFormula(formula, context);
       }
     } else if (primaryElementType === '基础要素') {
       // 基础要素：直接从填报数据获取
