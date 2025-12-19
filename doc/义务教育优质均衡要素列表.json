@@ -2094,28 +2094,27 @@
       "dataSource": "区县汇总（基于学校填报数据）"
     },
     {
-      "code": "E194",
+      "code": "D077",
       "name": "县域专任教师总数",
-      "elementType": "基础要素",
+      "elementType": "派生要素",
       "dataType": "数字",
-      "fieldId": "district_total_teacher_count",
+      "formula": "E205 + E206",
       "category": "政府保障",
       "unit": "人",
-      "description": "区县汇总：全县所有学校专任教师总数（不含民办，用于计算教师培训完成率、持证上岗率等）。需基于全区县所有学校数据汇总。",
-      "calculationLevel": "district",
-      "dataSource": "区县汇总（基于学校填报数据）"
+      "description": "派生计算：区县小学专任教师数(E205) + 区县初中专任教师数(E206)。用于计算教师培训完成率、持证上岗率等。",
+      "calculationLevel": "district"
     },
     {
       "code": "E195",
       "name": "县域完成360学时培训教师总数",
       "elementType": "基础要素",
       "dataType": "数字",
-      "fieldId": "district_trained_teacher_count",
+      "fieldId": "trained_teacher_count",
       "category": "政府保障",
       "unit": "人",
-      "description": "区县汇总：全县完成5年360学时培训的专任教师总数。需基于全区县所有学校数据汇总。",
+      "description": "区县填报：近5年完成360学时培训的专任教师总数（不含民办学校）。",
       "calculationLevel": "district",
-      "dataSource": "区县汇总（基于学校填报数据）"
+      "dataSource": "区县填报（doc/schema-区县优质均衡.json）"
     },
     {
       "code": "E196",
@@ -2248,6 +2247,103 @@
           }
         }
       }
+    },
+    {
+      "code": "E202",
+      "name": "县域不足100人学校学生总数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "small_school_student_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县汇总：全县所有学生人数不足100人的学校的学生总数。用于计算小规模学校公用经费核定是否达标。",
+      "calculationLevel": "district",
+      "dataSource": "区县汇总（基于学校填报数据）",
+      "aggregation": {
+        "enabled": true,
+        "method": "sum",
+        "scope": {
+          "level": "custom",
+          "filter": {
+            "field": "total_students",
+            "operator": "<",
+            "value": 100
+          }
+        }
+      }
+    },
+    {
+      "code": "E203",
+      "name": "县域不足100人学校公用经费拨付总额",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "small_school_funding_total",
+      "category": "政府保障",
+      "unit": "万元",
+      "description": "区县汇总：全县所有学生人数不足100人学校的公用经费拨付总额。用于计算小规模学校公用经费核定是否达标。",
+      "calculationLevel": "district",
+      "dataSource": "区县汇总（基于学校填报数据）",
+      "aggregation": {
+        "enabled": true,
+        "method": "sum",
+        "scope": {
+          "level": "custom",
+          "filter": {
+            "field": "total_students",
+            "operator": "<",
+            "value": 100
+          }
+        },
+        "sourceField": "public_funding_budget"
+      }
+    },
+    {
+      "code": "E204",
+      "name": "县域不足100人学校数量",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "small_school_count",
+      "category": "政府保障",
+      "unit": "所",
+      "description": "区县汇总：全县学生人数不足100人的学校数量。用于计算小规模学校公用经费核定是否达标。",
+      "calculationLevel": "district",
+      "dataSource": "区县汇总（基于学校填报数据）",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "scope": {
+          "level": "custom",
+          "filter": {
+            "field": "total_students",
+            "operator": "<",
+            "value": 100
+          }
+        }
+      }
+    },
+    {
+      "code": "E205",
+      "name": "区县小学专任教师数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "primary_teacher_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报：全县小学专任教师总数（不含民办学校）。",
+      "calculationLevel": "district",
+      "dataSource": "区县填报（doc/schema-区县优质均衡.json）"
+    },
+    {
+      "code": "E206",
+      "name": "区县初中专任教师数",
+      "elementType": "基础要素",
+      "dataType": "数字",
+      "fieldId": "junior_teacher_count",
+      "category": "政府保障",
+      "unit": "人",
+      "description": "区县填报：全县初中专任教师总数（不含民办学校）。",
+      "calculationLevel": "district",
+      "dataSource": "区县填报（doc/schema-区县优质均衡.json）"
     },
     {
       "code": "D039",
@@ -2617,7 +2713,7 @@
       "name": "教师5年360学时培训完成率（县域）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "E195 / E194 * 100",
+      "formula": "E195 / D077 * 100",
       "standard": "≥100%",
       "unit": "%",
       "precision": 2,
@@ -2630,7 +2726,7 @@
       "name": "教师资格证持证上岗率（县域）",
       "elementType": "派生要素",
       "dataType": "数字",
-      "formula": "E196 / E194 * 100",
+      "formula": "E196 / D077 * 100",
       "standard": "≥100%",
       "unit": "%",
       "precision": 2,
@@ -2793,6 +2889,38 @@
       "description": "区县特殊教育学校生均公用经费。计算方式：上年度特殊教育学生生均公用经费拨付总金额(E056) ÷ 特殊教育学校学生人数(E188)。达标标准：≥8000元。",
       "calculationLevel": "district",
       "category": "政府保障"
+    },
+    {
+      "code": "D075",
+      "name": "小规模学校公用经费核定达标（县域）",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "(E203 * 10000) / (E204 * 100) >= E185",
+      "standard": "达标",
+      "description": "判断不足100人的小规模学校是否按不低于100人核定公用经费。计算方式：小规模学校公用经费总额(E203) ÷ (小规模学校数量(E204) × 100人) ≥ 规定的小学生均公用经费标准(E185)。若无小规模学校（E204=0）则直接达标。",
+      "calculationLevel": "district",
+      "category": "政府保障",
+      "complianceRule": {
+        "condition": "E204 == 0 || (E203 * 10000) / (E204 * 100) >= E185",
+        "passValue": true,
+        "failValue": false
+      }
+    },
+    {
+      "code": "D076",
+      "name": "教师年平均工资不低于公务员达标（县域）",
+      "elementType": "派生要素",
+      "dataType": "逻辑",
+      "formula": "E151 >= E152",
+      "standard": "达标",
+      "description": "判断义务教育学校教师年平均工资收入水平是否不低于当地公务员年平均工资收入水平。计算方式：教师年平均工资(E151) ≥ 公务员年平均工资(E152)。",
+      "calculationLevel": "district",
+      "category": "政府保障",
+      "complianceRule": {
+        "condition": "E151 >= E152",
+        "passValue": true,
+        "failValue": false
+      }
     }
   ]
 }

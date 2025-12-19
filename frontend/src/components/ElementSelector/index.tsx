@@ -10,6 +10,8 @@ interface ElementSelectorProps {
   onCancel: () => void;
   onSelect: (element: toolService.ElementWithLibrary) => void;
   selectedId?: string;
+  /** 允许选择的要素库ID列表，不传则显示所有要素库 */
+  allowedLibraryIds?: string[];
 }
 
 const ElementSelector: React.FC<ElementSelectorProps> = ({
@@ -17,6 +19,7 @@ const ElementSelector: React.FC<ElementSelectorProps> = ({
   onCancel,
   onSelect,
   selectedId,
+  allowedLibraryIds,
 }) => {
   const [loading, setLoading] = useState(false);
   const [elements, setElements] = useState<toolService.ElementWithLibrary[]>([]);
@@ -31,7 +34,15 @@ const ElementSelector: React.FC<ElementSelectorProps> = ({
     const loadLibraries = async () => {
       try {
         const data = await toolService.getElementLibraries();
-        setLibraries(data);
+        // 如果指定了允许的要素库ID列表，则过滤
+        const filteredLibraries = allowedLibraryIds && allowedLibraryIds.length > 0
+          ? data.filter(lib => allowedLibraryIds.includes(lib.id))
+          : data;
+        setLibraries(filteredLibraries);
+        // 如果只有一个要素库，自动选中
+        if (filteredLibraries.length === 1) {
+          setSelectedLibraryId(filteredLibraries[0].id);
+        }
       } catch (error) {
         console.error('加载要素库失败:', error);
       }
@@ -39,7 +50,7 @@ const ElementSelector: React.FC<ElementSelectorProps> = ({
     if (visible) {
       loadLibraries();
     }
-  }, [visible]);
+  }, [visible, allowedLibraryIds]);
 
   // 加载要素列表
   useEffect(() => {

@@ -56,6 +56,8 @@ interface IndicatorTabProps {
   indicatorSystemId?: string;
   indicatorSystemName?: string;
   disabled?: boolean; // 是否禁用编辑（非配置中状态）
+  /** 项目关联的要素库ID（选择要素时仅显示该要素库） */
+  elementLibraryId?: string;
 }
 
 type AutoLinkResult = {
@@ -103,6 +105,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
   indicatorSystemId,
   indicatorSystemName,
   disabled = false,
+  elementLibraryId,
 }) => {
   const [loading, setLoading] = useState(false);
   const [indicators, setIndicators] = useState<Indicator[]>([]);
@@ -185,9 +188,29 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         unassociated: totalDataIndicators - associatedCount,
       });
 
-      // 默认展开第一级
-      const firstLevelKeys = treeData.map(item => item.id);
-      setExpandedKeys(firstLevelKeys);
+      // 默认展开全部节点
+      const collectAllKeys = (indicatorList: Indicator[]): React.Key[] => {
+        const keys: React.Key[] = [];
+        const traverse = (list: Indicator[]) => {
+          list.forEach(ind => {
+            keys.push(ind.id);
+            // 添加数据指标分组节点的key
+            if (ind.dataIndicators && ind.dataIndicators.length > 0) {
+              keys.push(`${ind.id}-data-indicators`);
+            }
+            // 添加佐证资料分组节点的key
+            if (ind.supportingMaterials && ind.supportingMaterials.length > 0) {
+              keys.push(`${ind.id}-materials`);
+            }
+            if (ind.children) {
+              traverse(ind.children);
+            }
+          });
+        };
+        traverse(indicatorList);
+        return keys;
+      };
+      setExpandedKeys(collectAllKeys(treeData));
     } catch (error) {
       console.error('加载指标体系失败:', error);
       message.error('加载指标体系失败');
@@ -732,6 +755,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         indicatorName={selectedIndicatorName}
         onSaved={loadData}
         readonly={disabled}
+        allowedLibraryIds={elementLibraryId ? [elementLibraryId] : undefined}
       />
 
       {/* 自动关联要素 - 选择要素库 */}

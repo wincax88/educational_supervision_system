@@ -318,6 +318,24 @@
         "unit": "万元"
       },
       {
+        "id": "divider_teacher_training",
+        "type": "divider",
+        "label": "教师培训",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "trained_teacher_count",
+        "type": "number",
+        "label": "完成360学时培训教师总数",
+        "placeholder": "请输入近5年完成360学时培训的专任教师总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "description": "近5年内完成360学时培训的专任教师总数（不含民办学校）"
+      },
+      {
         "id": "divider_exchange",
         "type": "divider",
         "label": "教师交流轮岗",

@@ -10,6 +10,8 @@ export interface Project {
   description?: string;
   indicatorSystemId?: string;
   indicatorSystemName?: string;
+  elementLibraryId?: string;      // 关联的要素库ID
+  elementLibraryName?: string;    // 关联的要素库名称
   startDate?: string;
   endDate?: string;
   status: '配置中' | '填报中' | '评审中' | '已中止' | '已完成';

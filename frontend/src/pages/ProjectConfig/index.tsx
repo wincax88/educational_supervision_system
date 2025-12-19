@@ -504,6 +504,7 @@ const ProjectConfig: React.FC = () => {
                   indicatorSystemId={project.indicatorSystemId}
                   indicatorSystemName={project.indicatorSystemName}
                   disabled={!isEditable}
+                  elementLibraryId={project.elementLibraryId}
                 />
               ),
             },

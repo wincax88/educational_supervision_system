@@ -44,6 +44,8 @@ interface ElementAssociationDrawerProps {
   indicatorName?: string;
   onSaved?: () => void;
   readonly?: boolean; // 只读模式，隐藏编辑操作
+  /** 允许选择的要素库ID列表 */
+  allowedLibraryIds?: string[];
 }
 
 interface LocalAssociation {
@@ -68,6 +70,7 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
   indicatorName,
   onSaved,
   readonly = false,
+  allowedLibraryIds,
 }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -434,6 +437,7 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
         visible={elementSelectorVisible}
         onCancel={() => setElementSelectorVisible(false)}
         onSelect={handleElementSelect}
+        allowedLibraryIds={allowedLibraryIds}
       />
     </>
   );

@@ -348,12 +348,15 @@ router.get('/projects', async (req, res) => {
     const { status, year } = req.query;
     let sql = `
       SELECT p.id, p.name, (to_jsonb(p)->>'keywords') as keywords, p.description, p.indicator_system_id as "indicatorSystemId",
+             p.element_library_id as "elementLibraryId",
              p.start_date as "startDate", p.end_date as "endDate", p.status,
              COALESCE((to_jsonb(p)->>'is_published')::boolean, false) as "isPublished",
              p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
-             i.name as "indicatorSystemName"
+             i.name as "indicatorSystemName",
+             el.name as "elementLibraryName"
       FROM projects p
       LEFT JOIN indicator_systems i ON p.indicator_system_id = i.id
+      LEFT JOIN element_libraries el ON p.element_library_id = el.id
       WHERE 1=1
     `;
     const params = [];
@@ -388,12 +391,15 @@ router.get('/projects/:id', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT p.id, p.name, (to_jsonb(p)->>'keywords') as keywords, p.description, p.indicator_system_id as "indicatorSystemId",
+             p.element_library_id as "elementLibraryId",
              p.start_date as "startDate", p.end_date as "endDate", p.status,
              COALESCE((to_jsonb(p)->>'is_published')::boolean, false) as "isPublished",
              p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
-             i.name as "indicatorSystemName"
+             i.name as "indicatorSystemName",
+             el.name as "elementLibraryName"
       FROM projects p
       LEFT JOIN indicator_systems i ON p.indicator_system_id = i.id
+      LEFT JOIN element_libraries el ON p.element_library_id = el.id
       WHERE p.id = $1
     `, [req.params.id]);
 
@@ -413,13 +419,21 @@ router.get('/projects/:id', async (req, res) => {
 // 创建项目
 router.post('/projects', projectRules.create, async (req, res) => {
   try {
-    const { name, keywords, description, indicatorSystemId, startDate, endDate } = req.body;
+    const { name, keywords, description, indicatorSystemId, elementLibraryId, startDate, endDate } = req.body;
 
     // 验证指标体系是否存在（程序层面引用验证）
     if (indicatorSystemId) {
       const systemResult = await db.query('SELECT id FROM indicator_systems WHERE id = $1', [indicatorSystemId]);
       if (!systemResult.rows[0]) {
         return res.status(400).json({ code: 400, message: '指标体系不存在' });
+      }
+    }
+
+    // 验证要素库是否存在（程序层面引用验证）
+    if (elementLibraryId) {
+      const libraryResult = await db.query('SELECT id FROM element_libraries WHERE id = $1', [elementLibraryId]);
+      if (!libraryResult.rows[0]) {
+        return res.status(400).json({ code: 400, message: '要素库不存在' });
       }
     }
 
@@ -434,6 +448,7 @@ router.post('/projects', projectRules.create, async (req, res) => {
         keywords: JSON.stringify(keywords || []),
         description,
         indicator_system_id: indicatorSystemId,
+        element_library_id: elementLibraryId,
         start_date: startDate,
         end_date: endDate,
         status: '配置中',
@@ -453,7 +468,7 @@ router.post('/projects', projectRules.create, async (req, res) => {
 // 更新项目
 router.put('/projects/:id', async (req, res) => {
   try {
-    const { name, keywords, description, indicatorSystemId, startDate, endDate, status } = req.body;
+    const { name, keywords, description, indicatorSystemId, elementLibraryId, startDate, endDate, status } = req.body;
 
     // 程序层面枚举验证
     if (status) {
@@ -472,6 +487,14 @@ router.put('/projects/:id', async (req, res) => {
       }
     }
 
+    // 验证要素库是否存在（程序层面引用验证）
+    if (elementLibraryId) {
+      const libraryResult = await db.query('SELECT id FROM element_libraries WHERE id = $1', [elementLibraryId]);
+      if (!libraryResult.rows[0]) {
+        return res.status(400).json({ code: 400, message: '要素库不存在' });
+      }
+    }
+
     const timestamp = now().split('T')[0];
 
     const updates = {
@@ -479,6 +502,7 @@ router.put('/projects/:id', async (req, res) => {
       ...(keywords !== undefined ? { keywords: JSON.stringify(keywords || []) } : {}),
       ...(description !== undefined ? { description } : {}),
       ...(indicatorSystemId !== undefined ? { indicator_system_id: indicatorSystemId } : {}),
+      ...(elementLibraryId !== undefined ? { element_library_id: elementLibraryId } : {}),
       ...(startDate !== undefined ? { start_date: startDate } : {}),
       ...(endDate !== undefined ? { end_date: endDate } : {}),
       ...(status !== undefined ? { status } : {}),
