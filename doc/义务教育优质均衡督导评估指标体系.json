@@ -533,7 +533,17 @@
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [],
-          "supportingMaterials": []
+          "supportingMaterials": [
+            {
+              "id": "SY-YZJH-2-1-M1",
+              "code": "2.1-M1",
+              "name": "县域义务教育学校规划布局合理佐证材料",
+              "fileTypes": "PDF,Word,Excel,JPG,PNG",
+              "maxSize": "20MB",
+              "description": "提供县域义务教育学校布局规划、调整方案、批复文件、规划图等佐证。",
+              "required": true
+            }
+          ]
         },
         {
           "id": "SY-YZJH-2-2",
@@ -775,7 +785,17 @@
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [],
-          "supportingMaterials": []
+          "supportingMaterials": [
+            {
+              "id": "SY-YZJH-2-10-M1",
+              "code": "2.10-M1",
+              "name": "编制与岗位统筹分配文件佐证材料",
+              "fileTypes": "PDF,Word,Excel,JPG,PNG",
+              "maxSize": "20MB",
+              "description": "提供编制核定、岗位设置与分配文件、年度调整记录及执行说明等佐证。",
+              "required": true
+            }
+          ]
         },
         {
           "id": "SY-YZJH-2-11",

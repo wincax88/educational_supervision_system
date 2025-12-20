@@ -1615,8 +1615,6 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
           ],
           supportingMaterials: [],
         },
-        ],
-        },
         {
           id: 'I2-11',
           code: '2.11',
@@ -2034,13 +2032,6 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '提供作业管理和课业负担情况说明',
             },
           ],
-        },
-        ],
-        },
-      ],
-    },
-    // 四、社会认可度（1项）
-    ],
         },
       ],
     },
