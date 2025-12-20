@@ -381,7 +381,7 @@ router.get('/element-libraries/:id', async (req, res) => {
 
     let elementsResult;
     try {
-      // 新版本：elements 表含 tool_id/field_id/field_label/aggregation，直接回显
+      // 新版本：elements 表含 tool_id/field_id/field_label/aggregation/collection_level/calculation_level/data_source，直接回显
       elementsResult = await db.query(
         `
         SELECT
@@ -392,7 +392,10 @@ router.get('/element-libraries/:id', async (req, res) => {
           field_id as "fieldId",
           field_label as "fieldLabel",
           formula,
-          aggregation
+          aggregation,
+          collection_level as "collectionLevel",
+          calculation_level as "calculationLevel",
+          data_source as "dataSource"
         FROM elements WHERE library_id = $1 ORDER BY sort_order
       `,
         [req.params.id]
@@ -648,6 +651,9 @@ router.put('/element-libraries/:id', async (req, res) => {
           tool_id: el.elementType === '基础要素' ? normalizeNullableText(el.toolId) : null,
           field_id: el.elementType === '基础要素' ? normalizeNullableText(el.fieldId) : null,
           field_label: el.elementType === '基础要素' ? normalizeNullableText(el.fieldLabel) : null,
+          collection_level: normalizeNullableText(el.collectionLevel || el.collection_level),
+          calculation_level: normalizeNullableText(el.calculationLevel || el.calculation_level),
+          data_source: normalizeNullableText(el.dataSource || el.data_source),
         };
 
         processedElements.push({

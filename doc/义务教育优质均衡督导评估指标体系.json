@@ -75,17 +75,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-1-M1",
-              "code": "1.1-M1",
-              "name": "教师学历统计及证明材料",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供教师名册、学历结构统计表、学历证书/学信网截图等佐证，说明统计口径（专任教师）。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-2",
@@ -128,17 +118,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-2-M1",
-              "code": "1.2-M1",
-              "name": "骨干教师认定及统计材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供县级及以上骨干教师认定文件/名单及学校统计表，说明认定依据与口径。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-3",
@@ -181,17 +161,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-3-M1",
-              "code": "1.3-M1",
-              "name": "体育艺术教师配备与到校服务佐证",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供体育/音乐/美术/艺术教师名单、岗位性质说明；如加计到校教师，提供交流轮岗/走教协议、课表或到校记录等。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-4",
@@ -234,17 +204,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-4-M1",
-              "code": "1.4-M1",
-              "name": "用房面积统计及证明材料",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供房产/不动产权证、竣工验收资料/平面图、用房面积统计表等佐证，并明确室内体育用房面积口径。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-5",
@@ -287,17 +247,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-5-M1",
-              "code": "1.5-M1",
-              "name": "体育场馆面积与可用性佐证材料",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供体育场地/场馆面积统计表、平面图、照片；如加计校外租赁场馆，提供租赁合同与专用时间保障说明。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-6",
@@ -340,17 +290,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-6-M1",
-              "code": "1.6-M1",
-              "name": "教学仪器设备资产台账/审计材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供固定资产台账、设备清单、财务审计/决算相关佐证（含账面原值口径说明）。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-7",
@@ -393,17 +333,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-7-M1",
-              "code": "1.7-M1",
-              "name": "多媒体教室清单与照片",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供多媒体教室清单、设备配置说明及现场照片等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-1-8",
@@ -582,17 +512,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-1-8-M1",
-              "code": "1.8-M1",
-              "name": "差异系数计算过程表",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供县域资源配置指标差异系数计算过程（含参与学校、数据口径、公式、结果），支持追溯。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         }
       ]
     },
@@ -613,17 +533,7 @@
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-1-M1",
-              "code": "2.1-M1",
-              "name": "学校布局规划与批复文件",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供县域义务教育学校布局规划、调整方案、批复文件、规划图等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-2",
@@ -658,17 +568,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-2-M1",
-              "code": "2.2-M1",
-              "name": "统一标准与政策文件佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供建设标准、编制标准、公用经费基准定额、基本装备配置标准等相关政策文件及执行说明。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-3",
@@ -690,26 +590,7 @@
               "precision": 0
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-3-M1",
-              "code": "2.3-M1",
-              "name": "音乐/美术教室清单与面积佐证",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供各校音乐/美术教室清单、面积测算/平面图、现场照片及特殊情形（2016年前/小规模学校）说明材料。",
-              "required": true
-            },
-            {
-              "id": "SY-YZJH-2-3-M2",
-              "code": "2.3-M2",
-              "name": "持续达标建设规划与跟踪材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "对暂按特殊标准评估的学校，提供三年内达到规定标准的建设规划、进度与复查机制材料。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-4",
@@ -755,17 +636,7 @@
               "precision": 0
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-4-M1",
-              "code": "2.4-M1",
-              "name": "学籍规模统计与说明材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供各校学生数统计（含学籍口径）、特殊标准适用学校清单及建设规划/复查机制等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-5",
@@ -800,17 +671,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-5-M1",
-              "code": "2.5-M1",
-              "name": "班额统计与学籍佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供班级花名册/学籍导出统计、班额分段汇总表等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-6",
@@ -832,17 +693,7 @@
               "precision": 0
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-6-M1",
-              "code": "2.6-M1",
-              "name": "核定与拨付依据材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供小规模学校名单、核定依据、拨付凭证与测算表等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-7",
@@ -867,17 +718,7 @@
               "precision": 0
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-7-M1",
-              "code": "2.7-M1",
-              "name": "特殊教育经费与学生数佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供特殊教育经费拨付/决算凭证、学生数统计与口径说明。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-8",
@@ -899,17 +740,7 @@
               "precision": 0
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-8-M1",
-              "code": "2.8-M1",
-              "name": "教师与公务员年平均工资统计佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供教师/公务员年平均工资统计表、来源口径说明及绩效工资核定依据等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-9",
@@ -934,17 +765,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-9-M1",
-              "code": "2.9-M1",
-              "name": "教师培训记录与统计佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供培训平台导出、教师名单与学时统计、抽查凭证等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-10",
@@ -954,17 +775,7 @@
           "level": 2,
           "isLeaf": true,
           "dataIndicators": [],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-10-M1",
-              "code": "2.10-M1",
-              "name": "编制与岗位统筹分配文件",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供编制核定、岗位设置与分配文件、年度调整记录及执行说明等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-11",
@@ -1003,17 +814,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-11-M1",
-              "code": "2.11-M1",
-              "name": "交流轮岗台账与政策佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供交流轮岗政策文件、教师名单、去向与周期、骨干教师认定依据等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-12",
@@ -1038,17 +839,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-12-M1",
-              "code": "2.12-M1",
-              "name": "教师资格证与在岗证明",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供持证教师名单、资格证编号/截图抽查材料、在岗情况说明等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-13",
@@ -1089,17 +880,7 @@
               "targetType": "初中"
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-13-M1",
-              "code": "2.13-M1",
-              "name": "划片方案与学籍统计佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供年度划片方案、招生政策、学籍/居住地核验统计与抽查材料等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-14",
@@ -1124,17 +905,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-14-M1",
-              "code": "2.14-M1",
-              "name": "招生方案与名额分配表",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供年度招生政策文件、名额分配表及向农村倾斜的说明材料。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-2-15",
@@ -1159,26 +930,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-2-15-M1",
-              "code": "2.15-M1",
-              "name": "留守儿童关爱制度与台账",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供关爱工作制度、责任清单、走访记录、个案台账等佐证。",
-              "required": true
-            },
-            {
-              "id": "SY-YZJH-2-15-M2",
-              "code": "2.15-M2",
-              "name": "随迁子女入学统计与证明材料",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供符合条件随迁子女总数、公办与购买服务民办就读人数统计、口径说明及抽查凭证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         }
       ]
     },
@@ -1214,17 +966,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-1-M1",
-              "code": "3.1-M1",
-              "name": "巩固率计算与学籍佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供初中毕业班学生数、三年前入学数、转入转出、死亡等学籍统计与计算过程表。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-3-2",
@@ -1249,17 +991,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-2-M1",
-              "code": "3.2-M1",
-              "name": "残疾儿童少年入学统计佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供适龄残疾儿童少年总数、入学人数、就读去向（特教/随班/送教）统计与口径说明。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-3-3",
@@ -1318,17 +1050,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-4-M1",
-              "code": "3.4-M1",
-              "name": "预算决算与培训经费佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供公用经费与培训经费预算/决算报表、拨付凭证与口径说明。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         },
         {
           "id": "SY-YZJH-3-5",
@@ -1551,17 +1273,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-3-9-M1",
-              "code": "3.9-M1",
-              "name": "国家质量监测结果与差异率佐证",
-              "fileTypes": "PDF,Word,Excel",
-              "maxSize": "20MB",
-              "description": "提供国家义务教育质量监测结果通报、科目水平等级证明、校际差异率计算/来源说明等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         }
       ]
     },
@@ -1611,26 +1323,7 @@
               "precision": 2
             }
           ],
-          "supportingMaterials": [
-            {
-              "id": "SY-YZJH-4-1-M1",
-              "code": "4.1-M1",
-              "name": "问卷数据与分析报告",
-              "fileTypes": "PDF,Excel",
-              "maxSize": "20MB",
-              "description": "提供问卷样本、调查说明、原始数据与统计分析报告等佐证。",
-              "required": true
-            },
-            {
-              "id": "SY-YZJH-4-1-M2",
-              "code": "4.1-M2",
-              "name": "实地走访记录与汇总",
-              "fileTypes": "PDF,Word,Excel,JPG,PNG",
-              "maxSize": "20MB",
-              "description": "提供走访方案、对象清单、记录表、照片及满意度统计汇总等佐证。",
-              "required": true
-            }
-          ]
+          "supportingMaterials": []
         }
       ]
     }

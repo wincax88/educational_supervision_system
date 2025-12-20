@@ -1035,6 +1035,10 @@ const IndicatorEdit: React.FC = () => {
           toolId: el.toolId,
           fieldId: el.fieldId,
           fieldLabel: el.fieldLabel,
+          collectionLevel: el.collectionLevel,
+          calculationLevel: el.calculationLevel,
+          dataSource: el.dataSource,
+          aggregation: el.aggregation,
         })),
       };
       setLibrary(mappedLibrary);

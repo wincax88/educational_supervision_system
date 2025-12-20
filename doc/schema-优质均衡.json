@@ -1528,24 +1528,6 @@
         "unit": "人"
       },
       {
-        "id": "staff_in_quota_off_post_explanation",
-        "type": "upload",
-        "label": "在编不在校（岗）情况说明",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
-      },
-      {
-        "id": "staff_on_post_off_quota_explanation",
-        "type": "upload",
-        "label": "在校（岗）不在编情况说明",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
-      },
-      {
         "id": "divider_training",
         "type": "divider",
         "label": "培训与入学",

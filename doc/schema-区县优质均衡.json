@@ -325,7 +325,7 @@
         "required": false
       },
       {
-        "id": "trained_teacher_count",
+        "id": "district_trained_teacher_count",
         "type": "number",
         "label": "完成360学时培训教师总数",
         "placeholder": "请输入近5年完成360学时培训的专任教师总数",
@@ -526,7 +526,7 @@
         "unit": "元"
       },
       {
-        "id": "special_education_student_count",
+        "id": "district_special_education_student_count",
         "type": "number",
         "label": "特殊教育学校学生人数",
         "placeholder": "请输入特殊教育学校学生总人数",

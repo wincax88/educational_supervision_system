@@ -1060,16 +1060,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '小学：((专科+本科+硕士+博士)÷学生人数)×100；初中：((本科+硕士+博士)÷学生人数)×100',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-1-1',
-              code: '1.1-M1',
-              name: '教师学历证明材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供教师学历统计表及相关证明材料',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-2',
@@ -1101,16 +1092,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(骨干教师数÷学生数)×100',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-2-1',
-              code: '1.2-M1',
-              name: '骨干教师认定材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供县级及以上骨干教师认定文件',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-3',
@@ -1198,16 +1180,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '普通学校：(体育+音乐+美术+艺术)÷学生数×100；乡村小规模学校可加上交流轮岗教师',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-3-1',
-              code: '1.3-M1',
-              name: '体育艺术教师配置材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供体育、音乐、美术、艺术教师花名册',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-4',
@@ -1246,16 +1219,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(教学及辅助用房总面积-室内体育用房面积)÷学生人数',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-4-1',
-              code: '1.4-M1',
-              name: '校舍面积证明材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供校舍建筑面积统计表或房产证明',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-5',
@@ -1315,16 +1279,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '普通学校：(运动场地+体育馆)÷学生数；中心城区学校可加上校外场馆',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-5-1',
-              code: '1.5-M1',
-              name: '体育场馆面积证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供体育场馆面积统计表，中心城区学校需提供租赁合同',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-6',
@@ -1356,16 +1311,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '教学仪器设备资产值÷学生人数',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-6-1',
-              code: '1.6-M1',
-              name: '设备资产证明',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供教学仪器设备资产账目',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I1-7',
@@ -1397,16 +1343,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(网络多媒体教室间数÷学生人数)×100',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M1-7-1',
-              code: '1.7-M1',
-              name: '多媒体教室配置清单',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供网络多媒体教室清单及设备配置情况',
-            },
-          ],
+          supportingMaterials: [],
         },
       ],
     },
@@ -1427,16 +1364,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
           level: 2,
           isLeaf: true,
           dataIndicators: [],
-          supportingMaterials: [
-            {
-              id: 'M2-1-1',
-              code: '2.1-M1',
-              name: '学校布局规划材料',
-              fileTypes: 'PDF, Word, 图片',
-              maxSize: '20MB',
-              description: '提供学校布局规划图及相关文件',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-2',
@@ -1454,16 +1382,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '省级标准：小学935元，初中1155元',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-2-1',
-              code: '2.2-M1',
-              name: '建设标准统一证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供教师编制、经费拨付、装备配置等标准文件',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-3',
@@ -1509,16 +1428,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '选择是/否',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-3-1',
-              code: '2.3-M1',
-              name: '专用教室配置材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供音乐、美术专用教室清单及面积证明',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-4',
@@ -1557,16 +1467,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '特殊情况可放宽至2400人或3000人',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-4-1',
-              code: '2.4-M1',
-              name: '学校规模证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供学生人数统计及相关说明',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-5',
@@ -1584,16 +1485,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '填写各班级人数明细',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-5-1',
-              code: '2.5-M1',
-              name: '班级人数统计表',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供各班级学生人数明细表',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-6',
@@ -1625,16 +1517,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '上一年度公用经费预算总额÷学生人数',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-6-1',
-              code: '2.6-M1',
-              name: '经费拨付证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供公用经费拨付账目',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-7',
@@ -1666,16 +1549,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '特殊教育学校经费总额÷学生人数',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-7-1',
-              code: '2.7-M1',
-              name: '特教经费证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供特殊教育学校经费拨付证明',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-8',
@@ -1707,16 +1581,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-8-1',
-              code: '2.8-M1',
-              name: '工资收入证明',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供教师和公务员平均工资对比材料',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-9',
@@ -1748,35 +1613,9 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(近5年培训满360学时专任教师人数÷专任教师总人数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-9-1',
-              code: '2.9-M1',
-              name: '教师培训证明',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供教师培训学时统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
-        {
-          id: 'I2-10',
-          code: '2.10',
-          name: '教职工编制统筹',
-          description: '县级教育行政部门在核定的教职工编制总额和岗位总量内，统筹分配各校教职工编制和岗位数量',
-          level: 2,
-          isLeaf: true,
-          dataIndicators: [],
-          supportingMaterials: [
-            {
-              id: 'M2-10-1',
-              code: '2.10-M1',
-              name: '编制统筹文件',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供教职工编制分配相关文件',
-            },
-          ],
+        ],
         },
         {
           id: 'I2-11',
@@ -1822,16 +1661,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(实际交流骨干教师数量÷实际交流轮岗教师数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-11-1',
-              code: '2.11-M1',
-              name: '交流轮岗材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供教师交流轮岗统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-12',
@@ -1863,16 +1693,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(持有教师资格证的专任教师数÷专任教师总数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-12-1',
-              code: '2.12-M1',
-              name: '教师资格证材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供教师资格证持有情况统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-13',
@@ -1904,16 +1725,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(家庭住址在划片范围内的学生人数÷学生人数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-13-1',
-              code: '2.13-M1',
-              name: '入学划片材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供学区划分及入学统计材料',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-14',
@@ -1952,16 +1764,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(优质高中招生分配指标数÷优质高中招生计划总人数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-14-1',
-              code: '2.14-M1',
-              name: '招生名额分配材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供优质高中招生名额分配方案',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I2-15',
@@ -2000,16 +1803,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '((公办学校就读人数+政府购买服务民办学校就读人数)÷符合条件的随迁子女总数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M2-15-1',
-              code: '2.15-M1',
-              name: '随迁子女就读材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供随迁子女就读情况统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
       ],
     },
@@ -2073,16 +1867,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(毕业学生人数-转入学生数+转出学生数)÷(初一时在校生数-死亡学生数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M3-1-1',
-              code: '3.1-M1',
-              name: '巩固率统计材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供学生流动情况统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I3-2',
@@ -2114,16 +1899,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(适龄残疾儿童少年入学总人数÷适龄残疾儿童少年总数)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M3-2-1',
-              code: '3.2-M1',
-              name: '残疾儿童入学材料',
-              fileTypes: 'PDF, Word, Excel',
-              maxSize: '20MB',
-              description: '提供残疾儿童少年入学情况统计表',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I3-3',
@@ -2181,16 +1957,7 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
               description: '(上年度教师培训经费决算总额÷上年度公用经费预算/决算总额)×100%',
             },
           ],
-          supportingMaterials: [
-            {
-              id: 'M3-4-1',
-              code: '3.4-M1',
-              name: '培训经费材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '提供培训经费预算和决算材料',
-            },
-          ],
+          supportingMaterials: [],
         },
         {
           id: 'I3-5',
@@ -2268,54 +2035,12 @@ export const indicatorTrees: { [systemId: string]: Indicator[] } = {
             },
           ],
         },
-        {
-          id: 'I3-9',
-          code: '3.9',
-          name: '学业水平监测',
-          description: '在国家义务教育质量监测中，相关科目学生学业水平达到Ⅲ级以上，且校际差异率低于0.15',
-          level: 2,
-          isLeaf: true,
-          dataIndicators: [],
-          supportingMaterials: [
-            {
-              id: 'M3-9-1',
-              code: '3.9-M1',
-              name: '学业水平监测材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '国家出具的质量监测结果',
-            },
-          ],
+        ],
         },
       ],
     },
     // 四、社会认可度（1项）
-    {
-      id: 'I4',
-      code: '4',
-      name: '社会认可度',
-      description: '社会认可度相关的评估指标',
-      level: 1,
-      isLeaf: false,
-      children: [
-        {
-          id: 'I4-1',
-          code: '4.1',
-          name: '社会认可度',
-          description: '社会认可度达到85%以上',
-          level: 2,
-          isLeaf: true,
-          dataIndicators: [],
-          supportingMaterials: [
-            {
-              id: 'M4-1-1',
-              code: '4.1-M1',
-              name: '社会认可度调查材料',
-              fileTypes: 'PDF, Word',
-              maxSize: '20MB',
-              description: '国家出具的社会认可度调查结果',
-            },
-          ],
+    ],
         },
       ],
     },

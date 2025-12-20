@@ -452,7 +452,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         const missingElements = requiredElementCodes.filter(code => !availableCodes.has(normalizeText(code)));
         if (missingElements.length > 0) {
           console.warn(`[自动关联] ⚠️ 要素库中缺少 ${missingElements.length} 个佐证材料要素:`, missingElements.slice(0, 10));
-          console.warn(`[自动关联] 请确保要素库中已导入这些要素: E212-E240`);
+          console.warn(`[自动关联] 请确保要素库中已导入这些要素: E220-E240`);
         } else {
           console.log(`[自动关联] ✅ 要素库中包含所有需要的佐证材料要素`);
         }
