@@ -477,6 +477,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             if (!overwrite && existing.length > 0) {
               diSkippedAlreadyAssociated++;
               skippedAlreadyAssociated++;
+              console.log(`[自动关联] 跳过已关联的数据指标: ${di.code}`);
               return;
             }
 
@@ -484,6 +485,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             if (!targetElementCode) {
               diSkippedNoMatch++;
               skippedNoMatch++;
+              console.log(`[自动关联] 数据指标 ${di.code} 在映射中未找到`);
               return;
             }
 
@@ -491,18 +493,21 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             if (!matched) {
               diSkippedNoMatch++;
               skippedNoMatch++;
+              console.log(`[自动关联] 数据指标 ${di.code} 映射的要素 ${targetElementCode} 在要素库中未找到`);
               return;
             }
 
+            console.log(`[自动关联] 关联数据指标 ${di.code} -> 要素 ${matched.code} (${matched.name})`);
             await indicatorService.saveDataIndicatorElements(di.id, [
               { elementId: matched.id, mappingType: 'primary', description: '' },
             ]);
             diLinked++;
             linked++;
+            console.log(`[自动关联] 成功关联数据指标 ${di.code}`);
           } catch (e) {
             diFailed++;
             failed++;
-            console.error('自动关联数据指标失败:', di, e);
+            console.error(`[自动关联] 关联数据指标失败: ${di.code}`, e);
           }
         });
         console.log(`[自动关联] 数据指标关联完成: 成功 ${diLinked}, 跳过 ${diSkippedAlreadyAssociated}, 无匹配 ${diSkippedNoMatch}, 失败 ${diFailed}`);
