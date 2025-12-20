@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Input, Select, Modal, Form, DatePicker, message, Spin, Tag, Popconfirm, Empty, Typography } from 'antd';
-
-const { Text } = Typography;
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -13,8 +11,6 @@ import {
   DeleteOutlined,
   BarChartOutlined,
   CheckCircleOutlined,
-  SendOutlined,
-  StopOutlined,
   EyeOutlined,
   InfoCircleOutlined,
   CloseOutlined,
@@ -34,6 +30,7 @@ import type { DataTool, ElementLibrary } from '../../services/toolService';
 import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
+const { Text } = Typography;
 const { Search } = Input;
 
 const ProjectPage: React.FC = () => {
@@ -53,6 +50,33 @@ const ProjectPage: React.FC = () => {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
+
+  const renderToolOptions = () => {
+    // 按填报对象类型分组
+    const targetGroups: Record<string, DataTool[]> = {};
+    dataTools.forEach(tool => {
+      // target 可能是逗号分隔的多个对象，取第一个作为分组依据
+      const targets = tool.target ? tool.target.split(',') : ['未分类'];
+      const primaryTarget = targets[0] || '未分类';
+      if (!targetGroups[primaryTarget]) {
+        targetGroups[primaryTarget] = [];
+      }
+      targetGroups[primaryTarget].push(tool);
+    });
+
+    return Object.entries(targetGroups).map(([target, tools]) => (
+      <Select.OptGroup key={target} label={`${target}（${tools.length}）`}>
+        {tools.map(tool => (
+          <Select.Option key={tool.id} value={tool.id} label={tool.name}>
+            {tool.name}
+            <span style={{ color: '#999', marginLeft: 8 }}>
+              [{tool.type}]
+            </span>
+          </Select.Option>
+        ))}
+      </Select.OptGroup>
+    ));
+  };
 
   // 加载项目列表
   const loadProjects = useCallback(async () => {
@@ -275,8 +299,17 @@ const ProjectPage: React.FC = () => {
   };
 
   // 进入编辑模式
-  const handleEditInfo = () => {
+  const handleEditInfo = async () => {
     if (currentProject) {
+      // 拉取该项目已关联的采集工具，用于回填
+      let toolIds: string[] = [];
+      try {
+        const projectTools = await projectToolService.getProjectTools(currentProject.id);
+        toolIds = (projectTools || []).map(t => t.toolId);
+      } catch (e) {
+        console.error('加载项目采集工具失败:', e);
+      }
+
       editForm.setFieldsValue({
         name: currentProject.name,
         keywords: Array.isArray(currentProject.keywords)
@@ -285,6 +318,7 @@ const ProjectPage: React.FC = () => {
         description: currentProject.description,
         indicatorSystemIds: currentProject.indicatorSystemId ? [currentProject.indicatorSystemId] : [],
         elementLibraryId: currentProject.elementLibraryId || undefined,
+        toolIds,
         startDate: currentProject.startDate ? dayjs(currentProject.startDate) : null,
         endDate: currentProject.endDate ? dayjs(currentProject.endDate) : null,
       });
@@ -312,6 +346,32 @@ const ProjectPage: React.FC = () => {
         startDate: values.startDate?.format('YYYY-MM-DD'),
         endDate: values.endDate?.format('YYYY-MM-DD'),
       });
+
+      // 同步采集工具关联（保持与“新建弹窗”同样元素与行为）
+      const nextToolIds: string[] = Array.isArray(values.toolIds) ? values.toolIds : [];
+      try {
+        const existing = await projectToolService.getProjectTools(currentProject.id);
+        const existingToolIds = new Set((existing || []).map(t => t.toolId));
+        const nextSet = new Set(nextToolIds);
+
+        const toAdd = nextToolIds.filter(id => !existingToolIds.has(id));
+        const toRemove = (existing || []).map(t => t.toolId).filter(id => !nextSet.has(id));
+
+        if (toRemove.length > 0) {
+          await Promise.all(toRemove.map(toolId => projectToolService.removeProjectTool(currentProject.id, toolId)));
+        }
+        if (toAdd.length > 0) {
+          await projectToolService.batchAddProjectTools(currentProject.id, toAdd);
+        }
+        // 统一按选择顺序排序（如果后端支持排序）
+        if (nextToolIds.length > 0) {
+          await projectToolService.updateProjectToolsOrder(currentProject.id, nextToolIds);
+        }
+      } catch (e) {
+        console.error('同步采集工具失败:', e);
+        message.warning('项目已保存，但采集工具关联同步失败，可在“项目配置”中再次调整');
+      }
+
       setEditInfoModalVisible(false);
       message.success('保存成功');
       await loadProjects();
@@ -580,11 +640,9 @@ const ProjectPage: React.FC = () => {
             name="indicatorSystemIds"
             rules={[
               {
-                validator: async (_, v) => {
-                  if (Array.isArray(v) && v.length > 0) return;
-                  throw new Error('请选择评估指标体系');
-                }
-              }
+                required: true,
+                message: '请选择评估指标体系',
+              },
             ]}
           >
             <Select
@@ -626,11 +684,9 @@ const ProjectPage: React.FC = () => {
             name="toolIds"
             rules={[
               {
-                validator: async (_, v) => {
-                  if (Array.isArray(v) && v.length > 0) return;
-                  throw new Error('请选择采集工具');
-                }
-              }
+                required: true,
+                message: '请选择采集工具',
+              },
             ]}
           >
             <Select
@@ -641,31 +697,7 @@ const ProjectPage: React.FC = () => {
               optionFilterProp="label"
               maxTagCount="responsive"
             >
-              {/* 按填报对象类型分组 */}
-              {(() => {
-                const targetGroups: Record<string, DataTool[]> = {};
-                dataTools.forEach(tool => {
-                  // target 可能是逗号分隔的多个对象，取第一个作为分组依据
-                  const targets = tool.target ? tool.target.split(',') : ['未分类'];
-                  const primaryTarget = targets[0] || '未分类';
-                  if (!targetGroups[primaryTarget]) {
-                    targetGroups[primaryTarget] = [];
-                  }
-                  targetGroups[primaryTarget].push(tool);
-                });
-                return Object.entries(targetGroups).map(([target, tools]) => (
-                  <Select.OptGroup key={target} label={`${target}（${tools.length}）`}>
-                    {tools.map(tool => (
-                      <Select.Option key={tool.id} value={tool.id} label={tool.name}>
-                        {tool.name}
-                        <span style={{ color: '#999', marginLeft: 8 }}>
-                          [{tool.type}]
-                        </span>
-                      </Select.Option>
-                    ))}
-                  </Select.OptGroup>
-                ));
-              })()}
+              {renderToolOptions()}
             </Select>
           </Form.Item>
           <div style={{ display: 'flex', gap: 16 }}>
@@ -782,10 +814,8 @@ const ProjectPage: React.FC = () => {
             name="indicatorSystemIds"
             rules={[
               {
-                validator: async (_, v) => {
-                  if (Array.isArray(v) && v.length > 0) return;
-                  throw new Error('请选择评估指标体系');
-                }
+                required: true,
+                message: '请选择评估指标体系',
               }
             ]}
           >
@@ -821,6 +851,27 @@ const ProjectPage: React.FC = () => {
                   </span>
                 </Select.Option>
               ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="采集工具"
+            name="toolIds"
+            rules={[
+              {
+                required: true,
+                message: '请选择采集工具',
+              },
+            ]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="选择采集工具（可多选，按填报对象分组）"
+              optionFilterProp="label"
+              maxTagCount="responsive"
+            >
+              {renderToolOptions()}
             </Select>
           </Form.Item>
           <div style={{ display: 'flex', gap: 16 }}>
