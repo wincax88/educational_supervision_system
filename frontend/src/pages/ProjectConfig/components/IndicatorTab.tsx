@@ -713,6 +713,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
     return (
       <div className={styles.materialNode}>
         <FileTextOutlined className={styles.materialIcon} />
+        <span className={styles.diCode}>{material.code}</span>
         <span className={styles.materialName}>{material.name}</span>
         {material.required ? (
           <Tag color="red">必传</Tag>

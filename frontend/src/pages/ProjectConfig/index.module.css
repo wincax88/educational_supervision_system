@@ -762,10 +762,25 @@
   background: transparent;
 }
 
+.indicatorTree :global(.ant-tree-node-content-wrapper) {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.indicatorTree :global(.ant-tree-title) {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
 .indicatorNode {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .indicatorCode {
