@@ -9,8 +9,6 @@ import {
   FormOutlined,
   SettingOutlined,
   DeleteOutlined,
-  BarChartOutlined,
-  CheckCircleOutlined,
   EyeOutlined,
   InfoCircleOutlined,
   CloseOutlined,
@@ -582,7 +580,7 @@ const ProjectPage: React.FC = () => {
                     )}
                   </>
                 )}
-                {/* 已发布状态：取消发布 + 详情 + 差异系数 + 达标率 */}
+                {/* 已发布状态：取消发布 + 详情 */}
                 {project.isPublished && (
                   <>
                     {permissions.canConfigProject && project.status === '配置中' && (
@@ -597,13 +595,7 @@ const ProjectPage: React.FC = () => {
                       </Popconfirm>
                     )}
                     <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/detail`)}>
-                      <EyeOutlined /> 详情
-                    </span>
-                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/cv-analysis`)}>
-                      <BarChartOutlined /> 差异系数
-                    </span>
-                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/project/${project.id}/compliance`)}>
-                      <CheckCircleOutlined /> 达标率
+                      <EyeOutlined /> 填报详情
                     </span>
                   </>
                 )}

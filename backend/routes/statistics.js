@@ -598,6 +598,18 @@ router.get('/projects/:projectId/district-comparison', async (req, res) => {
 
     const comparison = [];
     for (const district of districts) {
+      // 检查该区县是否有填报数据（学校填报或区县填报）
+      const submissionCountResult = await db.query(`
+        SELECT COUNT(*) as count
+        FROM submissions s
+        WHERE s.project_id = $1
+          AND (
+            s.school_id IN (SELECT id FROM schools WHERE district_id = $2)
+            OR s.submitter_org = (SELECT name FROM districts WHERE id = $2)
+          )
+      `, [projectId, district.id]);
+      const hasSubmissions = parseInt(submissionCountResult.rows[0].count) > 0;
+
       const cvAnalysis = await getDistrictCVAnalysis(projectId, district.id, schoolType || '小学');
 
       // 获取达标统计
@@ -617,8 +629,9 @@ router.get('/projects/:projectId/district-comparison', async (req, res) => {
         districtName: district.name,
         districtCode: district.code,
         schoolCount: cvAnalysis?.schoolCount || 0,
-        cvComposite: cvAnalysis?.cvComposite,
-        isCvCompliant: cvAnalysis?.isCompliant,
+        // 只有在有填报数据时才显示差异系数
+        cvComposite: hasSubmissions ? cvAnalysis?.cvComposite : null,
+        isCvCompliant: hasSubmissions ? cvAnalysis?.isCompliant : null,
         complianceRate: parseInt(complianceStats.total) > 0
           ? Math.round((parseInt(complianceStats.compliant) / parseInt(complianceStats.total)) * 10000) / 100
           : null,

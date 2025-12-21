@@ -3,9 +3,6 @@ import { Table, Tag, message, Spin, Button, Card, Row, Col, Progress, Tooltip } 
 import type { ColumnsType } from 'antd/es/table';
 import {
   ArrowLeftOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  ExclamationCircleOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -141,35 +138,6 @@ const DistrictListPage: React.FC = () => {
     );
   };
 
-  // 渲染达标状态
-  const renderComplianceStatus = (rate: number | null, isCvCompliant: boolean | null) => {
-    if (rate === null && isCvCompliant === null) {
-      return <Tag color="default">待评估</Tag>;
-    }
-
-    if (isCvCompliant === false) {
-      return (
-        <Tooltip title={`达标率: ${rate !== null ? `${(rate * 100).toFixed(1)}%` : '-'}`}>
-          <Tag icon={<CloseCircleOutlined />} color="error">差异系数未达标</Tag>
-        </Tooltip>
-      );
-    }
-
-    if (rate !== null && rate >= 1) {
-      return <Tag icon={<CheckCircleOutlined />} color="success">全部达标</Tag>;
-    }
-
-    if (rate !== null && rate < 1) {
-      return (
-        <Tag icon={<ExclamationCircleOutlined />} color="warning">
-          {(rate * 100).toFixed(1)}% 达标
-        </Tag>
-      );
-    }
-
-    return <Tag color="default">评估中</Tag>;
-  };
-
   const columns: ColumnsType<DistrictSummary> = [
     {
       title: '区县名称',
@@ -198,38 +166,6 @@ const DistrictListPage: React.FC = () => {
       render: (_, record) => renderSubmissionProgress(record.districtSubmissionStats),
     },
     {
-      title: '差异系数',
-      dataIndex: 'cvComposite',
-      key: 'cvComposite',
-      width: 100,
-      align: 'center',
-      render: (cv: number | null, record) => {
-        if (cv === null) {
-          return <span style={{ color: '#999' }}>-</span>;
-        }
-        const color = record.isCvCompliant ? '#52c41a' : '#ff4d4f';
-        return <span style={{ color, fontWeight: 500 }}>{cv.toFixed(4)}</span>;
-      },
-    },
-    {
-      title: '指标达标',
-      key: 'compliance',
-      width: 100,
-      align: 'center',
-      render: (_, record) => {
-        if (record.totalIndicators === 0) {
-          return <span style={{ color: '#999' }}>-</span>;
-        }
-        return `${record.compliantCount}/${record.totalIndicators}`;
-      },
-    },
-    {
-      title: '综合评估',
-      key: 'status',
-      width: 140,
-      render: (_, record) => renderComplianceStatus(record.complianceRate, record.isCvCompliant),
-    },
-    {
       title: '操作',
       key: 'action',
       width: 100,
@@ -254,7 +190,6 @@ const DistrictListPage: React.FC = () => {
     approvedSchoolSubmissions: districtData.reduce((sum, d) => sum + (d.schoolSubmissionStats?.approved || 0), 0),
     totalDistrictSubmissions: districtData.reduce((sum, d) => sum + (d.districtSubmissionStats?.total || 0), 0),
     approvedDistrictSubmissions: districtData.reduce((sum, d) => sum + (d.districtSubmissionStats?.approved || 0), 0),
-    cvCompliantDistricts: districtData.filter(d => d.isCvCompliant === true).length,
   };
 
   return (
@@ -291,7 +226,7 @@ const DistrictListPage: React.FC = () => {
         <>
           {/* 汇总卡片 */}
           <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={4}>
+            <Col span={6}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>区县数</div>
@@ -299,7 +234,7 @@ const DistrictListPage: React.FC = () => {
                 </div>
               </Card>
             </Col>
-            <Col span={4}>
+            <Col span={6}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>学校数</div>
@@ -307,7 +242,7 @@ const DistrictListPage: React.FC = () => {
                 </div>
               </Card>
             </Col>
-            <Col span={4}>
+            <Col span={6}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>学校填报</div>
@@ -317,22 +252,12 @@ const DistrictListPage: React.FC = () => {
                 </div>
               </Card>
             </Col>
-            <Col span={4}>
+            <Col span={6}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>区县填报</div>
                   <div style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>
                     {summaryStats.approvedDistrictSubmissions}/{summaryStats.totalDistrictSubmissions}
-                  </div>
-                </div>
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card size="small">
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>差异系数达标</div>
-                  <div style={{ fontSize: 24, fontWeight: 600, color: summaryStats.cvCompliantDistricts === summaryStats.totalDistricts ? '#52c41a' : '#faad14' }}>
-                    {summaryStats.cvCompliantDistricts}/{summaryStats.totalDistricts}
                   </div>
                 </div>
               </Card>
