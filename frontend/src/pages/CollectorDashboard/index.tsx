@@ -48,7 +48,8 @@ import { useAuthStore } from '../../stores/authStore';
 import * as taskService from '../../services/taskService';
 import type { Task, TaskStatus, MyProject, ToolFullSchema } from '../../services/taskService';
 import { getSchoolCompliance, getSchoolIndicatorData, SchoolCompliance, SchoolIndicatorData, SchoolIndicatorItem } from '../../services/schoolService';
-import { getDistrictSchoolsIndicatorSummary, DistrictSchoolsIndicatorSummary, getDistrictCV, DistrictCVData } from '../../services/districtService';
+import { getDistrictSchoolsIndicatorSummary, DistrictSchoolsIndicatorSummary } from '../../services/districtService';
+import { getResourceIndicatorsSummary, ResourceIndicatorsSummary } from '../../services/statisticsService';
 import { getSubmissions, getSubmission, Submission } from '../../services/submissionService';
 import styles from './index.module.css';
 
@@ -87,8 +88,8 @@ const CollectorDashboard: React.FC = () => {
   // 区县数据按学段分开
   const [districtPrimaryData, setDistrictPrimaryData] = useState<DistrictSchoolsIndicatorSummary | null>(null);
   const [districtMiddleData, setDistrictMiddleData] = useState<DistrictSchoolsIndicatorSummary | null>(null);
-  const [districtPrimaryCVData, setDistrictPrimaryCVData] = useState<DistrictCVData | null>(null);
-  const [districtMiddleCVData, setDistrictMiddleCVData] = useState<DistrictCVData | null>(null);
+  const [districtPrimaryCVData, setDistrictPrimaryCVData] = useState<ResourceIndicatorsSummary | null>(null);
+  const [districtMiddleCVData, setDistrictMiddleCVData] = useState<ResourceIndicatorsSummary | null>(null);
 
   // 采集员/学校填报员可能绑定多个范围
   const resolvedScope = useMemo(() => {
@@ -209,8 +210,8 @@ const CollectorDashboard: React.FC = () => {
         Promise<SchoolIndicatorData> | null,
         Promise<DistrictSchoolsIndicatorSummary> | null,
         Promise<DistrictSchoolsIndicatorSummary> | null,
-        Promise<DistrictCVData> | null,
-        Promise<DistrictCVData> | null
+        Promise<ResourceIndicatorsSummary> | null,
+        Promise<ResourceIndicatorsSummary> | null
       ] = [
         taskService.getToolFullSchema(task.toolId),
         getSubmissions({
@@ -228,10 +229,10 @@ const CollectorDashboard: React.FC = () => {
           ? getDistrictSchoolsIndicatorSummary(resolvedScope.id, selectedProject.id, '初中')
           : null,
         resolvedScope?.type === 'district' && selectedProject
-          ? getDistrictCV(resolvedScope.id, selectedProject.id, '小学')
+          ? getResourceIndicatorsSummary(resolvedScope.id, selectedProject.id, '小学')
           : null,
         resolvedScope?.type === 'district' && selectedProject
-          ? getDistrictCV(resolvedScope.id, selectedProject.id, '初中')
+          ? getResourceIndicatorsSummary(resolvedScope.id, selectedProject.id, '初中')
           : null,
       ];
 
@@ -1061,64 +1062,78 @@ const CollectorDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* 区县差异系数（区县端显示）- 小学 */}
+        {/* 区县资源配置指标差异系数（区县端显示）- 小学 */}
         {resolvedScope?.type === 'district' && districtPrimaryCVData && (
           <div style={{ marginBottom: 24 }}>
             <h4 style={{ marginBottom: 12 }}>
               <SafetyCertificateOutlined style={{ marginRight: 8 }} />
-              小学差异系数 (CV)
+              小学资源配置指标差异系数 (CV)
               <Tag
-                color={districtPrimaryCVData.isCompliant ? 'success' : districtPrimaryCVData.isCompliant === false ? 'error' : 'default'}
+                color={districtPrimaryCVData.summary.allCvCompliant ? 'success' : districtPrimaryCVData.summary.allCvCompliant === false ? 'error' : 'default'}
                 style={{ marginLeft: 12 }}
               >
-                {districtPrimaryCVData.isCompliant ? '达标' : districtPrimaryCVData.isCompliant === false ? '未达标' : '待评估'}
+                {districtPrimaryCVData.summary.allCvCompliant ? '全部达标' : districtPrimaryCVData.summary.allCvCompliant === false ? '部分未达标' : '待评估'}
               </Tag>
             </h4>
             <div style={{ padding: '16px', background: '#fafafa', borderRadius: 4, border: '1px solid #f0f0f0' }}>
               <Row gutter={24}>
                 <Col span={6}>
                   <Statistic
-                    title="综合差异系数"
-                    value={districtPrimaryCVData.cvComposite !== null ? (districtPrimaryCVData.cvComposite * 100).toFixed(2) : '-'}
-                    suffix="%"
+                    title="达标项数"
+                    value={`${districtPrimaryCVData.summary.compliantCvCount}/${districtPrimaryCVData.summary.totalCvCount}`}
+                    suffix="项"
                     valueStyle={{
-                      color: districtPrimaryCVData.isCompliant ? '#52c41a' : districtPrimaryCVData.isCompliant === false ? '#ff4d4f' : '#999'
+                      color: districtPrimaryCVData.summary.allCvCompliant ? '#52c41a' : districtPrimaryCVData.summary.allCvCompliant === false ? '#ff4d4f' : '#999'
                     }}
                   />
                 </Col>
                 <Col span={6}>
                   <Statistic
                     title="达标阈值"
-                    value={(districtPrimaryCVData.threshold * 100).toFixed(0)}
+                    value="≤50"
                     suffix="%"
                   />
                 </Col>
                 <Col span={6}>
-                  <Statistic title="参与学校" value={districtPrimaryCVData.schoolCount} suffix="所" />
+                  <Statistic title="参与学校" value={districtPrimaryCVData.summary.schoolCount} suffix="所" />
                 </Col>
                 <Col span={6}>
                   <Statistic title="学段" value="小学" />
                 </Col>
               </Row>
               {/* 各指标差异系数详情 */}
-              {districtPrimaryCVData.cvIndicators && Object.keys(districtPrimaryCVData.cvIndicators).length > 0 && (
+              {districtPrimaryCVData.summary.cvIndicators && districtPrimaryCVData.summary.cvIndicators.length > 0 && (
                 <div style={{ marginTop: 16, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
-                  <div style={{ fontWeight: 500, marginBottom: 8 }}>各指标差异系数:</div>
-                  <Row gutter={16}>
-                    {districtPrimaryCVData.cvIndicators.studentTeacherRatio && (
-                      <Col span={8}>
-                        <div style={{ padding: '8px 12px', background: '#fff', borderRadius: 4, border: '1px solid #f0f0f0' }}>
-                          <div style={{ color: '#666', fontSize: 12 }}>生师比 CV</div>
-                          <div style={{ fontSize: 18, fontWeight: 500 }}>
-                            {(districtPrimaryCVData.cvIndicators.studentTeacherRatio.cv! * 100).toFixed(2)}%
+                  <div style={{ fontWeight: 500, marginBottom: 8 }}>资源配置指标差异系数:</div>
+                  <Row gutter={[16, 16]}>
+                    {districtPrimaryCVData.summary.cvIndicators.map(indicator => (
+                      <Col span={8} key={indicator.code}>
+                        <div style={{
+                          padding: '8px 12px',
+                          background: '#fff',
+                          borderRadius: 4,
+                          border: `1px solid ${indicator.isCompliant ? '#b7eb8f' : indicator.isCompliant === false ? '#ffccc7' : '#f0f0f0'}`
+                        }}>
+                          <div style={{ color: '#666', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{indicator.code} {indicator.name}</span>
+                            <Tag
+                              color={indicator.isCompliant ? 'success' : indicator.isCompliant === false ? 'error' : 'default'}
+                              style={{ marginLeft: 4 }}
+                            >
+                              {indicator.isCompliant ? '达标' : indicator.isCompliant === false ? '未达标' : '-'}
+                            </Tag>
+                          </div>
+                          <div style={{ fontSize: 18, fontWeight: 500, marginTop: 4 }}>
+                            {indicator.cv !== null ? (indicator.cv * 100).toFixed(2) + '%' : '-'}
                           </div>
                           <div style={{ fontSize: 12, color: '#999' }}>
-                            均值: {districtPrimaryCVData.cvIndicators.studentTeacherRatio.mean.toFixed(2)} |
-                            标准差: {districtPrimaryCVData.cvIndicators.studentTeacherRatio.stdDev.toFixed(2)}
+                            均值: {indicator.mean?.toFixed(2) ?? '-'} |
+                            标准差: {indicator.stdDev?.toFixed(2) ?? '-'} |
+                            阈值: ≤{(indicator.threshold * 100).toFixed(0)}%
                           </div>
                         </div>
                       </Col>
-                    )}
+                    ))}
                   </Row>
                 </div>
               )}
@@ -1126,64 +1141,78 @@ const CollectorDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* 区县差异系数（区县端显示）- 初中 */}
+        {/* 区县资源配置指标差异系数（区县端显示）- 初中 */}
         {resolvedScope?.type === 'district' && districtMiddleCVData && (
           <div style={{ marginBottom: 24 }}>
             <h4 style={{ marginBottom: 12 }}>
               <SafetyCertificateOutlined style={{ marginRight: 8 }} />
-              初中差异系数 (CV)
+              初中资源配置指标差异系数 (CV)
               <Tag
-                color={districtMiddleCVData.isCompliant ? 'success' : districtMiddleCVData.isCompliant === false ? 'error' : 'default'}
+                color={districtMiddleCVData.summary.allCvCompliant ? 'success' : districtMiddleCVData.summary.allCvCompliant === false ? 'error' : 'default'}
                 style={{ marginLeft: 12 }}
               >
-                {districtMiddleCVData.isCompliant ? '达标' : districtMiddleCVData.isCompliant === false ? '未达标' : '待评估'}
+                {districtMiddleCVData.summary.allCvCompliant ? '全部达标' : districtMiddleCVData.summary.allCvCompliant === false ? '部分未达标' : '待评估'}
               </Tag>
             </h4>
             <div style={{ padding: '16px', background: '#fafafa', borderRadius: 4, border: '1px solid #f0f0f0' }}>
               <Row gutter={24}>
                 <Col span={6}>
                   <Statistic
-                    title="综合差异系数"
-                    value={districtMiddleCVData.cvComposite !== null ? (districtMiddleCVData.cvComposite * 100).toFixed(2) : '-'}
-                    suffix="%"
+                    title="达标项数"
+                    value={`${districtMiddleCVData.summary.compliantCvCount}/${districtMiddleCVData.summary.totalCvCount}`}
+                    suffix="项"
                     valueStyle={{
-                      color: districtMiddleCVData.isCompliant ? '#52c41a' : districtMiddleCVData.isCompliant === false ? '#ff4d4f' : '#999'
+                      color: districtMiddleCVData.summary.allCvCompliant ? '#52c41a' : districtMiddleCVData.summary.allCvCompliant === false ? '#ff4d4f' : '#999'
                     }}
                   />
                 </Col>
                 <Col span={6}>
                   <Statistic
                     title="达标阈值"
-                    value={(districtMiddleCVData.threshold * 100).toFixed(0)}
+                    value="≤45"
                     suffix="%"
                   />
                 </Col>
                 <Col span={6}>
-                  <Statistic title="参与学校" value={districtMiddleCVData.schoolCount} suffix="所" />
+                  <Statistic title="参与学校" value={districtMiddleCVData.summary.schoolCount} suffix="所" />
                 </Col>
                 <Col span={6}>
                   <Statistic title="学段" value="初中" />
                 </Col>
               </Row>
               {/* 各指标差异系数详情 */}
-              {districtMiddleCVData.cvIndicators && Object.keys(districtMiddleCVData.cvIndicators).length > 0 && (
+              {districtMiddleCVData.summary.cvIndicators && districtMiddleCVData.summary.cvIndicators.length > 0 && (
                 <div style={{ marginTop: 16, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
-                  <div style={{ fontWeight: 500, marginBottom: 8 }}>各指标差异系数:</div>
-                  <Row gutter={16}>
-                    {districtMiddleCVData.cvIndicators.studentTeacherRatio && (
-                      <Col span={8}>
-                        <div style={{ padding: '8px 12px', background: '#fff', borderRadius: 4, border: '1px solid #f0f0f0' }}>
-                          <div style={{ color: '#666', fontSize: 12 }}>生师比 CV</div>
-                          <div style={{ fontSize: 18, fontWeight: 500 }}>
-                            {(districtMiddleCVData.cvIndicators.studentTeacherRatio.cv! * 100).toFixed(2)}%
+                  <div style={{ fontWeight: 500, marginBottom: 8 }}>资源配置指标差异系数:</div>
+                  <Row gutter={[16, 16]}>
+                    {districtMiddleCVData.summary.cvIndicators.map(indicator => (
+                      <Col span={8} key={indicator.code}>
+                        <div style={{
+                          padding: '8px 12px',
+                          background: '#fff',
+                          borderRadius: 4,
+                          border: `1px solid ${indicator.isCompliant ? '#b7eb8f' : indicator.isCompliant === false ? '#ffccc7' : '#f0f0f0'}`
+                        }}>
+                          <div style={{ color: '#666', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{indicator.code} {indicator.name}</span>
+                            <Tag
+                              color={indicator.isCompliant ? 'success' : indicator.isCompliant === false ? 'error' : 'default'}
+                              style={{ marginLeft: 4 }}
+                            >
+                              {indicator.isCompliant ? '达标' : indicator.isCompliant === false ? '未达标' : '-'}
+                            </Tag>
+                          </div>
+                          <div style={{ fontSize: 18, fontWeight: 500, marginTop: 4 }}>
+                            {indicator.cv !== null ? (indicator.cv * 100).toFixed(2) + '%' : '-'}
                           </div>
                           <div style={{ fontSize: 12, color: '#999' }}>
-                            均值: {districtMiddleCVData.cvIndicators.studentTeacherRatio.mean.toFixed(2)} |
-                            标准差: {districtMiddleCVData.cvIndicators.studentTeacherRatio.stdDev.toFixed(2)}
+                            均值: {indicator.mean?.toFixed(2) ?? '-'} |
+                            标准差: {indicator.stdDev?.toFixed(2) ?? '-'} |
+                            阈值: ≤{(indicator.threshold * 100).toFixed(0)}%
                           </div>
                         </div>
                       </Col>
-                    )}
+                    ))}
                   </Row>
                 </div>
               )}

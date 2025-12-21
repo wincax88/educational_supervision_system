@@ -12,6 +12,10 @@ import {
   SchoolIndicatorSummary,
   SchoolIndicatorDetail,
 } from '../../../services/districtService';
+import {
+  getResourceIndicatorsSummary,
+  SchoolResourceIndicators,
+} from '../../../services/statisticsService';
 
 interface SchoolIndicatorsProps {
   districtId: string;
@@ -31,6 +35,8 @@ const SchoolIndicators: React.FC<SchoolIndicatorsProps> = ({ districtId, project
     } | null;
     schools: SchoolIndicatorSummary[];
   }>({ summary: null, schools: [] });
+  // 资源配置数据（用于显示L1-L7达标情况）
+  const [resourceData, setResourceData] = useState<Map<string, SchoolResourceIndicators>>(new Map());
 
   // 学校详情弹窗
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -48,15 +54,53 @@ const SchoolIndicators: React.FC<SchoolIndicatorsProps> = ({ districtId, project
     const loadData = async () => {
       setLoading(true);
       try {
-        const result = await getDistrictSchoolsIndicatorSummary(
-          districtId,
-          projectId,
-          schoolType || undefined
-        );
+        // 并行加载指标数据和资源配置数据
+        const [result, primaryResource, juniorResource] = await Promise.all([
+          getDistrictSchoolsIndicatorSummary(districtId, projectId, schoolType || undefined),
+          getResourceIndicatorsSummary(districtId, projectId, '小学').catch((err) => {
+            console.error('[SchoolIndicators] Failed to load primary resource:', err);
+            return null;
+          }),
+          getResourceIndicatorsSummary(districtId, projectId, '初中').catch((err) => {
+            console.error('[SchoolIndicators] Failed to load junior resource:', err);
+            return null;
+          }),
+        ]);
+
         setData({
           summary: result.summary,
           schools: result.schools,
         });
+
+        // 合并资源配置数据到 Map，key 为 schoolId 或 schoolId-sectionType
+        const resMap = new Map<string, SchoolResourceIndicators>();
+
+        // 调试：输出加载的资源数据
+        console.log('[SchoolIndicators] primaryResource:', primaryResource);
+        console.log('[SchoolIndicators] juniorResource:', juniorResource);
+
+        if (primaryResource?.schools) {
+          primaryResource.schools.forEach((s) => {
+            // 对于一贯制学校，使用 id-primary 作为 key
+            const key = s.schoolType === '九年一贯制' || s.schoolType === '完全中学'
+              ? `${s.id}-primary`
+              : s.id;
+            console.log('[SchoolIndicators] primaryResource storing key:', key, 'school:', s.name, 'type:', s.schoolType);
+            resMap.set(key, s);
+          });
+        }
+        if (juniorResource?.schools) {
+          juniorResource.schools.forEach((s) => {
+            // 对于一贯制学校，使用 id-junior 作为 key
+            const key = s.schoolType === '九年一贯制' || s.schoolType === '完全中学'
+              ? `${s.id}-junior`
+              : s.id;
+            console.log('[SchoolIndicators] juniorResource storing key:', key, 'school:', s.name, 'type:', s.schoolType);
+            resMap.set(key, s);
+          });
+        }
+        console.log('[SchoolIndicators] resMap size:', resMap.size, 'keys:', Array.from(resMap.keys()));
+        setResourceData(resMap);
       } catch (error) {
         console.error('加载数据失败:', error);
       } finally {
@@ -155,27 +199,52 @@ const SchoolIndicators: React.FC<SchoolIndicatorsProps> = ({ districtId, project
       render: (_, record) => record?.school?.urbanRural ?? '-',
     },
     {
-      title: '学生数',
-      key: 'studentCount',
-      width: 80,
-      align: 'right',
-      render: (_, record) => record?.school?.studentCount ?? '-',
-    },
-    {
-      title: '教师数',
-      key: 'teacherCount',
-      width: 80,
-      align: 'right',
-      render: (_, record) => record?.school?.teacherCount ?? '-',
-    },
-    {
-      title: '生师比',
-      key: 'studentTeacherRatio',
-      width: 80,
-      align: 'right',
+      title: '资源配置达标',
+      key: 'resourceCompliance',
+      width: 120,
+      align: 'center',
       render: (_, record) => {
-        const ratio = record?.school?.studentTeacherRatio;
-        return ratio !== null && ratio !== undefined ? ratio.toFixed(2) : '-';
+        const schoolId = record?.school?.id;
+        const sectionType = record?.school?.sectionType;
+        if (!schoolId) return '-';
+
+        // 根据学校类型判断是否为一贯制学校的拆分记录
+        // 九年一贯制/完全中学的拆分记录 schoolType 会带后缀如 '九年一贯制 - 小学部'
+        const schoolType = record?.school?.schoolType;
+        const isIntegratedSection = schoolType?.startsWith('九年一贯制') || schoolType?.startsWith('完全中学');
+        const key = isIntegratedSection && sectionType ? `${schoolId}-${sectionType}` : schoolId;
+        const resInfo = resourceData.get(key);
+
+        // 调试：输出查找的 key 和结果
+        console.log('[SchoolIndicators] render lookup:', {
+          schoolId,
+          schoolType,
+          sectionType,
+          isIntegratedSection,
+          key,
+          found: !!resInfo,
+          mapSize: resourceData.size
+        });
+
+        if (!resInfo) {
+          return <Tag color="default">暂无数据</Tag>;
+        }
+
+        const { compliantCount, totalCount, isOverallCompliant } = resInfo;
+        if (totalCount === 0) {
+          return <Tag color="default">暂无数据</Tag>;
+        }
+
+        return (
+          <div>
+            <Tag color={isOverallCompliant ? 'success' : isOverallCompliant === false ? 'error' : 'default'}>
+              {isOverallCompliant ? '综合达标' : isOverallCompliant === false ? '综合未达标' : '待评估'}
+            </Tag>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              {compliantCount}/{totalCount} 项
+            </div>
+          </div>
+        );
       },
     },
     {
