@@ -1053,8 +1053,8 @@ const IndicatorTreeEdit: React.FC = () => {
           <div className={styles.sectionHeader}>
             <div className={styles.sectionTitle}>
               <h3>指标列表</h3>
-              <Button type="link" icon={<StarOutlined />} onClick={collapseAll}>
-                全部收缩
+              <Button type="link" icon={<StarOutlined />} onClick={expandedKeys.size === 0 ? expandAll : collapseAll}>
+                {expandedKeys.size === 0 ? '全部展开' : '全部收起'}
               </Button>
             </div>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenAddModal(null, 1)}>
