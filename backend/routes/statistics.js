@@ -3063,8 +3063,8 @@ const EDUCATION_QUALITY_INDICATORS = [
     code: 'Q4',
     name: '教师培训经费占公用经费预算不低于5%',
     shortName: '培训经费占比',
-    type: 'calculated_district',
-    dataSource: 'district',
+    type: 'school_compliance',
+    dataSource: 'school',
     dataFields: [
       { id: 'teacher_training_budget', name: '教师培训经费预算总额' },
       { id: 'public_funding_budget', name: '公用经费预算总额' }
@@ -3072,7 +3072,7 @@ const EDUCATION_QUALITY_INDICATORS = [
     threshold: 5,
     operator: '>=',
     unit: '%',
-    description: '教师培训经费预算 / 公用经费预算 × 100 ≥ 5%'
+    description: '每所学校的培训经费预算 / 公用经费预算 × 100 ≥ 5%，所有学校均需达标'
   },
   {
     code: 'Q5',
@@ -3260,6 +3260,13 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
     const allSchoolsProcessed = new Set();
     let totalSchoolsWithSubmission = 0;
 
+    // Q4: 统计每所学校的培训经费占比是否达标（≥5%）
+    // 指标要求："全县所有学校按不低于学校年度公用经费预算总额的5%安排教师培训经费"
+    let schoolsWithBudgetData = 0;
+    let schoolsTrainingBudgetCompliant = 0;
+    const trainingBudgetCompliantSchools = [];
+    const trainingBudgetNonCompliantSchools = [];
+
     for (const row of allSchoolSubmissionsResult.rows) {
       if (allSchoolsProcessed.has(row.school_id)) continue;
       allSchoolsProcessed.add(row.school_id);
@@ -3268,6 +3275,20 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       let formData = {};
       if (row.form_data) {
         formData = typeof row.form_data === 'string' ? JSON.parse(row.form_data) : (row.form_data || {});
+      }
+
+      // Q4: 计算每所学校的培训经费占比是否达标
+      const trainingBudget = parseFloat(formData['teacher_training_budget']);
+      const publicBudget = parseFloat(formData['public_funding_budget']);
+      if (!isNaN(trainingBudget) && !isNaN(publicBudget) && publicBudget > 0) {
+        schoolsWithBudgetData++;
+        const rate = (trainingBudget / publicBudget) * 100;
+        if (rate >= 5) {
+          schoolsTrainingBudgetCompliant++;
+          trainingBudgetCompliantSchools.push({ name: row.school_name, rate: Math.round(rate * 100) / 100 });
+        } else {
+          trainingBudgetNonCompliantSchools.push({ name: row.school_name, rate: Math.round(rate * 100) / 100 });
+        }
       }
 
       // 检查各个佐证材料字段
@@ -3389,24 +3410,37 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
           else nonCompliantCount++;
         }
       } else if (config.code === 'Q4') {
-        // 教师培训经费占比
-        const trainingBudget = parseFloat(districtFormData['teacher_training_budget']);
-        const publicBudget = parseFloat(districtFormData['public_funding_budget']);
+        // 教师培训经费占比 - 统计每所学校是否达标（≥5%）
+        // 指标要求："全县所有学校按不低于学校年度公用经费预算总额的5%安排教师培训经费"
 
-        if (isNaN(trainingBudget) || isNaN(publicBudget) || publicBudget === 0) {
+        if (schoolsWithBudgetData === 0) {
           indicator.isCompliant = null;
-          indicator.displayValue = '待填报';
+          indicator.displayValue = '待学校填报';
           pendingCount++;
         } else {
-          const rate = (trainingBudget / publicBudget) * 100;
-          indicator.value = Math.round(rate * 100) / 100;
-          indicator.displayValue = `${indicator.value}%`;
-          indicator.isCompliant = rate >= config.threshold;
-          indicator.details = [
-            { name: '教师培训经费预算总额', value: trainingBudget, displayValue: `${trainingBudget}元`, isCompliant: null },
-            { name: '公用经费预算总额', value: publicBudget, displayValue: `${publicBudget}元`, isCompliant: null },
-            { name: '培训经费占比', value: indicator.value, displayValue: `${indicator.value}%`, threshold: config.threshold, unit: '%', isCompliant: indicator.isCompliant }
+          // 所有已填报学校都达标才算区县达标
+          indicator.isCompliant = schoolsTrainingBudgetCompliant === schoolsWithBudgetData;
+          indicator.value = schoolsTrainingBudgetCompliant;
+          indicator.displayValue = `${schoolsTrainingBudgetCompliant}/${schoolsWithBudgetData}所达标`;
+
+          const details = [
+            { name: '已填报学校数', value: schoolsWithBudgetData, displayValue: `${schoolsWithBudgetData}所`, isCompliant: null },
+            { name: '达标学校数', value: schoolsTrainingBudgetCompliant, displayValue: `${schoolsTrainingBudgetCompliant}所`, isCompliant: indicator.isCompliant },
+            { name: '未达标学校数', value: trainingBudgetNonCompliantSchools.length, displayValue: `${trainingBudgetNonCompliantSchools.length}所`, isCompliant: trainingBudgetNonCompliantSchools.length === 0 }
           ];
+
+          // 添加未达标学校详情
+          if (trainingBudgetNonCompliantSchools.length > 0) {
+            details.push({
+              name: '未达标学校',
+              value: trainingBudgetNonCompliantSchools.map(s => `${s.name}(${s.rate}%)`).join('、'),
+              displayValue: trainingBudgetNonCompliantSchools.map(s => `${s.name}(${s.rate}%)`).join('、'),
+              isCompliant: false
+            });
+          }
+
+          indicator.details = details;
+
           if (indicator.isCompliant) compliantCount++;
           else nonCompliantCount++;
         }

@@ -957,7 +957,7 @@
       "fieldId": "public_funding_budget",
       "category": "教育质量",
       "unit": "万元",
-      "description": "用于计算生均公用经费",
+      "description": "用于计算生均公用经费和学校级别教师培训经费占比（Q4指标要求每所学校培训经费/公用经费≥5%）。",
       "collectionLevel": "school",
       "dataSource": "学校填报"
     },
@@ -980,7 +980,7 @@
       "fieldId": "teacher_training_budget",
       "category": "教育质量",
       "unit": "万元",
-      "description": "用于计算教师培训经费占比（培训经费预算÷公用经费预算×100%≥5%）",
+      "description": "用于计算学校级别教师培训经费占比（Q4指标要求每所学校培训经费/公用经费≥5%）。",
       "collectionLevel": "school",
       "dataSource": "学校填报"
     },
@@ -2503,10 +2503,22 @@
       "formula": "E086 / E084 * 100",
       "standard": "≥5%",
       "unit": "%",
+      "description": "对应指标3.4-D1：教师培训经费预算总额(E086) ÷ 公用经费预算总额(E084) × 100。区县级别汇总时统计各学校是否达标（对应Q4指标）。",
       "category": "政府保障",
       "calculationLevel": "school",
       "dataSource": "学校填报",
-      "collectionLevel": "auto"
+      "collectionLevel": "auto",
+      "aggregation": {
+        "enabled": true,
+        "method": "count_compliant",
+        "threshold": 5,
+        "operator": ">=",
+        "displayFormat": "{compliant}/{total}所达标",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "D017",
@@ -3856,11 +3868,22 @@
       "standard": "≥5%",
       "unit": "%",
       "precision": 2,
-      "description": "对应指标3.4-D2：教师培训经费决算总额(E087) ÷ 公用经费决算总额(E085) × 100。",
+      "description": "对应指标3.4-D2：教师培训经费决算总额(E087) ÷ 公用经费决算总额(E085) × 100。区县级别汇总时统计各学校是否达标。",
       "category": "教育质量",
       "calculationLevel": "school",
       "dataSource": "学校填报",
-      "collectionLevel": "auto"
+      "collectionLevel": "auto",
+      "aggregation": {
+        "enabled": true,
+        "method": "count_compliant",
+        "threshold": 5,
+        "operator": ">=",
+        "displayFormat": "{compliant}/{total}所达标",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "D079",
