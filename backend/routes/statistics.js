@@ -2284,7 +2284,7 @@ const GOVERNMENT_GUARANTEE_INDICATORS = [
     dataSource: 'district',
     dataFields: [
       { id: 'special_education_funding', name: '特教经费拨付总额' },
-      { id: 'special_education_student_count', name: '特教学生人数' }
+      { id: 'district_special_education_student_count', name: '特教学生人数' }
     ],
     threshold: 8000,
     operator: '>=',
@@ -2881,7 +2881,7 @@ router.get('/districts/:districtId/government-guarantee-summary', async (req, re
               if (config.code === 'G7') {
                 // 特殊教育学校生均公用经费
                 const funding = parseFloat(districtFormData['special_education_funding']);
-                const studentCount = parseFloat(districtFormData['special_education_student_count']);
+                const studentCount = parseFloat(districtFormData['district_special_education_student_count']);
                 if (isNaN(funding) || isNaN(studentCount) || studentCount === 0) {
                   indicator.isCompliant = null;
                   indicator.displayValue = '待填报';

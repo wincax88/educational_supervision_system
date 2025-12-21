@@ -143,6 +143,10 @@ const IndicatorSummary: React.FC<IndicatorSummaryProps> = ({ districtId, project
   // 渲染差异系数状态标签
   const renderCVStatus = (cv: CVIndicatorSummary) => {
     if (cv.cv === null) {
+      // 有数据但不足2所学校时，显示"需2所学校"
+      if (cv.count > 0 && cv.count < 2) {
+        return <Tag color="warning">需2所学校</Tag>;
+      }
       return <Tag color="default">暂无数据</Tag>;
     }
     return cv.isCompliant ? (
@@ -571,9 +575,13 @@ const IndicatorSummary: React.FC<IndicatorSummaryProps> = ({ districtId, project
                     </span>
                     {renderCVStatus(cv)}
                   </div>
-                  {cv.cv !== null && (
+                  {cv.cv !== null ? (
                     <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 8 }}>
                       均值: {cv.mean?.toFixed(2) ?? '-'} | 标准差: {cv.stdDev?.toFixed(2) ?? '-'} | 样本: {cv.count}
+                    </div>
+                  ) : cv.count > 0 && (
+                    <div style={{ fontSize: 12, color: '#faad14', marginTop: 8 }}>
+                      已有 {cv.count} 所学校数据，均值: {cv.mean?.toFixed(2) ?? '-'}
                     </div>
                   )}
                 </Card>
