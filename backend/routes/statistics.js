@@ -2592,20 +2592,36 @@ router.get('/districts/:districtId/government-guarantee-summary', async (req, re
         } else {
           switch (config.code) {
             case 'G3': // 音美教室
+              // 计算未填报学校数
+              const schoolsWithoutMusicArtData = schoolAggregateData.schoolsChecked - schoolAggregateData.schoolsWithMusicArtData;
+
               if (schoolAggregateData.schoolsWithMusicArtData === 0) {
                 indicator.isCompliant = null;
                 indicator.displayValue = '学校未填报';
                 indicator.details = [
-                  { name: '已检查学校数', value: schoolAggregateData.schoolsChecked, displayValue: `${schoolAggregateData.schoolsChecked}所` },
-                  { name: '有音美教室数据学校', value: 0, displayValue: '0所' }
+                  { name: '已提交学校数', value: schoolAggregateData.schoolsChecked, displayValue: `${schoolAggregateData.schoolsChecked}所`, isCompliant: null },
+                  { name: '已填报音美教室', value: 0, displayValue: '0所', isCompliant: null }
+                ];
+                pendingCount++;
+              } else if (schoolsWithoutMusicArtData > 0) {
+                // 有学校未填报音美教室数据，无法完全判定
+                indicator.isCompliant = null;
+                indicator.displayValue = `${schoolAggregateData.schoolsCompliantMusicArt}/${schoolAggregateData.schoolsChecked}所达标`;
+                indicator.details = [
+                  { name: '已提交学校数', value: schoolAggregateData.schoolsChecked, displayValue: `${schoolAggregateData.schoolsChecked}所`, isCompliant: null },
+                  { name: '已填报音美教室', value: schoolAggregateData.schoolsWithMusicArtData, displayValue: `${schoolAggregateData.schoolsWithMusicArtData}所`, isCompliant: null },
+                  { name: '未填报音美教室', value: schoolsWithoutMusicArtData, displayValue: `${schoolsWithoutMusicArtData}所`, isCompliant: false },
+                  { name: '达标学校', value: schoolAggregateData.schoolsCompliantMusicArt, displayValue: `${schoolAggregateData.schoolsCompliantMusicArt}所`, isCompliant: null }
                 ];
                 pendingCount++;
               } else {
+                // 所有学校都填报了音美教室数据
                 const allCompliant = schoolAggregateData.schoolsCompliantMusicArt === schoolAggregateData.schoolsWithMusicArtData;
                 indicator.isCompliant = allCompliant;
                 indicator.displayValue = allCompliant ? '全部达标' : `${schoolAggregateData.schoolsCompliantMusicArt}/${schoolAggregateData.schoolsWithMusicArtData}所达标`;
                 indicator.details = [
-                  { name: '有数据学校', value: schoolAggregateData.schoolsWithMusicArtData, displayValue: `${schoolAggregateData.schoolsWithMusicArtData}所`, isCompliant: null },
+                  { name: '已提交学校数', value: schoolAggregateData.schoolsChecked, displayValue: `${schoolAggregateData.schoolsChecked}所`, isCompliant: null },
+                  { name: '已填报音美教室', value: schoolAggregateData.schoolsWithMusicArtData, displayValue: `${schoolAggregateData.schoolsWithMusicArtData}所`, isCompliant: null },
                   { name: '达标学校', value: schoolAggregateData.schoolsCompliantMusicArt, displayValue: `${schoolAggregateData.schoolsCompliantMusicArt}所`, isCompliant: allCompliant }
                 ];
                 if (allCompliant) compliantCount++;
