@@ -1615,9 +1615,18 @@
       "dataType": "附件",
       "fieldId": "school_charter_material",
       "category": "其他",
-      "description": "5个文件，单个文件大小不超过20M",
+      "description": "5个文件，单个文件大小不超过20M。区县级别汇总时统计各学校上传情况。",
       "collectionLevel": "school",
-      "dataSource": "学校填报"
+      "dataSource": "学校填报",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "displayFormat": "{uploaded}/{total}所上传",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "E147",
@@ -1626,9 +1635,18 @@
       "dataType": "附件",
       "fieldId": "teacher_it_skill_material",
       "category": "其他",
-      "description": "5个文件，单个文件大小不超过20M",
+      "description": "5个文件，单个文件大小不超过20M。区县级别汇总时统计各学校上传情况。",
       "collectionLevel": "school",
-      "dataSource": "学校填报"
+      "dataSource": "学校填报",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "displayFormat": "{uploaded}/{total}所上传",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "E148",
@@ -1637,9 +1655,18 @@
       "dataType": "附件",
       "fieldId": "moral_education_material",
       "category": "其他",
-      "description": "5个文件，单个文件大小不超过20M",
+      "description": "5个文件，单个文件大小不超过20M。区县级别汇总时统计各学校上传情况。",
       "collectionLevel": "school",
-      "dataSource": "学校填报"
+      "dataSource": "学校填报",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "displayFormat": "{uploaded}/{total}所上传",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "E149",
@@ -1648,9 +1675,18 @@
       "dataType": "附件",
       "fieldId": "curriculum_material",
       "category": "其他",
-      "description": "5个文件，单个文件大小不超过20M",
+      "description": "5个文件，单个文件大小不超过20M。区县级别汇总时统计各学校上传情况。",
       "collectionLevel": "school",
-      "dataSource": "学校填报"
+      "dataSource": "学校填报",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "displayFormat": "{uploaded}/{total}所上传",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "E150",
@@ -1659,9 +1695,18 @@
       "dataType": "附件",
       "fieldId": "workload_material",
       "category": "其他",
-      "description": "5个文件，单个文件大小不超过20M",
+      "description": "5个文件，单个文件大小不超过20M。区县级别汇总时统计各学校上传情况。",
       "collectionLevel": "school",
-      "dataSource": "学校填报"
+      "dataSource": "学校填报",
+      "aggregation": {
+        "enabled": true,
+        "method": "count",
+        "displayFormat": "{uploaded}/{total}所上传",
+        "scope": {
+          "level": "all",
+          "schoolTypes": ["primary", "junior", "nine_year", "twelve_year", "complete_secondary"]
+        }
+      }
     },
     {
       "code": "E151",
@@ -3524,11 +3569,11 @@
       "standard": "≥95%",
       "unit": "%",
       "precision": 2,
-      "description": "（毕业学生数 - 三年转入 + 三年转出）÷（三年前初一在校生数 - 三年死亡）×100。需基于全区县所有初中数据汇总计算。",
+      "description": "（毕业学生数 - 三年转入 + 三年转出）÷（三年前初一在校生数 - 三年死亡）×100。基于全区县所有初中学校填报数据（包括纯初中、九年一贯制、十二年一贯制、完全中学）自动汇总计算。",
       "calculationLevel": "district",
       "category": "教育质量",
       "collectionLevel": "auto",
-      "dataSource": "区县填报"
+      "dataSource": "学校填报汇总"
     },
     {
       "code": "D061",
