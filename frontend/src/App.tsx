@@ -25,6 +25,8 @@ import UserManagement from './pages/UserManagement';
 import ExpertAccountManagement from './pages/ExpertAccountManagement';
 import DistrictDashboard from './pages/DistrictDashboard';
 import DistrictProjectList from './pages/DistrictDashboard/DistrictProjectList';
+import ProjectDetail from './pages/ProjectDetail';
+import DistrictListPage from './pages/ProjectDetail/DistrictListPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/global.css';
 
@@ -92,6 +94,16 @@ const App: React.FC = () => {
             <Route path="home/balanced/project/:projectId/config" element={
               <ProtectedRoute requiredPermission="canConfigProject">
                 <ProjectConfig />
+              </ProtectedRoute>
+            } />
+            <Route path="home/balanced/project/:projectId/detail" element={
+              <ProtectedRoute requiredPermission="canManageProjects">
+                <DistrictListPage />
+              </ProtectedRoute>
+            } />
+            <Route path="home/balanced/project/:projectId/district/:districtId" element={
+              <ProtectedRoute requiredPermission="canManageProjects">
+                <ProjectDetail />
               </ProtectedRoute>
             } />
             <Route path="home/balanced/project/:projectId/cv-analysis" element={<CVAnalysis />} />
