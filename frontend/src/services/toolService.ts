@@ -20,6 +20,11 @@ export interface DataTool {
   createdAt: string;
   updatedBy: string;
   updatedAt: string;
+  externalSurveyId?: string;
+  externalSurveyUrl?: string;
+  satisfactionConfig?: {
+    minScore: number;
+  };
 }
 
 // 表单字段类型
@@ -171,6 +176,17 @@ export async function unpublishTool(id: string): Promise<void> {
 // 删除工具
 export async function deleteTool(id: string): Promise<void> {
   return del(`/tools/${id}`);
+}
+
+// 创建问卷访问URL（用于跳转到第三方问卷系统）
+export async function createSurveyUrl(
+  toolId: string,
+  action: 'create' | 'edit' | 'view' = 'create'
+): Promise<{ url: string; externalSurveyId?: string; externalSurveyUrl?: string }> {
+  return post<{ url: string; externalSurveyId?: string; externalSurveyUrl?: string }>(
+    `/tools/${toolId}/create-survey`,
+    { action }
+  );
 }
 
 // ==================== 要素库 API ====================

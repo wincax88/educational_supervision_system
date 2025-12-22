@@ -36,6 +36,8 @@ const samplesJs = require('../../routes/samples');
 const tasksJs = require('../../routes/tasks');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const uploadsJs = require('../../routes/uploads');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const surveyJs = require('../../routes/survey');
 
 // JavaScript 路由导出
 export const indicatorRouter: Router = indicatorsJs.router;
@@ -70,6 +72,9 @@ export const setTaskDb: (db: Database) => void = tasksJs.setDb;
 
 export const uploadsRouteFactory: (db: Database) => Router = uploadsJs;
 
+export const surveyRouter: Router = surveyJs.router;
+export const setSurveyDb: (db: Database) => void = surveyJs.setDb;
+
 /**
  * 注入数据库到所有路由
  */
@@ -88,4 +93,5 @@ export function injectDatabase(db: Database): void {
   setPersonnelDb(db);
   setSamplesDb(db);
   setTaskDb(db);
+  setSurveyDb(db);
 }

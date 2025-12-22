@@ -24,6 +24,7 @@ import {
   personnelRouter,
   samplesRouter,
   taskRouter,
+  surveyRouter,
   uploadsRouteFactory,
   injectDatabase,
 } from './routes';
@@ -73,6 +74,7 @@ export function createApp(db?: Database): Express {
   app.use('/api', personnelRouter);
   app.use('/api', samplesRouter);
   app.use('/api', taskRouter);
+  app.use('/api', surveyRouter);
   app.use('/api', userRouter);
 
   // 文件上传路由

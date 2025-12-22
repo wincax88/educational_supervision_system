@@ -167,6 +167,24 @@ const ToolLibrary: React.FC = () => {
     }
   };
 
+  // 编辑工具（处理表单类型和问卷类型）
+  const handleEditTool = async (tool: DataTool) => {
+    if (tool.type === '问卷') {
+      // 问卷类型：跳转到第三方问卷系统
+      try {
+        const action = tool.externalSurveyId ? 'edit' : 'create';
+        const result = await toolService.createSurveyUrl(tool.id, action);
+        window.open(result.url, '_blank');
+      } catch (error) {
+        console.error('跳转到问卷系统失败:', error);
+        message.error('跳转到问卷系统失败');
+      }
+    } else {
+      // 表单类型：跳转到本地编辑页面
+      navigate(`/home/balanced/tools/${tool.id}/edit`);
+    }
+  };
+
   return (
     <div className={styles.toolLibraryPage}>
       <div className={styles.pageHeader}>
@@ -219,7 +237,7 @@ const ToolLibrary: React.FC = () => {
                     <span className={styles.actionBtn} onClick={() => handleViewTool(tool)}>
                       <EyeOutlined /> 工具信息
                     </span>
-                    <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/tools/${tool.id}/edit`)}>
+                    <span className={styles.actionBtn} onClick={() => handleEditTool(tool)}>
                       <EditOutlined /> 编辑工具
                     </span>
                     {tool.status === 'published' ? (
