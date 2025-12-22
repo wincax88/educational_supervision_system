@@ -63,10 +63,73 @@ const ProjectPage: React.FC = () => {
     return projectType === 'preschool' ? '学前教育普及普惠督导评估项目' : '义务教育优质均衡督导评估项目';
   }, [projectType]);
 
-  const renderToolOptions = () => {
-    // 按填报对象类型分组
+  // 判断项目是否属于学前教育
+  const isPreschoolProject = useCallback((project: Project) => {
+    // 根据指标体系名称或项目名称判断
+    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
+    const searchText = `${project.name} ${project.indicatorSystemName || ''} ${project.description || ''}`;
+    return keywords.some(keyword => searchText.includes(keyword));
+  }, []);
+
+  // 判断指标体系是否属于学前教育
+  const isPreschoolIndicatorSystem = useCallback((system: IndicatorSystem) => {
+    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
+    const searchText = `${system.name} ${system.description || ''}`;
+    return keywords.some(keyword => searchText.includes(keyword));
+  }, []);
+
+  // 判断要素库是否属于学前教育
+  const isPreschoolElementLibrary = useCallback((library: ElementLibrary) => {
+    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
+    const searchText = `${library.name} ${library.description || ''}`;
+    return keywords.some(keyword => searchText.includes(keyword));
+  }, []);
+
+  // 判断采集工具是否属于学前教育
+  const isPreschoolTool = useCallback((tool: DataTool) => {
+    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
+    const searchText = `${tool.name} ${tool.description || ''}`;
+    return keywords.some(keyword => searchText.includes(keyword));
+  }, []);
+
+  // 根据项目类型过滤的指标体系列表
+  const filteredIndicatorSystems = useMemo(() => {
+    return indicatorSystems.filter(system => {
+      if (projectType === 'preschool') {
+        return isPreschoolIndicatorSystem(system);
+      } else {
+        return !isPreschoolIndicatorSystem(system);
+      }
+    });
+  }, [indicatorSystems, projectType, isPreschoolIndicatorSystem]);
+
+  // 根据项目类型过滤的要素库列表
+  const filteredElementLibraries = useMemo(() => {
+    return elementLibraries.filter(library => {
+      if (projectType === 'preschool') {
+        return isPreschoolElementLibrary(library);
+      } else {
+        return !isPreschoolElementLibrary(library);
+      }
+    });
+  }, [elementLibraries, projectType, isPreschoolElementLibrary]);
+
+  // 根据项目类型过滤的采集工具列表
+  const filteredDataTools = useMemo(() => {
+    return dataTools.filter(tool => {
+      if (projectType === 'preschool') {
+        return isPreschoolTool(tool);
+      } else {
+        return !isPreschoolTool(tool);
+      }
+    });
+  }, [dataTools, projectType, isPreschoolTool]);
+
+  // 渲染采集工具选项（按填报对象分组）
+  const toolOptions = useMemo(() => {
+    // 按填报对象类型分组（使用过滤后的工具列表）
     const targetGroups: Record<string, DataTool[]> = {};
-    dataTools.forEach(tool => {
+    filteredDataTools.forEach(tool => {
       // target 可能是逗号分隔的多个对象，取第一个作为分组依据
       const targets = tool.target ? tool.target.split(',') : ['未分类'];
       const primaryTarget = targets[0] || '未分类';
@@ -88,33 +151,7 @@ const ProjectPage: React.FC = () => {
         ))}
       </Select.OptGroup>
     ));
-  };
-
-  // 判断项目是否属于学前教育
-  const isPreschoolProject = useCallback((project: Project) => {
-    // 根据指标体系名称或项目名称判断
-    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
-    const searchText = `${project.name} ${project.indicatorSystemName || ''} ${project.description || ''}`;
-    return keywords.some(keyword => searchText.includes(keyword));
-  }, []);
-
-  // 判断指标体系是否属于学前教育
-  const isPreschoolIndicatorSystem = useCallback((system: IndicatorSystem) => {
-    const keywords = ['学前教育', '普及普惠', '幼儿园', '学前双普'];
-    const searchText = `${system.name} ${system.description || ''}`;
-    return keywords.some(keyword => searchText.includes(keyword));
-  }, []);
-
-  // 根据项目类型过滤的指标体系列表
-  const filteredIndicatorSystems = useMemo(() => {
-    return indicatorSystems.filter(system => {
-      if (projectType === 'preschool') {
-        return isPreschoolIndicatorSystem(system);
-      } else {
-        return !isPreschoolIndicatorSystem(system);
-      }
-    });
-  }, [indicatorSystems, projectType, isPreschoolIndicatorSystem]);
+  }, [filteredDataTools]);
 
   // 加载项目列表
   const loadProjects = useCallback(async () => {
@@ -720,7 +757,7 @@ const ProjectPage: React.FC = () => {
               placeholder="选择要素库（单选）"
               optionFilterProp="children"
             >
-              {elementLibraries.map(lib => (
+              {filteredElementLibraries.map(lib => (
                 <Select.Option key={lib.id} value={lib.id}>
                   {lib.name}
                   <span style={{ color: '#999', marginLeft: 8 }}>
@@ -748,7 +785,7 @@ const ProjectPage: React.FC = () => {
               optionFilterProp="label"
               maxTagCount="responsive"
             >
-              {renderToolOptions()}
+              {toolOptions}
             </Select>
           </Form.Item>
           <div style={{ display: 'flex', gap: 16 }}>
@@ -894,7 +931,7 @@ const ProjectPage: React.FC = () => {
               placeholder="选择要素库（单选）"
               optionFilterProp="children"
             >
-              {elementLibraries.map(lib => (
+              {filteredElementLibraries.map(lib => (
                 <Select.Option key={lib.id} value={lib.id}>
                   {lib.name}
                   <span style={{ color: '#999', marginLeft: 8 }}>
@@ -922,7 +959,7 @@ const ProjectPage: React.FC = () => {
               optionFilterProp="label"
               maxTagCount="responsive"
             >
-              {renderToolOptions()}
+              {toolOptions}
             </Select>
           </Form.Item>
           <div style={{ display: 'flex', gap: 16 }}>
