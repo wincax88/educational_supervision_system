@@ -9,6 +9,8 @@ import nineYearData from './sample-data-nine-year.json';
 import twelveYearData from './sample-data-twelve-year.json';
 import completeSecondaryData from './sample-data-complete-secondary.json';
 import districtBalanceData from './sample-data-district-balance.json';
+import kindergartenData from './sample-data-kindergarten.json';
+import countyKindergartenData from './sample-data-county-kindergarten.json';
 
 export const sampleDataList = [
   {
@@ -47,8 +49,20 @@ export const sampleDataList = [
     description: '区县优质均衡示例数据',
     data: districtBalanceData,
   },
+  {
+    type: 'kindergarten',
+    label: '幼儿园',
+    description: '幼儿园示例数据',
+    data: kindergartenData,
+  },
+  {
+    type: 'county_kindergarten',
+    label: '区县普及普惠',
+    description: '区县普及普惠示例数据',
+    data: countyKindergartenData,
+  },
 ];
 
-export { primaryData, juniorData, nineYearData, twelveYearData, completeSecondaryData, districtBalanceData };
+export { primaryData, juniorData, nineYearData, twelveYearData, completeSecondaryData, districtBalanceData, kindergartenData, countyKindergartenData };
 
 export default sampleDataList;
