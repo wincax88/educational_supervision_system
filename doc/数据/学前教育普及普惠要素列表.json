@@ -4,7 +4,7 @@
   "version": "1.0",
   "indicatorElementMappings": {
     "version": "1",
-    "description": "用于机器可校验的显式映射：将指标体系中的 dataIndicators.code（如 1.1-D1）唯一映射到要素库 elements[].code（如 D001）。另外，对"没有 dataIndicators 的末级指标"，提供 leafIndicators 映射到对应的佐证材料类要素。",
+    "description": "用于机器可校验的显式映射：将指标体系中的 dataIndicators.code（如 1.1-D1）唯一映射到要素库 elements[].code（如 D001）。另外，对\"没有 dataIndicators 的末级指标\"，提供 leafIndicators 映射到对应的佐证材料类要素。",
     "source": {
       "indicatorSystemFile": "doc/学前教育普及普惠督导评估指标体系.json",
       "indicatorSystemName": "沈阳市县域学前教育普及普惠督导评估指标体系"
@@ -471,7 +471,7 @@
       "dataType": "附件",
       "fieldId": "no_primary_schooling_material",
       "category": "保教质量保障",
-      "description": "对应指标3.6-M1：提供防止和纠正"小学化"现象的制度、措施、检查记录等佐证（建议5个文件，单个≤20MB）。",
+      "description": "对应指标3.6-M1：提供防止和纠正\"小学化\"现象的制度、措施、检查记录等佐证（建议5个文件，单个≤20MB）。",
       "collectionLevel": "district",
       "dataSource": "区县填报（doc/schema-区县普及普惠.json）"
     },
