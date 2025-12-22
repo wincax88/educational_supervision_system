@@ -1,0 +1,455 @@
+[
+  {
+    "id": "group_basic_info",
+    "type": "group",
+    "label": "一、基本信息",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "kindergarten_name",
+        "type": "text",
+        "label": "幼儿园名称",
+        "placeholder": "请输入幼儿园全称",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "kindergarten_code",
+        "type": "text",
+        "label": "幼儿园代码",
+        "placeholder": "请输入幼儿园代码",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "kindergarten_type",
+        "type": "select",
+        "label": "办园性质",
+        "width": "33%",
+        "required": true,
+        "options": [
+          { "label": "教育部门办园", "value": "education_dept" },
+          { "label": "其他部门办园", "value": "other_dept" },
+          { "label": "地方企业办园", "value": "local_enterprise" },
+          { "label": "事业单位办园", "value": "institution" },
+          { "label": "部队办园", "value": "military" },
+          { "label": "集体办园", "value": "collective" },
+          { "label": "普惠性民办园", "value": "inclusive_private" },
+          { "label": "非普惠性民办园", "value": "non_inclusive_private" }
+        ]
+      },
+      {
+        "id": "is_residential_supporting",
+        "type": "select",
+        "label": "是否小区配套幼儿园",
+        "width": "33%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "founding_year",
+        "type": "date",
+        "label": "开园时间（年）",
+        "placeholder": "请选择开园年份",
+        "width": "34%",
+        "required": true
+      },
+      {
+        "id": "residential_area_name",
+        "type": "text",
+        "label": "小区名称",
+        "placeholder": "请输入配套小区名称",
+        "width": "50%",
+        "required": false,
+        "showWhen": {
+          "field": "is_residential_supporting",
+          "value": "yes"
+        }
+      },
+      {
+        "id": "residential_area_address",
+        "type": "text",
+        "label": "小区地址",
+        "placeholder": "请输入小区地址",
+        "width": "50%",
+        "required": false,
+        "showWhen": {
+          "field": "is_residential_supporting",
+          "value": "yes"
+        }
+      }
+    ]
+  },
+  {
+    "id": "group_students",
+    "type": "group",
+    "label": "二、在园幼儿信息",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_student_count",
+        "type": "divider",
+        "label": "在园幼儿人数",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "total_student_count",
+        "type": "number",
+        "label": "在园幼儿总数",
+        "placeholder": "请输入在园幼儿总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "age3_student_count",
+        "type": "number",
+        "label": "3岁幼儿人数",
+        "placeholder": "请输入3岁幼儿人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "age4_student_count",
+        "type": "number",
+        "label": "4岁幼儿人数",
+        "placeholder": "请输入4岁幼儿人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "age5_student_count",
+        "type": "number",
+        "label": "5岁幼儿人数",
+        "placeholder": "请输入5岁幼儿人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_class_info",
+        "type": "divider",
+        "label": "班级信息",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "class_count",
+        "type": "number",
+        "label": "班级总数",
+        "placeholder": "请输入班级总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "class_student_list",
+        "type": "dynamicList",
+        "label": "各班级人数",
+        "width": "100%",
+        "required": true,
+        "minRows": 1,
+        "maxRows": 100,
+        "headers": ["序号", "班级名称", "人数（人）"],
+        "fields": [
+          {
+            "id": "class_index",
+            "type": "number",
+            "label": "序号",
+            "width": "15%",
+            "required": true,
+            "decimalPlaces": "整数"
+          },
+          {
+            "id": "class_name",
+            "type": "text",
+            "label": "班级名称",
+            "width": "45%",
+            "required": true
+          },
+          {
+            "id": "class_student_count",
+            "type": "number",
+            "label": "人数",
+            "width": "40%",
+            "required": true,
+            "decimalPlaces": "整数",
+            "unit": "人"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_staff",
+    "type": "group",
+    "label": "三、教职工信息",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_staff_count",
+        "type": "divider",
+        "label": "教职工人数",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "principal_count",
+        "type": "number",
+        "label": "园长人数",
+        "placeholder": "请输入园长人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "full_time_teacher_count",
+        "type": "number",
+        "label": "专任教师人数",
+        "placeholder": "请输入专任教师人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "nursery_teacher_count",
+        "type": "number",
+        "label": "保育员人数",
+        "placeholder": "请输入保育员人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "other_staff_count",
+        "type": "number",
+        "label": "其他岗位人数",
+        "placeholder": "请输入其他岗位人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_staff_quota",
+        "type": "divider",
+        "label": "编制信息",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "staff_quota_total",
+        "type": "number",
+        "label": "编制数（个）",
+        "placeholder": "请输入编制总数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "staff_in_quota_count",
+        "type": "number",
+        "label": "在编教职工数（人）",
+        "placeholder": "请输入在编教职工数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_teacher_qualification",
+        "type": "divider",
+        "label": "教师资质",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teacher_with_certificate_count",
+        "type": "number",
+        "label": "持有教师资格证专任教师人数",
+        "placeholder": "请输入持有教师资格证专任教师人数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      }
+    ]
+  },
+  {
+    "id": "group_facilities",
+    "type": "group",
+    "label": "四、办园条件",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_building",
+        "type": "divider",
+        "label": "建筑面积",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "building_area",
+        "type": "number",
+        "label": "建筑面积（平方米）",
+        "placeholder": "请输入建筑面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "outdoor_activity_area",
+        "type": "number",
+        "label": "户外活动场地面积（平方米）",
+        "placeholder": "请输入户外活动场地面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米"
+      },
+      {
+        "id": "divider_equipment",
+        "type": "divider",
+        "label": "设施设备",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teaching_equipment_value",
+        "type": "number",
+        "label": "教学仪器设备资产值（账面原值）",
+        "placeholder": "请输入教学仪器设备资产值",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "book_count",
+        "type": "number",
+        "label": "图书册数",
+        "placeholder": "请输入图书册数",
+        "width": "25%",
+        "required": false,
+        "decimalPlaces": "整数",
+        "unit": "册"
+      }
+    ]
+  },
+  {
+    "id": "group_finance",
+    "type": "group",
+    "label": "五、收费情况",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "tuition_fee_type_a",
+        "type": "number",
+        "label": "保育教育费A类（元/月/生）",
+        "placeholder": "请输入A类保育教育费",
+        "width": "33%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      },
+      {
+        "id": "tuition_fee_type_b",
+        "type": "number",
+        "label": "保育教育费B类（元/月/生）",
+        "placeholder": "请输入B类保育教育费",
+        "width": "33%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      },
+      {
+        "id": "tuition_fee_standard",
+        "type": "number",
+        "label": "保育教育费标准（元/月/生）",
+        "placeholder": "请输入保育教育费标准",
+        "width": "34%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      }
+    ]
+  },
+  {
+    "id": "group_other",
+    "type": "group",
+    "label": "六、其他信息",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "is_qualified",
+        "type": "select",
+        "label": "办园条件是否合格",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "is_class_size_qualified",
+        "type": "select",
+        "label": "班额是否达标",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "is_staff_qualified",
+        "type": "select",
+        "label": "教职工配备是否达标",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      },
+      {
+        "id": "is_fee_qualified",
+        "type": "select",
+        "label": "收费是否符合标准",
+        "width": "50%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ]
+      }
+    ]
+  }
+]
+

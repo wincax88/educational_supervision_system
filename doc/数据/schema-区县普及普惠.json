@@ -1,0 +1,686 @@
+[
+  {
+    "id": "group_basic_info",
+    "type": "group",
+    "label": "一、基本情况",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_population",
+        "type": "divider",
+        "label": "人口情况",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "age3_5_population",
+        "type": "number",
+        "label": "常住人口3-5岁儿童数（人）",
+        "placeholder": "请输入常住人口3-5岁儿童总数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "urban_street_count",
+        "type": "number",
+        "label": "城市地区街道数（个）",
+        "placeholder": "请输入城市地区街道数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "rural_township_count",
+        "type": "number",
+        "label": "农村地区乡镇数（个）",
+        "placeholder": "请输入农村地区乡镇数",
+        "width": "34%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "divider_kindergarten_count",
+        "type": "divider",
+        "label": "幼儿园数统计",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "kindergarten_total",
+        "type": "number",
+        "label": "幼儿园总数（所）",
+        "placeholder": "请输入幼儿园总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "education_dept_kindergarten_count",
+        "type": "number",
+        "label": "教育部门办园数（所）",
+        "placeholder": "请输入教育部门办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "other_public_kindergarten_count",
+        "type": "number",
+        "label": "其他部门办园数（所）",
+        "placeholder": "请输入其他部门办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "inclusive_private_kindergarten_count",
+        "type": "number",
+        "label": "普惠性民办园数（所）",
+        "placeholder": "请输入普惠性民办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "non_inclusive_private_kindergarten_count",
+        "type": "number",
+        "label": "非普惠性民办园数（所）",
+        "placeholder": "请输入非普惠性民办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "divider_student_count",
+        "type": "divider",
+        "label": "在园儿童数统计",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "student_total",
+        "type": "number",
+        "label": "在园儿童总数（人）",
+        "placeholder": "请输入在园儿童总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "public_kindergarten_student_count",
+        "type": "number",
+        "label": "公办园在园儿童数（人）",
+        "placeholder": "请输入公办园在园儿童数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "inclusive_private_student_count",
+        "type": "number",
+        "label": "普惠性民办园在园儿童数（人）",
+        "placeholder": "请输入普惠性民办园在园儿童数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "non_inclusive_private_student_count",
+        "type": "number",
+        "label": "非普惠性民办园在园儿童数（人）",
+        "placeholder": "请输入非普惠性民办园在园儿童数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_staff_count",
+        "type": "divider",
+        "label": "教职工数统计",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "staff_total",
+        "type": "number",
+        "label": "教职工总数（人）",
+        "placeholder": "请输入教职工总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "principal_count",
+        "type": "number",
+        "label": "园长人数（人）",
+        "placeholder": "请输入园长总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "full_time_teacher_count",
+        "type": "number",
+        "label": "专任教师人数（人）",
+        "placeholder": "请输入专任教师总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "nursery_teacher_count",
+        "type": "number",
+        "label": "保育员人数（人）",
+        "placeholder": "请输入保育员总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "other_staff_count",
+        "type": "number",
+        "label": "其他岗位人数（人）",
+        "placeholder": "请输入其他岗位总人数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人"
+      },
+      {
+        "id": "divider_tuition_fee",
+        "type": "divider",
+        "label": "保育教育费",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "public_kindergarten_tuition_fee",
+        "type": "number",
+        "label": "公办园保育教育费（元/月/生）",
+        "placeholder": "请输入公办园保育教育费标准上限",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      },
+      {
+        "id": "inclusive_private_tuition_fee_type_a",
+        "type": "number",
+        "label": "普惠性民办园A类保育教育费（元/月/生）",
+        "placeholder": "请输入A类保育教育费标准上限",
+        "width": "33%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      },
+      {
+        "id": "inclusive_private_tuition_fee_type_b",
+        "type": "number",
+        "label": "普惠性民办园B类保育教育费（元/月/生）",
+        "placeholder": "请输入B类保育教育费标准上限",
+        "width": "34%",
+        "required": false,
+        "decimalPlaces": "2位小数",
+        "unit": "元/月/生",
+        "helpText": "仅填报收费标准上限"
+      }
+    ]
+  },
+  {
+    "id": "group_residential_supporting",
+    "type": "group",
+    "label": "二、小区配套幼儿园情况",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "residential_supporting_should_count",
+        "type": "number",
+        "label": "全区应配建配套幼儿园小区数（个）",
+        "placeholder": "请输入应配建配套幼儿园小区总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "residential_supporting_built_count",
+        "type": "number",
+        "label": "已配建配套幼儿园小区数（个）",
+        "placeholder": "请输入已配建配套幼儿园小区数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "residential_supporting_public_count",
+        "type": "number",
+        "label": "举办成公办园数（个）",
+        "placeholder": "请输入举办成公办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "residential_supporting_inclusive_private_count",
+        "type": "number",
+        "label": "举办成普惠性民办园数（个）",
+        "placeholder": "请输入举办成普惠性民办园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个"
+      },
+      {
+        "id": "residential_supporting_kindergarten_list",
+        "type": "dynamicList",
+        "label": "小区配套幼儿园基本情况",
+        "width": "100%",
+        "required": true,
+        "minRows": 1,
+        "maxRows": 500,
+        "headers": ["序号", "小区名称", "小区地址", "配套幼儿园名称", "开园时间（年）", "办园性质", "编制数（个）", "在编教职工数（人）", "建筑面积（平方米）", "班数（个）", "在园儿童数（人）", "保育教育费（元/月/生）", "园长", "联系电话"],
+        "fields": [
+          {
+            "id": "residential_index",
+            "type": "number",
+            "label": "序号",
+            "width": "5%",
+            "required": true,
+            "decimalPlaces": "整数"
+          },
+          {
+            "id": "residential_area_name",
+            "type": "text",
+            "label": "小区名称",
+            "width": "10%",
+            "required": true
+          },
+          {
+            "id": "residential_area_address",
+            "type": "text",
+            "label": "小区地址",
+            "width": "10%",
+            "required": true
+          },
+          {
+            "id": "residential_kindergarten_name",
+            "type": "text",
+            "label": "配套幼儿园名称",
+            "width": "10%",
+            "required": true
+          },
+          {
+            "id": "residential_founding_year",
+            "type": "date",
+            "label": "开园时间（年）",
+            "width": "8%",
+            "required": true
+          },
+          {
+            "id": "residential_kindergarten_type",
+            "type": "select",
+            "label": "办园性质",
+            "width": "8%",
+            "required": true,
+            "options": [
+              { "label": "公办园", "value": "1" },
+              { "label": "普惠性民办园", "value": "2" },
+              { "label": "非普惠性民办园", "value": "3" }
+            ]
+          },
+          {
+            "id": "residential_staff_quota",
+            "type": "number",
+            "label": "编制数",
+            "width": "6%",
+            "required": false,
+            "decimalPlaces": "整数",
+            "unit": "个"
+          },
+          {
+            "id": "residential_staff_in_quota_count",
+            "type": "number",
+            "label": "在编教职工数",
+            "width": "7%",
+            "required": false,
+            "decimalPlaces": "整数",
+            "unit": "人"
+          },
+          {
+            "id": "residential_building_area",
+            "type": "number",
+            "label": "建筑面积",
+            "width": "8%",
+            "required": true,
+            "decimalPlaces": "2位小数",
+            "unit": "平方米"
+          },
+          {
+            "id": "residential_class_count",
+            "type": "number",
+            "label": "班数",
+            "width": "5%",
+            "required": true,
+            "decimalPlaces": "整数",
+            "unit": "个"
+          },
+          {
+            "id": "residential_student_count",
+            "type": "number",
+            "label": "在园儿童数",
+            "width": "7%",
+            "required": true,
+            "decimalPlaces": "整数",
+            "unit": "人"
+          },
+          {
+            "id": "residential_tuition_fee",
+            "type": "number",
+            "label": "保育教育费",
+            "width": "8%",
+            "required": true,
+            "decimalPlaces": "2位小数",
+            "unit": "元/月/生"
+          },
+          {
+            "id": "residential_principal_name",
+            "type": "text",
+            "label": "园长",
+            "width": "6%",
+            "required": false
+          },
+          {
+            "id": "residential_contact_phone",
+            "type": "text",
+            "label": "联系电话",
+            "width": "8%",
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "group_finance",
+    "type": "group",
+    "label": "三、财政投入",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "preschool_education_funding",
+        "type": "number",
+        "label": "财政性学前教育经费（万元）",
+        "placeholder": "请输入财政性学前教育经费总额",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "education_funding_total",
+        "type": "number",
+        "label": "同级财政性教育经费总额（万元）",
+        "placeholder": "请输入同级财政性教育经费总额",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "preschool_funding_ratio",
+        "type": "number",
+        "label": "财政性学前教育经费占比（%）",
+        "placeholder": "系统自动计算",
+        "width": "34%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "helpText": "财政性学前教育经费 ÷ 同级财政性教育经费总额 × 100，应≥5%"
+      }
+    ]
+  },
+  {
+    "id": "group_indicators",
+    "type": "group",
+    "label": "四、普及普惠指标",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_coverage",
+        "type": "divider",
+        "label": "普及普惠水平",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "enrollment_rate",
+        "type": "number",
+        "label": "学前三年毛入园率（%）",
+        "placeholder": "系统自动计算",
+        "width": "33%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "helpText": "（在园幼儿总数 ÷ 3-5岁适龄儿童总数）× 100，应≥85%"
+      },
+      {
+        "id": "inclusive_coverage_rate",
+        "type": "number",
+        "label": "普惠性幼儿园覆盖率（%）",
+        "placeholder": "系统自动计算",
+        "width": "33%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "helpText": "（公办园+普惠性民办园在园幼儿数）÷ 在园幼儿总数 × 100，应≥80%"
+      },
+      {
+        "id": "public_kindergarten_ratio",
+        "type": "number",
+        "label": "公办园在园幼儿占比（%）",
+        "placeholder": "系统自动计算",
+        "width": "34%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "helpText": "公办园在园幼儿数 ÷ 在园幼儿总数 × 100，应≥50%"
+      },
+      {
+        "id": "divider_quality",
+        "type": "divider",
+        "label": "保教质量保障",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "qualified_kindergarten_count",
+        "type": "number",
+        "label": "办园条件合格幼儿园数（所）",
+        "placeholder": "请输入办园条件合格幼儿园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "class_size_qualified_kindergarten_count",
+        "type": "number",
+        "label": "班额达标幼儿园数（所）",
+        "placeholder": "请输入班额达标幼儿园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "staff_qualified_kindergarten_count",
+        "type": "number",
+        "label": "教职工配备达标幼儿园数（所）",
+        "placeholder": "请输入教职工配备达标幼儿园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      },
+      {
+        "id": "fee_qualified_kindergarten_count",
+        "type": "number",
+        "label": "收费达标幼儿园数（所）",
+        "placeholder": "请输入收费达标幼儿园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所"
+      }
+    ]
+  },
+  {
+    "id": "group_other",
+    "type": "group",
+    "label": "五、其他信息",
+    "width": "100%",
+    "required": false,
+    "children": [
+      {
+        "id": "divider_safety",
+        "type": "divider",
+        "label": "安全情况",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "safety_accident_count_3years",
+        "type": "number",
+        "label": "近三年重大安全责任事故数（起）",
+        "placeholder": "请输入近三年重大安全责任事故数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "起",
+        "helpText": "应=0"
+      },
+      {
+        "id": "divider_materials",
+        "type": "divider",
+        "label": "佐证材料",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "party_leadership_material",
+        "type": "upload",
+        "label": "党的领导坚强有力佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "development_plan_material",
+        "type": "upload",
+        "label": "发展规划科学合理佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "public_service_network_material",
+        "type": "upload",
+        "label": "学前教育公共服务网络基本完善佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "safety_risk_control_material",
+        "type": "upload",
+        "label": "安全风险防控机制健全佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "supervision_system_material",
+        "type": "upload",
+        "label": "监管制度比较完善佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "facility_improvement_material",
+        "type": "upload",
+        "label": "办园条件改善佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "teacher_management_material",
+        "type": "upload",
+        "label": "教师管理制度严格佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "scientific_education_material",
+        "type": "upload",
+        "label": "落实科学保教要求佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      },
+      {
+        "id": "no_primary_schooling_material",
+        "type": "upload",
+        "label": "无\"小学化\"现象佐证材料",
+        "placeholder": "上传佐证材料",
+        "helpText": "5个文件，单个文件大小不超过20M",
+        "width": "50%",
+        "required": true
+      }
+    ]
+  }
+]
+
