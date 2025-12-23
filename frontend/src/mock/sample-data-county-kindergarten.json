@@ -1,29 +1,160 @@
 {
-  "_description": "区县普及普惠示例数据",
-  "age3_5_population": 12500,
+  "_description": "区县普及普惠示例数据 - 对应 schema-区县普及普惠.json",
+
+  "_group_population": "一、人口与入园情况",
+  "age3_6_population": 12500,
+  "student_total": 10800,
+  "enrollment_rate": 86.40,
+  "public_kindergarten_student_count": 5800,
+  "inclusive_private_student_count": 4500,
+  "inclusive_coverage_rate": 95.37,
+  "public_kindergarten_ratio": 53.70,
+
+  "_group_kindergarten_stats": "二、幼儿园与教职工情况",
+  "kindergarten_total": 85,
+  "staff_qualified_kindergarten_count": 82,
+  "staff_qualified_rate": 96.47,
+  "fulltime_teacher_count": 680,
+  "class_total": 425,
+  "class_size_qualified_count": 408,
+  "class_size_qualified_rate": 96.00,
+  "teacher_student_ratio": "1:16",
+
+  "_group_residential": "三、小区配套幼儿园情况",
+  "residential_kindergarten_total": 45,
+  "residential_kindergarten_inclusive_count": 45,
+  "residential_inclusive_rate": 100.00,
+
+  "_group_safety": "四、安全与师德情况",
+  "safety_accident_count_2years": 0,
+  "ethics_incident_count_2years": 0,
+
+  "_group_self_assessment_gov": "五、政府保障情况自评",
+  "_divider_party": "2.1 党的领导",
+  "party_organization_coverage": "合格",
+
+  "_divider_planning": "2.2 发展规划",
+  "layout_planning_status": "合格",
+  "inclusive_planning_status": "合格",
+
+  "_divider_network": "2.3 公共服务网络",
+  "rural_service_network_status": "合格",
+
+  "_divider_residential_mgmt": "2.4 小区配套园管理",
+  "residential_kindergarten_management_status": "合格",
+
+  "_divider_finance": "2.5 财政投入",
+  "public_funding_standard_status": "合格",
+  "enterprise_kindergarten_subsidy_status": "合格",
+  "inclusive_private_support_status": "合格",
+
+  "_divider_fee": "2.6 收费管理",
+  "fee_standard_status": "合格",
+  "fee_adjustment_status": "合格",
+  "fee_compliance_status": "合格",
+
+  "_divider_salary": "2.7 教师待遇",
+  "public_teacher_salary_status": "基本合格",
+  "private_teacher_salary_status": "基本合格",
+
+  "_divider_safety_mgmt": "2.8 安全管理",
+  "safety_supervision_status": "合格",
+
+  "_divider_supervision": "2.9 监管制度",
+  "private_approval_status": "合格",
+  "info_disclosure_status": "合格",
+  "supervision_system_status": "合格",
+  "supervisor_assignment_status": "合格",
+  "unlicensed_remediation_status": "合格",
+  "private_profit_control_status": "合格",
+
+  "_group_self_assessment_quality": "六、保教质量保障情况自评",
+  "_divider_facility": "3.1 办园条件",
+  "facility_standard_status": "合格",
+
+  "_divider_class_size": "3.2 班额达标",
+  "post2017_standard_status": "基本合格",
+
+  "_divider_staffing": "3.3 教师配备",
+  "public_staffing_status": "合格",
+
+  "_divider_teacher_mgmt": "3.4 教师管理",
+  "teacher_certification_status": "合格",
+
+  "_divider_education": "3.5 科学保教",
+  "training_system_status": "合格",
+  "ethics_system_status": "合格",
+  "scientific_education_status": "合格",
+
+  "_group_supporting_materials": "七、佐证材料",
+  "_divider_material_coverage": "普及普惠水平",
+  "inclusive_kindergarten_list_url": null,
+
+  "_divider_material_party": "党的领导",
+  "party_building_implementation": null,
+
+  "_divider_material_planning": "发展规划",
+  "preschool_layout_planning": null,
+  "regional_detailed_planning": null,
+
+  "_divider_material_network": "公共服务网络",
+  "township_kindergarten_list": null,
+
+  "_divider_material_residential": "小区配套园管理",
+  "residential_management_summary": null,
+  "residential_transfer_agreement": null,
+  "residential_construction_list": null,
+  "residential_handover_form": null,
+  "residential_overview_table": null,
+
+  "_divider_material_finance": "财政投入",
+  "inclusive_private_policy_doc": null,
+  "inclusive_private_funding_proof": null,
+  "inclusive_private_subsidy_proof": null,
+
+  "_divider_material_fee": "收费管理",
+  "fee_standard_doc": null,
+
+  "_divider_material_salary": "教师待遇",
+  "teacher_salary_policy_doc": null,
+
+  "_divider_material_safety": "安全管理",
+  "safety_coordination_doc": null,
+  "preschool_coordination_doc": null,
+
+  "_divider_material_supervision": "监管制度",
+  "info_disclosure_doc": null,
+  "supervision_plan_doc": null,
+  "supervision_report_doc": null,
+  "supervisor_assignment_plan": null,
+  "supervisor_list_doc": null,
+  "unlicensed_remediation_plan": null,
+  "unlicensed_remediation_summary": null,
+
+  "_divider_material_quality": "保教质量",
+  "facility_condition_doc": null,
+  "public_staffing_doc": null,
+  "teacher_qualification_doc": null,
+  "teacher_training_doc": null,
+
+  "_legacy_fields": "以下为历史字段，保留供参考",
   "urban_street_count": 12,
   "rural_township_count": 8,
-  "kindergarten_total": 85,
   "education_dept_kindergarten_count": 35,
   "other_public_kindergarten_count": 8,
   "inclusive_private_kindergarten_count": 38,
   "non_inclusive_private_kindergarten_count": 4,
-  "student_total": 10800,
-  "public_kindergarten_student_count": 5800,
-  "inclusive_private_student_count": 4500,
   "non_inclusive_private_student_count": 500,
   "staff_total": 1420,
   "principal_count": 85,
-  "full_time_teacher_count": 680,
   "nursery_teacher_count": 420,
   "other_staff_count": 235,
   "public_kindergarten_tuition_fee": 420.00,
   "inclusive_private_tuition_fee_type_a": 450.00,
   "inclusive_private_tuition_fee_type_b": 380.00,
-  "residential_supporting_should_count": 45,
-  "residential_supporting_built_count": 45,
-  "residential_supporting_public_count": 28,
-  "residential_supporting_inclusive_private_count": 17,
+  "preschool_education_funding": 12500.50,
+  "education_funding_total": 185000.00,
+  "preschool_funding_ratio": 6.76,
   "residential_supporting_kindergarten_list": [
     {
       "residential_index": 1,
@@ -105,26 +236,5 @@
       "residential_principal_name": "孙园长",
       "residential_contact_phone": "024-12345682"
     }
-  ],
-  "preschool_education_funding": 12500.50,
-  "education_funding_total": 185000.00,
-  "preschool_funding_ratio": 6.76,
-  "enrollment_rate": 86.40,
-  "inclusive_coverage_rate": 95.37,
-  "public_kindergarten_ratio": 53.70,
-  "qualified_kindergarten_count": 85,
-  "class_size_qualified_kindergarten_count": 83,
-  "staff_qualified_kindergarten_count": 82,
-  "fee_qualified_kindergarten_count": 85,
-  "safety_accident_count_3years": 0,
-  "party_leadership_material": [],
-  "development_plan_material": [],
-  "public_service_network_material": [],
-  "safety_risk_control_material": [],
-  "supervision_system_material": [],
-  "facility_improvement_material": [],
-  "teacher_management_material": [],
-  "scientific_education_material": [],
-  "no_primary_schooling_material": []
+  ]
 }
-
