@@ -67,6 +67,9 @@ const DistrictDashboard: React.FC = () => {
     }
   };
 
+  // 根据评估类型动态设置标签名称
+  const isPreschool = project?.assessmentType === '普及普惠';
+
   const tabItems = [
     {
       key: 'indicator-summary',
@@ -82,7 +85,7 @@ const DistrictDashboard: React.FC = () => {
     },
     {
       key: 'school-indicators',
-      label: '学校指标',
+      label: isPreschool ? '幼儿园指标' : '学校指标',
       children: (
         <SchoolIndicators
           districtId={districtId}
@@ -93,7 +96,7 @@ const DistrictDashboard: React.FC = () => {
     },
     {
       key: 'submissions',
-      label: '学校填报',
+      label: isPreschool ? '幼儿园填报' : '学校填报',
       children: (
         <SubmissionList
           districtId={districtId}
