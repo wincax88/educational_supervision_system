@@ -3,6 +3,7 @@
     "id": "group_basic_info",
     "type": "group",
     "label": "一、基本信息",
+    "description": "幼儿园基本情况",
     "width": "100%",
     "required": true,
     "children": [
@@ -37,7 +38,8 @@
           { "label": "集体办园", "value": "collective" },
           { "label": "普惠性民办园", "value": "inclusive_private" },
           { "label": "非普惠性民办园", "value": "non_inclusive_private" }
-        ]
+        ],
+        "helpText": "公办园包括：教育部门、其他部门、地方企业、事业单位、部队、集体办园"
       },
       {
         "id": "is_residential_supporting",
@@ -48,15 +50,17 @@
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
-        ]
+        ],
+        "helpText": "用于统计小区配套幼儿园公办或普惠比例"
       },
       {
         "id": "founding_year",
         "type": "date",
-        "label": "开园时间（年）",
+        "label": "开园时间",
         "placeholder": "请选择开园年份",
         "width": "34%",
-        "required": true
+        "required": true,
+        "helpText": "用于判断是否2017年后规划设计"
       },
       {
         "id": "residential_area_name",
@@ -88,6 +92,7 @@
     "id": "group_students",
     "type": "group",
     "label": "二、在园幼儿信息",
+    "description": "用于统计在园幼儿数和班额情况",
     "width": "100%",
     "required": true,
     "children": [
@@ -106,37 +111,41 @@
         "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "3-6岁在园幼儿总数，汇总后对应E002"
       },
       {
         "id": "age3_student_count",
         "type": "number",
-        "label": "3岁幼儿人数",
-        "placeholder": "请输入3岁幼儿人数",
+        "label": "小班幼儿人数",
+        "placeholder": "请输入小班幼儿人数",
         "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "3岁年龄段"
       },
       {
         "id": "age4_student_count",
         "type": "number",
-        "label": "4岁幼儿人数",
-        "placeholder": "请输入4岁幼儿人数",
+        "label": "中班幼儿人数",
+        "placeholder": "请输入中班幼儿人数",
         "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "4岁年龄段"
       },
       {
         "id": "age5_student_count",
         "type": "number",
-        "label": "5岁幼儿人数",
-        "placeholder": "请输入5岁幼儿人数",
+        "label": "大班幼儿人数",
+        "placeholder": "请输入大班幼儿人数",
         "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "5岁年龄段"
       },
       {
         "id": "divider_class_info",
@@ -153,23 +162,36 @@
         "width": "25%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "个"
+        "unit": "个",
+        "helpText": "汇总后对应E008"
+      },
+      {
+        "id": "class_size_qualified_count",
+        "type": "number",
+        "label": "班额符合规定的班级数",
+        "placeholder": "请输入班额符合规定的班级数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个",
+        "helpText": "符合《幼儿园工作规程》班额规定（小班25人、中班30人、大班35人、混合班30人），汇总后对应E009"
       },
       {
         "id": "class_student_list",
         "type": "dynamicList",
-        "label": "各班级人数",
+        "label": "各班级人数明细",
         "width": "100%",
         "required": true,
         "minRows": 1,
         "maxRows": 100,
-        "headers": ["序号", "班级名称", "人数（人）"],
+        "headers": ["序号", "班级名称", "班级类型", "人数（人）", "是否符合班额规定"],
+        "helpText": "小班≤25人、中班≤30人、大班≤35人、混合班≤30人为符合规定",
         "fields": [
           {
             "id": "class_index",
             "type": "number",
             "label": "序号",
-            "width": "15%",
+            "width": "10%",
             "required": true,
             "decimalPlaces": "整数"
           },
@@ -177,17 +199,41 @@
             "id": "class_name",
             "type": "text",
             "label": "班级名称",
-            "width": "45%",
+            "width": "25%",
             "required": true
+          },
+          {
+            "id": "class_type",
+            "type": "select",
+            "label": "班级类型",
+            "width": "20%",
+            "required": true,
+            "options": [
+              { "label": "小班", "value": "small" },
+              { "label": "中班", "value": "middle" },
+              { "label": "大班", "value": "large" },
+              { "label": "混合班", "value": "mixed" }
+            ]
           },
           {
             "id": "class_student_count",
             "type": "number",
             "label": "人数",
-            "width": "40%",
+            "width": "20%",
             "required": true,
             "decimalPlaces": "整数",
             "unit": "人"
+          },
+          {
+            "id": "class_size_qualified",
+            "type": "select",
+            "label": "是否符合班额规定",
+            "width": "25%",
+            "required": true,
+            "options": [
+              { "label": "是", "value": "yes" },
+              { "label": "否", "value": "no" }
+            ]
           }
         ]
       }
@@ -197,6 +243,7 @@
     "id": "group_staff",
     "type": "group",
     "label": "三、教职工信息",
+    "description": "用于统计教职工配备和师幼比",
     "width": "100%",
     "required": true,
     "children": [
@@ -208,31 +255,42 @@
         "required": false
       },
       {
-        "id": "principal_count",
+        "id": "staff_total",
         "type": "number",
-        "label": "园长人数",
-        "placeholder": "请输入园长人数",
-        "width": "25%",
+        "label": "教职工总数",
+        "placeholder": "请输入教职工总数",
+        "width": "20%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "人"
       },
       {
-        "id": "full_time_teacher_count",
+        "id": "principal_count",
         "type": "number",
-        "label": "专任教师人数",
-        "placeholder": "请输入专任教师人数",
-        "width": "25%",
+        "label": "园长人数",
+        "placeholder": "请输入园长人数",
+        "width": "20%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "人"
+      },
+      {
+        "id": "fulltime_teacher_count",
+        "type": "number",
+        "label": "专任教师人数",
+        "placeholder": "请输入专任教师人数",
+        "width": "20%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "helpText": "汇总后对应E011，用于计算师幼比"
       },
       {
         "id": "nursery_teacher_count",
         "type": "number",
         "label": "保育员人数",
         "placeholder": "请输入保育员人数",
-        "width": "25%",
+        "width": "20%",
         "required": true,
         "decimalPlaces": "整数",
         "unit": "人"
@@ -242,24 +300,25 @@
         "type": "number",
         "label": "其他岗位人数",
         "placeholder": "请输入其他岗位人数",
-        "width": "25%",
+        "width": "20%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "卫生保健人员、安保人员、财务人员等"
       },
       {
         "id": "divider_staff_quota",
         "type": "divider",
-        "label": "编制信息",
+        "label": "编制信息（公办园填写）",
         "width": "100%",
         "required": false
       },
       {
         "id": "staff_quota_total",
         "type": "number",
-        "label": "编制数（个）",
+        "label": "核定编制数",
         "placeholder": "请输入编制总数",
-        "width": "25%",
+        "width": "33%",
         "required": false,
         "decimalPlaces": "整数",
         "unit": "个"
@@ -267,12 +326,24 @@
       {
         "id": "staff_in_quota_count",
         "type": "number",
-        "label": "在编教职工数（人）",
+        "label": "在编教职工数",
         "placeholder": "请输入在编教职工数",
-        "width": "25%",
+        "width": "33%",
         "required": false,
         "decimalPlaces": "整数",
         "unit": "人"
+      },
+      {
+        "id": "has_vacancy_not_filled",
+        "type": "select",
+        "label": "是否存在有编不补情况",
+        "width": "34%",
+        "required": false,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "用于判断E203公办园编制补充情况"
       },
       {
         "id": "divider_teacher_qualification",
@@ -282,21 +353,76 @@
         "required": false
       },
       {
-        "id": "teacher_with_certificate_count",
+        "id": "principal_with_certificate_count",
         "type": "number",
-        "label": "持有教师资格证专任教师人数",
-        "placeholder": "请输入持有教师资格证专任教师人数",
-        "width": "50%",
+        "label": "持证园长人数",
+        "placeholder": "请输入持有园长资格证的园长人数",
+        "width": "33%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
+        "unit": "人",
+        "helpText": "持有园长资格证"
+      },
+      {
+        "id": "teacher_with_certificate_count",
+        "type": "number",
+        "label": "持证专任教师人数",
+        "placeholder": "请输入持有教师资格证的专任教师人数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "helpText": "持有幼儿园教师资格证，用于判断E205教师持证上岗情况"
+      },
+      {
+        "id": "teacher_student_ratio",
+        "type": "text",
+        "label": "本园师幼比",
+        "placeholder": "系统自动计算，如1:12",
+        "width": "34%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "helpText": "专任教师人数:在园幼儿总数，应不低于1:15"
+      }
+    ]
+  },
+  {
+    "id": "group_staffing_standard",
+    "type": "group",
+    "label": "四、教职工配备达标情况",
+    "description": "按《幼儿园教职工配备标准(暂行)》判定",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "is_staff_qualified",
+        "type": "select",
+        "label": "教职工配备是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "按《幼儿园教职工配备标准(暂行)》配足配齐各类教职工，汇总后对应E010"
+      },
+      {
+        "id": "staffing_standard_details",
+        "type": "textarea",
+        "label": "配备情况说明",
+        "placeholder": "请说明教职工配备情况，如不达标请说明原因",
+        "width": "100%",
+        "required": false,
+        "rows": 3
       }
     ]
   },
   {
     "id": "group_facilities",
     "type": "group",
-    "label": "四、办园条件",
+    "label": "五、办园条件",
+    "description": "园舍条件和配备情况",
     "width": "100%",
     "required": true,
     "children": [
@@ -310,146 +436,274 @@
       {
         "id": "building_area",
         "type": "number",
-        "label": "建筑面积（平方米）",
+        "label": "建筑总面积",
         "placeholder": "请输入建筑面积",
         "width": "25%",
         "required": true,
         "decimalPlaces": "2位小数",
-        "unit": "平方米"
+        "unit": "平方米",
+        "helpText": "生均建筑面积应≥10.44平方米"
+      },
+      {
+        "id": "activity_room_area",
+        "type": "number",
+        "label": "幼儿活动用房面积",
+        "placeholder": "请输入幼儿活动用房面积",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "平方米",
+        "helpText": "生均面积应≥8.17平方米"
       },
       {
         "id": "outdoor_activity_area",
         "type": "number",
-        "label": "户外活动场地面积（平方米）",
+        "label": "户外活动场地面积",
         "placeholder": "请输入户外活动场地面积",
         "width": "25%",
         "required": true,
         "decimalPlaces": "2位小数",
-        "unit": "平方米"
+        "unit": "平方米",
+        "helpText": "生均面积应≥4平方米"
+      },
+      {
+        "id": "is_post2017_planned",
+        "type": "select",
+        "label": "是否2017年后规划设计",
+        "width": "25%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "用于判断E202"
       },
       {
         "id": "divider_equipment",
         "type": "divider",
-        "label": "设施设备",
+        "label": "设施设备配备",
         "width": "100%",
         "required": false
-      },
-      {
-        "id": "teaching_equipment_value",
-        "type": "number",
-        "label": "教学仪器设备资产值（账面原值）",
-        "placeholder": "请输入教学仪器设备资产值",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "万元"
       },
       {
         "id": "book_count",
         "type": "number",
         "label": "图书册数",
         "placeholder": "请输入图书册数",
-        "width": "25%",
-        "required": false,
+        "width": "33%",
+        "required": true,
         "decimalPlaces": "整数",
-        "unit": "册"
+        "unit": "册",
+        "helpText": "生均图书应达到3~5册"
+      },
+      {
+        "id": "teaching_equipment_value",
+        "type": "number",
+        "label": "玩教具资产值",
+        "placeholder": "请输入玩教具资产值（账面原值）",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "2位小数",
+        "unit": "万元"
+      },
+      {
+        "id": "is_equipment_qualified",
+        "type": "select",
+        "label": "玩教具配备是否达标",
+        "width": "34%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "符合幼儿年龄特点的玩教具、游戏材料"
+      },
+      {
+        "id": "divider_facility_standard",
+        "type": "divider",
+        "label": "达标情况",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "is_facility_standard_qualified",
+        "type": "select",
+        "label": "园舍条件和配备是否达标",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "符合国家、当地的建设标准、配备要求，用于统计E201"
+      },
+      {
+        "id": "is_post2017_standard_qualified",
+        "type": "select",
+        "label": "是否符合《幼儿园建设标准》",
+        "width": "50%",
+        "required": false,
+        "showWhen": {
+          "field": "is_post2017_planned",
+          "value": "yes"
+        },
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "2017年后规划设计的幼儿园需符合《幼儿园建设标准》，用于统计E202"
       }
     ]
   },
   {
     "id": "group_finance",
     "type": "group",
-    "label": "五、收费情况",
+    "label": "六、收费情况",
+    "description": "保育教育费标准",
     "width": "100%",
     "required": true,
     "children": [
       {
-        "id": "tuition_fee_type_a",
-        "type": "number",
-        "label": "保育教育费A类（元/月/生）",
-        "placeholder": "请输入A类保育教育费",
-        "width": "33%",
-        "required": false,
-        "decimalPlaces": "2位小数",
-        "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
-      },
-      {
-        "id": "tuition_fee_type_b",
-        "type": "number",
-        "label": "保育教育费B类（元/月/生）",
-        "placeholder": "请输入B类保育教育费",
-        "width": "33%",
-        "required": false,
-        "decimalPlaces": "2位小数",
-        "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
-      },
-      {
         "id": "tuition_fee_standard",
         "type": "number",
-        "label": "保育教育费标准（元/月/生）",
+        "label": "保育教育费标准",
         "placeholder": "请输入保育教育费标准",
-        "width": "34%",
+        "width": "50%",
         "required": true,
         "decimalPlaces": "2位小数",
         "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
+        "helpText": "填写实际收费标准"
+      },
+      {
+        "id": "is_fee_compliant",
+        "type": "select",
+        "label": "收费是否符合政府定价/指导价",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "公办园和普惠性民办园应符合政府定价/指导价，用于判断E111"
       }
     ]
   },
   {
-    "id": "group_other",
+    "id": "group_education_quality",
     "type": "group",
-    "label": "六、其他信息",
+    "label": "七、科学保教情况",
+    "description": "用于统计E209",
     "width": "100%",
-    "required": false,
+    "required": true,
     "children": [
       {
-        "id": "is_qualified",
+        "id": "has_activity_areas",
         "type": "select",
-        "label": "办园条件是否合格",
+        "label": "是否按规定创设多种活动区域(区角)",
         "width": "50%",
-        "required": false,
+        "required": true,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
         ]
       },
       {
-        "id": "is_class_size_qualified",
+        "id": "has_age_appropriate_materials",
         "type": "select",
-        "label": "班额是否达标",
+        "label": "是否提供充足的符合幼儿年龄特点的玩教具、游戏材料、图画书",
         "width": "50%",
-        "required": false,
+        "required": true,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
         ]
       },
       {
-        "id": "is_staff_qualified",
+        "id": "has_primary_schooling",
         "type": "select",
-        "label": "教职工配备是否达标",
+        "label": "是否存在「小学化」现象",
         "width": "50%",
-        "required": false,
+        "required": true,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
-        ]
+        ],
+        "helpText": "提前教授汉语拼音、识字、计算、英语等小学课程内容；以课堂集中授课方式为主组织安排一日活动；以机械背诵、记忆、抄写、计算等方式进行知识技能性强化训练"
       },
       {
-        "id": "is_fee_qualified",
+        "id": "has_primary_schooling_complaint",
         "type": "select",
-        "label": "收费是否符合标准",
+        "label": "是否有幼儿园「小学化」问题的有效投诉",
         "width": "50%",
-        "required": false,
+        "required": true,
         "options": [
           { "label": "是", "value": "yes" },
           { "label": "否", "value": "no" }
         ]
       }
     ]
+  },
+  {
+    "id": "group_ethics",
+    "type": "group",
+    "label": "八、师德师风情况",
+    "description": "用于统计E207、E208",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "has_ethics_mechanism",
+        "type": "select",
+        "label": "是否建立师德教育、考评、奖惩机制",
+        "width": "50%",
+        "required": true,
+        "options": [
+          { "label": "是", "value": "yes" },
+          { "label": "否", "value": "no" }
+        ],
+        "helpText": "用于统计E207"
+      },
+      {
+        "id": "ethics_incident_count_2years",
+        "type": "number",
+        "label": "近2年严重师德师风事件数",
+        "placeholder": "请输入事件数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "起",
+        "helpText": "督导评估认定前2年内，应=0，汇总后对应E208"
+      }
+    ]
+  },
+  {
+    "id": "group_safety",
+    "type": "group",
+    "label": "九、安全情况",
+    "description": "用于统计E115",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "safety_accident_count_2years",
+        "type": "number",
+        "label": "近2年较大社会影响的安全责任事故数",
+        "placeholder": "请输入事故数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "起",
+        "helpText": "督导评估认定前2年内，应=0，汇总后对应E115"
+      },
+      {
+        "id": "safety_details",
+        "type": "textarea",
+        "label": "安全情况说明",
+        "placeholder": "如有事故请说明情况",
+        "width": "100%",
+        "required": false,
+        "rows": 3
+      }
+    ]
   }
 ]
-

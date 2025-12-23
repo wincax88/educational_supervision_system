@@ -362,6 +362,120 @@ export function updateIndicatorValue(
   return updatedIndicator;
 }
 
+// 等级评定结果
+export type GradingLevel = '创优' | '提高' | '巩固' | null;
+
+// 等级评定标准
+export interface GradingCriteria {
+  level: number;
+  name: GradingLevel;
+  fullName: string;
+  minQualified: number;
+  maxBasicallyQualified: number;
+  maxUnqualified: number;
+  description: string;
+}
+
+// 默认的学前双普等级评定标准
+export const DEFAULT_GRADING_CRITERIA: GradingCriteria[] = [
+  {
+    level: 3,
+    name: '创优',
+    fullName: '创优"学前双普"',
+    minQualified: 33,
+    maxBasicallyQualified: 3,
+    maxUnqualified: 0,
+    description: '33项合格、3项基本合格',
+  },
+  {
+    level: 2,
+    name: '提高',
+    fullName: '提高"学前双普"',
+    minQualified: 31,
+    maxBasicallyQualified: 5,
+    maxUnqualified: 0,
+    description: '31项合格、5项基本合格',
+  },
+  {
+    level: 1,
+    name: '巩固',
+    fullName: '巩固"学前双普"',
+    minQualified: 29,
+    maxBasicallyQualified: 7,
+    maxUnqualified: 0,
+    description: '29项合格、7项基本合格',
+  },
+];
+
+/**
+ * 根据统计结果判定等级
+ * @param stats 统计结果 (qualified, basicallyQualified, unqualified)
+ * @param criteria 等级评定标准（默认使用学前双普标准）
+ * @returns 等级评定结果
+ */
+export function determineGradingLevel(
+  stats: { qualified: number; basicallyQualified: number; unqualified: number },
+  criteria: GradingCriteria[] = DEFAULT_GRADING_CRITERIA
+): {
+  level: GradingLevel;
+  fullName: string;
+  description: string;
+  meetsRequirement: boolean;
+  failureReason?: string;
+} {
+  const { qualified, basicallyQualified, unqualified } = stats;
+
+  // 如果有不合格项，直接不通过
+  if (unqualified > 0) {
+    return {
+      level: null,
+      fullName: '未通过',
+      description: `存在${unqualified}项不合格`,
+      meetsRequirement: false,
+      failureReason: `存在${unqualified}项不合格，不能通过任何等级评定`,
+    };
+  }
+
+  // 从高到低检查是否满足等级要求（创优 > 提高 > 巩固）
+  const sortedCriteria = [...criteria].sort((a, b) => b.level - a.level);
+
+  for (const c of sortedCriteria) {
+    if (
+      qualified >= c.minQualified &&
+      basicallyQualified <= c.maxBasicallyQualified &&
+      unqualified <= c.maxUnqualified
+    ) {
+      return {
+        level: c.name,
+        fullName: c.fullName,
+        description: c.description,
+        meetsRequirement: true,
+      };
+    }
+  }
+
+  // 未达到任何等级
+  const lowestCriteria = sortedCriteria[sortedCriteria.length - 1];
+  const neededQualified = lowestCriteria.minQualified - qualified;
+  const excessBasicallyQualified = basicallyQualified - lowestCriteria.maxBasicallyQualified;
+
+  let failureReason = '未达到巩固等级要求';
+  if (neededQualified > 0) {
+    failureReason += `，还需${neededQualified}项达到合格`;
+  }
+  if (excessBasicallyQualified > 0) {
+    failureReason += `，基本合格项超出${excessBasicallyQualified}项`;
+  }
+
+  return {
+    level: null,
+    fullName: '未通过',
+    description: '未达到任何等级要求',
+    meetsRequirement: false,
+    failureReason,
+  };
+}
+
 /**
  * 计算指标完成情况统计
  * @param indicators 叶子节点指标列表
@@ -443,6 +557,11 @@ export class SelfAssessmentJudge {
    * 计算完成统计
    */
   calculateStats = calculateCompletionStats;
+
+  /**
+   * 判定等级
+   */
+  determineGrade = determineGradingLevel;
 }
 
 export default SelfAssessmentJudge;

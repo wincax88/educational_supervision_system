@@ -1474,5 +1474,43 @@
                 }
             ]
         }
-    ]
+    ],
+    "gradingCriteria": {
+        "name": "学前双普等级评定标准",
+        "description": "在36项二级指标中，根据合格与基本合格数量评定等级。任何等级均不允许有不合格项。",
+        "totalIndicators": 36,
+        "levels": [
+            {
+                "level": 1,
+                "name": "巩固",
+                "fullName": "巩固\"学前双普\"",
+                "minQualified": 29,
+                "maxBasicallyQualified": 7,
+                "maxUnqualified": 0,
+                "description": "29项合格、7项基本合格"
+            },
+            {
+                "level": 2,
+                "name": "提高",
+                "fullName": "提高\"学前双普\"",
+                "minQualified": 31,
+                "maxBasicallyQualified": 5,
+                "maxUnqualified": 0,
+                "description": "31项合格、5项基本合格"
+            },
+            {
+                "level": 3,
+                "name": "创优",
+                "fullName": "创优\"学前双普\"",
+                "minQualified": 33,
+                "maxBasicallyQualified": 3,
+                "maxUnqualified": 0,
+                "description": "33项合格、3项基本合格"
+            }
+        ],
+        "failureCondition": {
+            "description": "存在不合格项则不能通过任何等级评定",
+            "maxUnqualified": 0
+        }
+    }
 }

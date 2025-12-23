@@ -7,6 +7,8 @@ import {
   suggestConclusion,
   generateAssessmentDescription,
   calculateCompletionStats,
+  determineGradingLevel,
+  DEFAULT_GRADING_CRITERIA,
   type LeafIndicator,
   type DataIndicator,
 } from './selfAssessmentJudge';
@@ -240,5 +242,94 @@ describe('calculateCompletionStats', () => {
     expect(stats.unqualified).toBe(1);
     expect(stats.pending).toBe(1);
     expect(stats.qualifiedRate).toBe(60); // (2+1)/5 = 60%
+  });
+});
+
+describe('determineGradingLevel', () => {
+  test('创优等级 - 33项合格、3项基本合格', () => {
+    const result = determineGradingLevel({
+      qualified: 33,
+      basicallyQualified: 3,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('创优');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('创优等级 - 超过33项合格', () => {
+    const result = determineGradingLevel({
+      qualified: 35,
+      basicallyQualified: 1,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('创优');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('提高等级 - 31项合格、5项基本合格', () => {
+    const result = determineGradingLevel({
+      qualified: 31,
+      basicallyQualified: 5,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('提高');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('提高等级 - 32项合格、4项基本合格', () => {
+    const result = determineGradingLevel({
+      qualified: 32,
+      basicallyQualified: 4,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('提高');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('巩固等级 - 29项合格、7项基本合格', () => {
+    const result = determineGradingLevel({
+      qualified: 29,
+      basicallyQualified: 7,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('巩固');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('巩固等级 - 30项合格、6项基本合格', () => {
+    const result = determineGradingLevel({
+      qualified: 30,
+      basicallyQualified: 6,
+      unqualified: 0,
+    });
+    expect(result.level).toBe('巩固');
+    expect(result.meetsRequirement).toBe(true);
+  });
+
+  test('未通过 - 存在不合格项', () => {
+    const result = determineGradingLevel({
+      qualified: 33,
+      basicallyQualified: 2,
+      unqualified: 1,
+    });
+    expect(result.level).toBeNull();
+    expect(result.meetsRequirement).toBe(false);
+    expect(result.failureReason).toContain('不合格');
+  });
+
+  test('未通过 - 未达到巩固等级', () => {
+    const result = determineGradingLevel({
+      qualified: 28,
+      basicallyQualified: 8,
+      unqualified: 0,
+    });
+    expect(result.level).toBeNull();
+    expect(result.meetsRequirement).toBe(false);
+    expect(result.failureReason).toContain('未达到巩固等级');
+  });
+
+  test('默认使用学前双普标准', () => {
+    expect(DEFAULT_GRADING_CRITERIA).toHaveLength(3);
+    expect(DEFAULT_GRADING_CRITERIA.map(c => c.name)).toEqual(['创优', '提高', '巩固']);
   });
 });

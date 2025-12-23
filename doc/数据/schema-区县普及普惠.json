@@ -1,459 +1,40 @@
 [
   {
-    "id": "group_basic_info",
+    "id": "group_population",
     "type": "group",
-    "label": "一、基本情况",
+    "label": "一、人口与入园情况",
+    "description": "普及普惠水平相关基础数据",
     "width": "100%",
     "required": true,
     "children": [
       {
-        "id": "divider_population",
-        "type": "divider",
-        "label": "人口情况",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "age3_5_population",
+        "id": "age3_6_population",
         "type": "number",
-        "label": "常住人口3-5岁儿童数（人）",
-        "placeholder": "请输入常住人口3-5岁儿童总数",
+        "label": "户籍所在地3-6岁人口数",
+        "placeholder": "请输入户籍所在地3-6岁人口数",
         "width": "33%",
         "required": true,
         "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "urban_street_count",
-        "type": "number",
-        "label": "城市地区街道数（个）",
-        "placeholder": "请输入城市地区街道数",
-        "width": "33%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "个"
-      },
-      {
-        "id": "rural_township_count",
-        "type": "number",
-        "label": "农村地区乡镇数（个）",
-        "placeholder": "请输入农村地区乡镇数",
-        "width": "34%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "个"
-      },
-      {
-        "id": "divider_kindergarten_count",
-        "type": "divider",
-        "label": "幼儿园数统计",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "kindergarten_total",
-        "type": "number",
-        "label": "幼儿园总数（所）",
-        "placeholder": "请输入幼儿园总数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "education_dept_kindergarten_count",
-        "type": "number",
-        "label": "教育部门办园数（所）",
-        "placeholder": "请输入教育部门办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "other_public_kindergarten_count",
-        "type": "number",
-        "label": "其他部门办园数（所）",
-        "placeholder": "请输入其他部门办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "inclusive_private_kindergarten_count",
-        "type": "number",
-        "label": "普惠性民办园数（所）",
-        "placeholder": "请输入普惠性民办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "non_inclusive_private_kindergarten_count",
-        "type": "number",
-        "label": "非普惠性民办园数（所）",
-        "placeholder": "请输入非普惠性民办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "divider_student_count",
-        "type": "divider",
-        "label": "在园儿童数统计",
-        "width": "100%",
-        "required": false
+        "unit": "人",
+        "elementCode": "E001",
+        "helpText": "用于计算学前三年毛入园率的分母"
       },
       {
         "id": "student_total",
         "type": "number",
-        "label": "在园儿童总数（人）",
-        "placeholder": "请输入在园儿童总数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "public_kindergarten_student_count",
-        "type": "number",
-        "label": "公办园在园儿童数（人）",
-        "placeholder": "请输入公办园在园儿童数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "inclusive_private_student_count",
-        "type": "number",
-        "label": "普惠性民办园在园儿童数（人）",
-        "placeholder": "请输入普惠性民办园在园儿童数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "non_inclusive_private_student_count",
-        "type": "number",
-        "label": "非普惠性民办园在园儿童数（人）",
-        "placeholder": "请输入非普惠性民办园在园儿童数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "divider_staff_count",
-        "type": "divider",
-        "label": "教职工数统计",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "staff_total",
-        "type": "number",
-        "label": "教职工总数（人）",
-        "placeholder": "请输入教职工总数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "principal_count",
-        "type": "number",
-        "label": "园长人数（人）",
-        "placeholder": "请输入园长总人数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "full_time_teacher_count",
-        "type": "number",
-        "label": "专任教师人数（人）",
-        "placeholder": "请输入专任教师总人数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "nursery_teacher_count",
-        "type": "number",
-        "label": "保育员人数（人）",
-        "placeholder": "请输入保育员总人数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "other_staff_count",
-        "type": "number",
-        "label": "其他岗位人数（人）",
-        "placeholder": "请输入其他岗位总人数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "人"
-      },
-      {
-        "id": "divider_tuition_fee",
-        "type": "divider",
-        "label": "保育教育费",
-        "width": "100%",
-        "required": false
-      },
-      {
-        "id": "public_kindergarten_tuition_fee",
-        "type": "number",
-        "label": "公办园保育教育费（元/月/生）",
-        "placeholder": "请输入公办园保育教育费标准上限",
+        "label": "实际在园人数",
+        "placeholder": "请输入实际在园人数",
         "width": "33%",
         "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
-      },
-      {
-        "id": "inclusive_private_tuition_fee_type_a",
-        "type": "number",
-        "label": "普惠性民办园A类保育教育费（元/月/生）",
-        "placeholder": "请输入A类保育教育费标准上限",
-        "width": "33%",
-        "required": false,
-        "decimalPlaces": "2位小数",
-        "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
-      },
-      {
-        "id": "inclusive_private_tuition_fee_type_b",
-        "type": "number",
-        "label": "普惠性民办园B类保育教育费（元/月/生）",
-        "placeholder": "请输入B类保育教育费标准上限",
-        "width": "34%",
-        "required": false,
-        "decimalPlaces": "2位小数",
-        "unit": "元/月/生",
-        "helpText": "仅填报收费标准上限"
-      }
-    ]
-  },
-  {
-    "id": "group_residential_supporting",
-    "type": "group",
-    "label": "二、小区配套幼儿园情况",
-    "width": "100%",
-    "required": true,
-    "children": [
-      {
-        "id": "residential_supporting_should_count",
-        "type": "number",
-        "label": "全区应配建配套幼儿园小区数（个）",
-        "placeholder": "请输入应配建配套幼儿园小区总数",
-        "width": "25%",
-        "required": true,
         "decimalPlaces": "整数",
-        "unit": "个"
+        "unit": "人",
+        "elementCode": "E002",
+        "helpText": "当地在册幼儿园3-6岁在园幼儿数"
       },
       {
-        "id": "residential_supporting_built_count",
+        "id": "enrollment_rate",
         "type": "number",
-        "label": "已配建配套幼儿园小区数（个）",
-        "placeholder": "请输入已配建配套幼儿园小区数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "个"
-      },
-      {
-        "id": "residential_supporting_public_count",
-        "type": "number",
-        "label": "举办成公办园数（个）",
-        "placeholder": "请输入举办成公办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "个"
-      },
-      {
-        "id": "residential_supporting_inclusive_private_count",
-        "type": "number",
-        "label": "举办成普惠性民办园数（个）",
-        "placeholder": "请输入举办成普惠性民办园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "个"
-      },
-      {
-        "id": "residential_supporting_kindergarten_list",
-        "type": "dynamicList",
-        "label": "小区配套幼儿园基本情况",
-        "width": "100%",
-        "required": true,
-        "minRows": 1,
-        "maxRows": 500,
-        "headers": ["序号", "小区名称", "小区地址", "配套幼儿园名称", "开园时间（年）", "办园性质", "编制数（个）", "在编教职工数（人）", "建筑面积（平方米）", "班数（个）", "在园儿童数（人）", "保育教育费（元/月/生）", "园长", "联系电话"],
-        "fields": [
-          {
-            "id": "residential_index",
-            "type": "number",
-            "label": "序号",
-            "width": "5%",
-            "required": true,
-            "decimalPlaces": "整数"
-          },
-          {
-            "id": "residential_area_name",
-            "type": "text",
-            "label": "小区名称",
-            "width": "10%",
-            "required": true
-          },
-          {
-            "id": "residential_area_address",
-            "type": "text",
-            "label": "小区地址",
-            "width": "10%",
-            "required": true
-          },
-          {
-            "id": "residential_kindergarten_name",
-            "type": "text",
-            "label": "配套幼儿园名称",
-            "width": "10%",
-            "required": true
-          },
-          {
-            "id": "residential_founding_year",
-            "type": "date",
-            "label": "开园时间（年）",
-            "width": "8%",
-            "required": true
-          },
-          {
-            "id": "residential_kindergarten_type",
-            "type": "select",
-            "label": "办园性质",
-            "width": "8%",
-            "required": true,
-            "options": [
-              { "label": "公办园", "value": "1" },
-              { "label": "普惠性民办园", "value": "2" },
-              { "label": "非普惠性民办园", "value": "3" }
-            ]
-          },
-          {
-            "id": "residential_staff_quota",
-            "type": "number",
-            "label": "编制数",
-            "width": "6%",
-            "required": false,
-            "decimalPlaces": "整数",
-            "unit": "个"
-          },
-          {
-            "id": "residential_staff_in_quota_count",
-            "type": "number",
-            "label": "在编教职工数",
-            "width": "7%",
-            "required": false,
-            "decimalPlaces": "整数",
-            "unit": "人"
-          },
-          {
-            "id": "residential_building_area",
-            "type": "number",
-            "label": "建筑面积",
-            "width": "8%",
-            "required": true,
-            "decimalPlaces": "2位小数",
-            "unit": "平方米"
-          },
-          {
-            "id": "residential_class_count",
-            "type": "number",
-            "label": "班数",
-            "width": "5%",
-            "required": true,
-            "decimalPlaces": "整数",
-            "unit": "个"
-          },
-          {
-            "id": "residential_student_count",
-            "type": "number",
-            "label": "在园儿童数",
-            "width": "7%",
-            "required": true,
-            "decimalPlaces": "整数",
-            "unit": "人"
-          },
-          {
-            "id": "residential_tuition_fee",
-            "type": "number",
-            "label": "保育教育费",
-            "width": "8%",
-            "required": true,
-            "decimalPlaces": "2位小数",
-            "unit": "元/月/生"
-          },
-          {
-            "id": "residential_principal_name",
-            "type": "text",
-            "label": "园长",
-            "width": "6%",
-            "required": false
-          },
-          {
-            "id": "residential_contact_phone",
-            "type": "text",
-            "label": "联系电话",
-            "width": "8%",
-            "required": false
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "group_finance",
-    "type": "group",
-    "label": "三、财政投入",
-    "width": "100%",
-    "required": true,
-    "children": [
-      {
-        "id": "preschool_education_funding",
-        "type": "number",
-        "label": "财政性学前教育经费（万元）",
-        "placeholder": "请输入财政性学前教育经费总额",
-        "width": "33%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "万元"
-      },
-      {
-        "id": "education_funding_total",
-        "type": "number",
-        "label": "同级财政性教育经费总额（万元）",
-        "placeholder": "请输入同级财政性教育经费总额",
-        "width": "33%",
-        "required": true,
-        "decimalPlaces": "2位小数",
-        "unit": "万元"
-      },
-      {
-        "id": "preschool_funding_ratio",
-        "type": "number",
-        "label": "财政性学前教育经费占比（%）",
+        "label": "学前三年毛入园率",
         "placeholder": "系统自动计算",
         "width": "34%",
         "required": true,
@@ -461,226 +42,1183 @@
         "computed": true,
         "decimalPlaces": "2位小数",
         "unit": "%",
-        "helpText": "财政性学前教育经费 ÷ 同级财政性教育经费总额 × 100，应≥5%"
+        "elementCode": "D001",
+        "formula": "student_total / age3_6_population * 100",
+        "threshold": ">= 85%",
+        "helpText": "（实际在园人数 ÷ 户籍所在地3-6岁人口数）× 100，应≥85%"
+      },
+      {
+        "id": "divider_coverage",
+        "type": "divider",
+        "label": "普惠性覆盖情况",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "public_kindergarten_student_count",
+        "type": "number",
+        "label": "公办园在园幼儿数",
+        "placeholder": "请输入公办园在园幼儿数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "elementCode": "E003",
+        "helpText": "当地公办园(含公办教学点)3-6岁在园幼儿数"
+      },
+      {
+        "id": "inclusive_private_student_count",
+        "type": "number",
+        "label": "普惠性民办园在园幼儿数",
+        "placeholder": "请输入普惠性民办园在园幼儿数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "elementCode": "E004",
+        "helpText": "普惠性民办园3-6岁在园幼儿数"
+      },
+      {
+        "id": "inclusive_coverage_rate",
+        "type": "number",
+        "label": "普惠性幼儿园覆盖率",
+        "placeholder": "系统自动计算",
+        "width": "25%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "elementCode": "D002",
+        "formula": "(public_kindergarten_student_count + inclusive_private_student_count) / student_total * 100",
+        "threshold": ">= 80%",
+        "helpText": "（公办园+普惠性民办园在园幼儿数）÷ 在园幼儿总数 × 100，应≥80%"
+      },
+      {
+        "id": "public_kindergarten_ratio",
+        "type": "number",
+        "label": "公办园在园幼儿占比",
+        "placeholder": "系统自动计算",
+        "width": "25%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "elementCode": "D003",
+        "formula": "public_kindergarten_student_count / student_total * 100",
+        "threshold": ">= 50%",
+        "helpText": "公办园在园幼儿数 ÷ 在园幼儿总数 × 100，应≥50%"
       }
     ]
   },
   {
-    "id": "group_indicators",
+    "id": "group_kindergarten_stats",
     "type": "group",
-    "label": "四、普及普惠指标",
+    "label": "二、幼儿园与教职工情况",
+    "description": "保教质量相关基础数据",
     "width": "100%",
     "required": true,
     "children": [
       {
-        "id": "divider_coverage",
+        "id": "kindergarten_total",
+        "type": "number",
+        "label": "幼儿园总数",
+        "placeholder": "请输入幼儿园总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所",
+        "elementCode": "E005"
+      },
+      {
+        "id": "staff_qualified_kindergarten_count",
+        "type": "number",
+        "label": "教职工配备达标幼儿园数",
+        "placeholder": "请输入教职工配备达标幼儿园数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所",
+        "elementCode": "E010",
+        "helpText": "按《幼儿园教职工配备标准(暂行)》配足配齐各类教职工的幼儿园数"
+      },
+      {
+        "id": "staff_qualified_rate",
+        "type": "number",
+        "label": "教职工配备达标率",
+        "placeholder": "系统自动计算",
+        "width": "25%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "elementCode": "D006",
+        "formula": "staff_qualified_kindergarten_count / kindergarten_total * 100",
+        "threshold": ">= 80%",
+        "thresholdType": "tiered",
+        "helpText": "100%为合格，80%以上为基本合格"
+      },
+      {
+        "id": "fulltime_teacher_count",
+        "type": "number",
+        "label": "专任教师总数",
+        "placeholder": "请输入专任教师总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "人",
+        "elementCode": "E011",
+        "helpText": "县域内幼儿园专任教师总数"
+      },
+      {
+        "id": "divider_class",
+        "type": "divider",
+        "label": "班级情况",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "class_total",
+        "type": "number",
+        "label": "班级总数",
+        "placeholder": "请输入班级总数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个",
+        "elementCode": "E008",
+        "helpText": "县域内幼儿园班级总数"
+      },
+      {
+        "id": "class_size_qualified_count",
+        "type": "number",
+        "label": "班额符合规定的班级数",
+        "placeholder": "请输入班额符合规定的班级数",
+        "width": "25%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "个",
+        "elementCode": "E009",
+        "helpText": "符合《幼儿园工作规程》班额规定的班级数"
+      },
+      {
+        "id": "class_size_qualified_rate",
+        "type": "number",
+        "label": "班额符合规定比例",
+        "placeholder": "系统自动计算",
+        "width": "25%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "elementCode": "D005",
+        "formula": "class_size_qualified_count / class_total * 100",
+        "threshold": ">= 85%",
+        "helpText": "（班额符合规定的班级数 ÷ 班级总数）× 100"
+      },
+      {
+        "id": "teacher_student_ratio",
+        "type": "text",
+        "label": "师幼比",
+        "placeholder": "如1:12",
+        "width": "25%",
+        "required": true,
+        "elementCode": "E204",
+        "threshold": "<= 1:15",
+        "helpText": "县域内幼儿园专任教师总数与在园幼儿总数之比"
+      }
+    ]
+  },
+  {
+    "id": "group_residential",
+    "type": "group",
+    "label": "三、小区配套幼儿园情况",
+    "description": "小区配套园治理相关数据",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "residential_kindergarten_total",
+        "type": "number",
+        "label": "小区配套幼儿园总数",
+        "placeholder": "请输入小区配套幼儿园总数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所",
+        "elementCode": "E006",
+        "helpText": "现有小区配套幼儿园总数"
+      },
+      {
+        "id": "residential_kindergarten_inclusive_count",
+        "type": "number",
+        "label": "办成公办园或普惠性民办园数",
+        "placeholder": "请输入办成公办或普惠园数",
+        "width": "33%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "所",
+        "elementCode": "E007",
+        "helpText": "办成公办园或普惠性民办园的小区配套幼儿园数"
+      },
+      {
+        "id": "residential_inclusive_rate",
+        "type": "number",
+        "label": "小区配套园公办或普惠比例",
+        "placeholder": "系统自动计算",
+        "width": "34%",
+        "required": true,
+        "readonly": true,
+        "computed": true,
+        "decimalPlaces": "2位小数",
+        "unit": "%",
+        "elementCode": "D004",
+        "formula": "residential_kindergarten_inclusive_count / residential_kindergarten_total * 100",
+        "threshold": "= 100%",
+        "helpText": "应达到100%"
+      }
+    ]
+  },
+  {
+    "id": "group_safety",
+    "type": "group",
+    "label": "四、安全与师德情况",
+    "description": "一票否决项",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "safety_accident_count_2years",
+        "type": "number",
+        "label": "近2年较大社会影响的安全责任事故数",
+        "placeholder": "请输入事故数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "起",
+        "elementCode": "E115",
+        "threshold": "= 0",
+        "helpText": "督导评估认定前2年内，应=0"
+      },
+      {
+        "id": "ethics_incident_count_2years",
+        "type": "number",
+        "label": "近2年严重师德师风事件数",
+        "placeholder": "请输入事件数",
+        "width": "50%",
+        "required": true,
+        "decimalPlaces": "整数",
+        "unit": "起",
+        "elementCode": "E208",
+        "threshold": "= 0",
+        "helpText": "督导评估认定前2年内，应=0"
+      }
+    ]
+  },
+  {
+    "id": "group_self_assessment_gov",
+    "type": "group",
+    "label": "五、政府保障情况自评",
+    "description": "9项一级指标、22项二级指标",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_party",
+        "type": "divider",
+        "label": "2.1 党的领导",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "party_organization_coverage",
+        "type": "select",
+        "label": "2.1.1 幼儿园党组织覆盖情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E101",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "有3名以上正式党员的幼儿园已单独建立党组织；党员人数不足3人的建立联合党组织或挂靠党组织；没有党员的配备党员教师或党建指导员。"
+      },
+      {
+        "id": "divider_planning",
+        "type": "divider",
+        "label": "2.2 发展规划",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "layout_planning_status",
+        "type": "select",
+        "label": "2.2.1 幼儿园布局规划制定情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E102",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "制定且统筹规划、科学合理为合格。"
+      },
+      {
+        "id": "inclusive_planning_status",
+        "type": "select",
+        "label": "2.2.2 普惠性幼儿园纳入统一规划情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E103",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "把普惠性幼儿园建设纳入城乡公共管理和公共服务设施统一规划。"
+      },
+      {
+        "id": "divider_network",
+        "type": "divider",
+        "label": "2.3 公共服务网络",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "rural_service_network_status",
+        "type": "select",
+        "label": "2.3.1 农村地区学前教育公共服务网络建设情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E104",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "农村地区每个乡镇原则上至少有一所公办中心园，大村独立建园或设园，小村联合办园。"
+      },
+      {
+        "id": "divider_residential_mgmt",
+        "type": "divider",
+        "label": "2.4 小区配套园管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "residential_kindergarten_management_status",
+        "type": "select",
+        "label": "2.4.1 小区配套幼儿园建设管理办法落实情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E105",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "小区配套幼儿园与首期建设的居民住宅区同步规划、同步设计、同步建设、同步验收、同步交付使用。"
+      },
+      {
+        "id": "divider_finance",
+        "type": "divider",
+        "label": "2.5 财政投入",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "public_funding_standard_status",
+        "type": "select",
+        "label": "2.5.1 公办园生均财政拨款标准落实情况",
+        "width": "33%",
+        "required": true,
+        "elementCode": "E106",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "做到足额落实为合格。"
+      },
+      {
+        "id": "enterprise_kindergarten_subsidy_status",
+        "type": "select",
+        "label": "2.5.2 企事业单位等办幼儿园财政补助政策落实情况",
+        "width": "33%",
+        "required": true,
+        "elementCode": "E107",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "建立幼儿园公用经费财政补助制度并年生均公用经费标准≥省定500元/生为合格；建立制度为基本合格。"
+      },
+      {
+        "id": "inclusive_private_support_status",
+        "type": "select",
+        "label": "2.5.3 普惠性民办园认定标准和扶持政策落实情况",
+        "width": "34%",
+        "required": true,
+        "elementCode": "E108",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "建立公用经费财政补助制度且≥省定500元/生为合格；建立扶持制度和发展长效机制为基本合格。"
+      },
+      {
+        "id": "divider_fee",
+        "type": "divider",
+        "label": "2.6 收费管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "fee_standard_status",
+        "type": "select",
+        "label": "2.6.1 公办园和普惠性民办园收费标准落实情况",
+        "width": "33%",
+        "required": true,
+        "elementCode": "E109",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "落实公办幼儿园收费标准和普惠性民办园收费办法。"
+      },
+      {
+        "id": "fee_adjustment_status",
+        "type": "select",
+        "label": "2.6.2 收费标准动态调整情况",
+        "width": "33%",
+        "required": true,
+        "elementCode": "E110",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "幼儿园收费标准根据社会经济发展水平动态调整。"
+      },
+      {
+        "id": "fee_compliance_status",
+        "type": "select",
+        "label": "2.6.3 幼儿园收费规范情况",
+        "width": "34%",
+        "required": true,
+        "elementCode": "E111",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "各类幼儿园无不合理收费，无跨学期预收费现象，无有效投诉。"
+      },
+      {
+        "id": "divider_salary",
+        "type": "divider",
+        "label": "2.7 教师待遇",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "public_teacher_salary_status",
+        "type": "select",
+        "label": "2.7.1 公办园教师工资待遇保障情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E112",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "落实公办园教师工资待遇保障政策,制定同工同酬政策为合格;差距逐年缩小为基本合格。"
+      },
+      {
+        "id": "private_teacher_salary_status",
+        "type": "select",
+        "label": "2.7.2 民办园教师工资收入保障情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E113",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "合理确定民办园专任教师工资收入为合格;逐步落实保障政策为基本合格。"
+      },
+      {
+        "id": "divider_safety_mgmt",
+        "type": "divider",
+        "label": "2.8 安全管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "safety_supervision_status",
+        "type": "select",
+        "label": "2.8.1 各部门安全监管责任落实情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E114",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "落实教育、公安、生态环境、交通、住房城乡建设、卫生健康、市场监管、应急等部门对幼儿园安全监管责任。"
+      },
+      {
+        "id": "divider_supervision",
+        "type": "divider",
+        "label": "2.9 监管制度",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "private_approval_status",
+        "type": "select",
+        "label": "2.9.1 民办幼儿园审批和年检制度执行情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E116",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "对民办幼儿园审批严格执行「先证后照」制度，完善年检制度。"
+      },
+      {
+        "id": "info_disclosure_status",
+        "type": "select",
+        "label": "2.9.2 幼儿园基本信息备案及公示制度落实情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E117",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "落实幼儿园基本信息备案及公示制度。"
+      },
+      {
+        "id": "supervision_system_status",
+        "type": "select",
+        "label": "2.9.3 办园行为督导评估制度建立情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E118",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "建立3—5年一轮覆盖所有幼儿园的办园行为督导评估制度。"
+      },
+      {
+        "id": "supervisor_assignment_status",
+        "type": "select",
+        "label": "2.9.4 责任督学挂牌督导制度落实情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E119",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "建立幼儿园责任督学挂牌督导制度;县域内所有经审批注册的幼儿园均实现责任督学挂牌督导。"
+      },
+      {
+        "id": "unlicensed_remediation_status",
+        "type": "select",
+        "label": "2.9.5 无证园治理完成情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E120",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "已开展无证园排查、分类和治理工作,县域内全部消除无证园。"
+      },
+      {
+        "id": "private_profit_control_status",
+        "type": "select",
+        "label": "2.9.6 民办园上市和过度逐利行为情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E121",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "民办园没有上市、过度逐利等行为。"
+      }
+    ]
+  },
+  {
+    "id": "group_self_assessment_quality",
+    "type": "group",
+    "label": "六、保教质量保障情况自评",
+    "description": "5项一级指标、11项二级指标",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_facility",
+        "type": "divider",
+        "label": "3.1 办园条件",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "facility_standard_status",
+        "type": "select",
+        "label": "3.1.1 园舍条件和配备达标情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E201",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "符合国家、当地的建设标准、配备要求为合格;县域内5%以内幼儿园未达到规定标准要求为基本合格。"
+      },
+      {
+        "id": "divider_class_size",
+        "type": "divider",
+        "label": "3.2 班额达标",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "post2017_standard_status",
+        "type": "select",
+        "label": "3.2.1 2017年后规划设计幼儿园达标情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E202",
+        "thresholdType": "tiered",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "基本合格", "value": "基本合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "2017年后规划设计的幼儿园符合《幼儿园建设标准》为合格;县域内3%以内未达标为基本合格。"
+      },
+      {
+        "id": "divider_staffing",
+        "type": "divider",
+        "label": "3.3 教师配备",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "public_staffing_status",
+        "type": "select",
+        "label": "3.3.3 公办园编制补充情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E203",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "公办园没有「有编不补」的情况。"
+      },
+      {
+        "id": "divider_teacher_mgmt",
+        "type": "divider",
+        "label": "3.4 教师管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teacher_certification_status",
+        "type": "select",
+        "label": "3.4.1 教师持证上岗情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E205",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "县域内幼儿园园长、专任教师全员持证上岗。"
+      },
+      {
+        "id": "divider_education",
+        "type": "divider",
+        "label": "3.5 科学保教",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "training_system_status",
+        "type": "select",
+        "label": "3.5.1 园长教师培训轮训制度落实情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E206",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "落实幼儿园(含民办)园长、教师定期培训和全员轮训制度。"
+      },
+      {
+        "id": "ethics_system_status",
+        "type": "select",
+        "label": "3.5.2 师德师风建设机制情况",
+        "width": "50%",
+        "required": true,
+        "elementCode": "E207",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "加强师德师风建设，幼儿园普遍建立师德教育、考评、奖惩机制。"
+      },
+      {
+        "id": "scientific_education_status",
+        "type": "select",
+        "label": "3.5.4 科学保教和防止小学化情况",
+        "width": "100%",
+        "required": true,
+        "elementCode": "E209",
+        "thresholdType": "single",
+        "options": [
+          { "label": "合格", "value": "合格" },
+          { "label": "不合格", "value": "不合格" }
+        ],
+        "helpText": "按规定创设活动区域、提供玩教具、无「小学化」现象等。"
+      }
+    ]
+  },
+  {
+    "id": "group_supporting_materials",
+    "type": "group",
+    "label": "七、佐证材料",
+    "description": "上传相关证明文件",
+    "width": "100%",
+    "required": true,
+    "children": [
+      {
+        "id": "divider_material_coverage",
         "type": "divider",
         "label": "普及普惠水平",
         "width": "100%",
         "required": false
       },
       {
-        "id": "enrollment_rate",
-        "type": "number",
-        "label": "学前三年毛入园率（%）",
-        "placeholder": "系统自动计算",
-        "width": "33%",
+        "id": "inclusive_kindergarten_list_url",
+        "type": "upload",
+        "label": "公办园和普惠性民办园名单公示网址",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
         "required": true,
-        "readonly": true,
-        "computed": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%",
-        "helpText": "（在园幼儿总数 ÷ 3-5岁适龄儿童总数）× 100，应≥85%"
+        "elementCode": "M001",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "提供公办园和普惠性民办园名单公示网址。"
       },
       {
-        "id": "inclusive_coverage_rate",
-        "type": "number",
-        "label": "普惠性幼儿园覆盖率（%）",
-        "placeholder": "系统自动计算",
-        "width": "33%",
-        "required": true,
-        "readonly": true,
-        "computed": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%",
-        "helpText": "（公办园+普惠性民办园在园幼儿数）÷ 在园幼儿总数 × 100，应≥80%"
-      },
-      {
-        "id": "public_kindergarten_ratio",
-        "type": "number",
-        "label": "公办园在园幼儿占比（%）",
-        "placeholder": "系统自动计算",
-        "width": "34%",
-        "required": true,
-        "readonly": true,
-        "computed": true,
-        "decimalPlaces": "2位小数",
-        "unit": "%",
-        "helpText": "公办园在园幼儿数 ÷ 在园幼儿总数 × 100，应≥50%"
-      },
-      {
-        "id": "divider_quality",
+        "id": "divider_material_party",
         "type": "divider",
-        "label": "保教质量保障",
+        "label": "党的领导",
         "width": "100%",
         "required": false
       },
       {
-        "id": "qualified_kindergarten_count",
-        "type": "number",
-        "label": "办园条件合格幼儿园数（所）",
-        "placeholder": "请输入办园条件合格幼儿园数",
-        "width": "25%",
+        "id": "party_building_implementation",
+        "type": "upload",
+        "label": "党的建设工作实施意见落实措施",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
         "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
+        "elementCode": "M101",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "提供《关于加强中小学校(幼儿园)党的建设工作的实施意见》的具体落实措施文件。"
       },
       {
-        "id": "class_size_qualified_kindergarten_count",
-        "type": "number",
-        "label": "班额达标幼儿园数（所）",
-        "placeholder": "请输入班额达标幼儿园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "staff_qualified_kindergarten_count",
-        "type": "number",
-        "label": "教职工配备达标幼儿园数（所）",
-        "placeholder": "请输入教职工配备达标幼儿园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      },
-      {
-        "id": "fee_qualified_kindergarten_count",
-        "type": "number",
-        "label": "收费达标幼儿园数（所）",
-        "placeholder": "请输入收费达标幼儿园数",
-        "width": "25%",
-        "required": true,
-        "decimalPlaces": "整数",
-        "unit": "所"
-      }
-    ]
-  },
-  {
-    "id": "group_other",
-    "type": "group",
-    "label": "五、其他信息",
-    "width": "100%",
-    "required": false,
-    "children": [
-      {
-        "id": "divider_safety",
+        "id": "divider_material_planning",
         "type": "divider",
-        "label": "安全情况",
+        "label": "发展规划",
         "width": "100%",
         "required": false
       },
       {
-        "id": "safety_accident_count_3years",
-        "type": "number",
-        "label": "近三年重大安全责任事故数（起）",
-        "placeholder": "请输入近三年重大安全责任事故数",
-        "width": "33%",
+        "id": "preschool_layout_planning",
+        "type": "upload",
+        "label": "学前教育专项布局规划",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
         "required": true,
-        "decimalPlaces": "整数",
-        "unit": "起",
-        "helpText": "应=0"
+        "elementCode": "M102",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "divider_materials",
+        "id": "regional_detailed_planning",
+        "type": "upload",
+        "label": "区域控制性详细规划",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M103",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "包含普惠性幼儿园建设相关内容"
+      },
+      {
+        "id": "divider_material_network",
         "type": "divider",
-        "label": "佐证材料",
+        "label": "公共服务网络",
         "width": "100%",
         "required": false
       },
       {
-        "id": "party_leadership_material",
+        "id": "township_kindergarten_list",
         "type": "upload",
-        "label": "党的领导坚强有力佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
+        "label": "乡镇以及对应的乡镇中心幼儿园名单",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M104",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "development_plan_material",
-        "type": "upload",
-        "label": "发展规划科学合理佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
+        "id": "divider_material_residential",
+        "type": "divider",
+        "label": "小区配套园管理",
+        "width": "100%",
+        "required": false
       },
       {
-        "id": "public_service_network_material",
+        "id": "residential_management_summary",
         "type": "upload",
-        "label": "学前教育公共服务网络基本完善佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
+        "label": "落实小区配套幼儿园建设管理办法及政策的工作总结",
+        "placeholder": "上传PDF文件",
         "width": "50%",
-        "required": true
+        "required": true,
+        "elementCode": "M105",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "safety_risk_control_material",
+        "id": "residential_transfer_agreement",
         "type": "upload",
-        "label": "安全风险防控机制健全佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
+        "label": "小区配套幼儿园移交协议",
+        "placeholder": "上传PDF文件",
         "width": "50%",
-        "required": true
+        "required": true,
+        "elementCode": "M106",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "supervision_system_material",
+        "id": "residential_construction_list",
         "type": "upload",
-        "label": "监管制度比较完善佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
+        "label": "小区配套幼儿园规划建设清单",
+        "placeholder": "上传PDF文件",
         "width": "50%",
-        "required": true
+        "required": true,
+        "elementCode": "M107",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "facility_improvement_material",
+        "id": "residential_handover_form",
         "type": "upload",
-        "label": "办园条件改善佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
+        "label": "小区配套幼儿园交接单",
+        "placeholder": "上传PDF文件",
         "width": "50%",
-        "required": true
+        "required": true,
+        "elementCode": "M108",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       },
       {
-        "id": "teacher_management_material",
+        "id": "residential_overview_table",
         "type": "upload",
-        "label": "教师管理制度严格佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
+        "label": "小区配套幼儿园基本情况一览表",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M109",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "附件4"
       },
       {
-        "id": "scientific_education_material",
-        "type": "upload",
-        "label": "落实科学保教要求佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
-        "width": "50%",
-        "required": true
+        "id": "divider_material_finance",
+        "type": "divider",
+        "label": "财政投入",
+        "width": "100%",
+        "required": false
       },
       {
-        "id": "no_primary_schooling_material",
+        "id": "inclusive_private_policy_doc",
         "type": "upload",
-        "label": "无\"小学化\"现象佐证材料",
-        "placeholder": "上传佐证材料",
-        "helpText": "5个文件，单个文件大小不超过20M",
+        "label": "关于普惠性民办园认定、扶持及管理的相关文件",
+        "placeholder": "上传PDF文件",
         "width": "50%",
-        "required": true
+        "required": true,
+        "elementCode": "M110",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "inclusive_private_funding_proof",
+        "type": "upload",
+        "label": "普惠性民办园生均公用经费财政拨款拨付情况证明",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M111",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "500元/生"
+      },
+      {
+        "id": "inclusive_private_subsidy_proof",
+        "type": "upload",
+        "label": "普惠性民办园学前教育奖补资金拨付情况证明",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M112",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "divider_material_fee",
+        "type": "divider",
+        "label": "收费管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "fee_standard_doc",
+        "type": "upload",
+        "label": "有关公办园和普惠性民办园收费标准文件",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M113",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "divider_material_salary",
+        "type": "divider",
+        "label": "教师待遇",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "teacher_salary_policy_doc",
+        "type": "upload",
+        "label": "关于公办园幼儿教师同工同酬、保障工资待遇的相关文件",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M114",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "divider_material_safety",
+        "type": "divider",
+        "label": "安全管理",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "safety_coordination_doc",
+        "type": "upload",
+        "label": "有关幼儿园安全监管责任联动机制的文件",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M115",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "preschool_coordination_doc",
+        "type": "upload",
+        "label": "有关建立学前教育联席会议制度的文件",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M116",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "divider_material_supervision",
+        "type": "divider",
+        "label": "监管制度",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "info_disclosure_doc",
+        "type": "upload",
+        "label": "幼儿园基本信息备案及公示情况",
+        "placeholder": "上传PDF文件或提供网址",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M117",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "supervision_plan_doc",
+        "type": "upload",
+        "label": "幼儿园办园行为督导评估工作方案",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M118",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "supervision_report_doc",
+        "type": "upload",
+        "label": "上一年度督评报告",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M119",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "supervisor_assignment_plan",
+        "type": "upload",
+        "label": "幼儿园责任督学挂牌督导工作方案",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M120",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "supervisor_list_doc",
+        "type": "upload",
+        "label": "幼儿园责任区及责任督学名单",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M121",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "unlicensed_remediation_plan",
+        "type": "upload",
+        "label": "有关无证园取缔和治理工作方案",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M122",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "unlicensed_remediation_summary",
+        "type": "upload",
+        "label": "无证园取缔和治理工作总结",
+        "placeholder": "上传PDF文件",
+        "width": "100%",
+        "required": true,
+        "elementCode": "M123",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "divider_material_quality",
+        "type": "divider",
+        "label": "保教质量",
+        "width": "100%",
+        "required": false
+      },
+      {
+        "id": "facility_condition_doc",
+        "type": "upload",
+        "label": "园舍条件和配备情况说明",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M201",
+        "fileTypes": "PDF",
+        "maxSize": "20MB",
+        "helpText": "园舍条件、图书配备、玩教具配备情况"
+      },
+      {
+        "id": "public_staffing_doc",
+        "type": "upload",
+        "label": "纳入事业单位管理的公办园核定编制的文件",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M202",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "teacher_qualification_doc",
+        "type": "upload",
+        "label": "关于加强教师资格准入、师德师风建设、培训等工作的文件",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M203",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
+      },
+      {
+        "id": "teacher_training_doc",
+        "type": "upload",
+        "label": "上一年度幼儿教师培训工作方案、总结",
+        "placeholder": "上传PDF文件",
+        "width": "50%",
+        "required": true,
+        "elementCode": "M204",
+        "fileTypes": "PDF",
+        "maxSize": "20MB"
       }
     ]
   }
 ]
-
