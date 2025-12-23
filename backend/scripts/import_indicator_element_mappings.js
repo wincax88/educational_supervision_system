@@ -197,9 +197,15 @@ async function main() {
   const library = await assertLibraryExists(args.libraryId);
 
   const doc = loadJson(sourcePath);
-  const mappings = doc && doc.indicatorElementMappings;
-  if (!mappings || typeof mappings !== 'object') {
+  const indicatorElementMappings = doc && doc.indicatorElementMappings;
+  if (!indicatorElementMappings || typeof indicatorElementMappings !== 'object') {
     throw new Error(`No top-level indicatorElementMappings found in ${sourcePath}`);
+  }
+
+  // Support both nested structure (indicatorElementMappings.dataIndicators) and flat structure
+  const mappings = indicatorElementMappings.dataIndicators || indicatorElementMappings;
+  if (!mappings || typeof mappings !== 'object') {
+    throw new Error(`No dataIndicators mappings found in indicatorElementMappings`);
   }
 
   const mappingEntries = Object.entries(mappings)
