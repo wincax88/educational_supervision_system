@@ -3,530 +3,1476 @@
     "type": "达标类",
     "target": "区县（市）",
     "tags": [
-      "学前教育",
-      "普及普惠",
-      "沈阳市",
-      "督导评估"
+        "学前教育",
+        "普及普惠",
+        "沈阳市",
+        "督导评估"
     ],
-    "description": "依据《县域学前教育普及普惠督导评估办法》（教督〔2020〕1号）、《辽宁省县域学前教育普及普惠督导评估实施方案》（辽政教督室〔2020〕6号）及《沈阳市县域学前教育普及普惠督导评估验收方案》（沈教督发〔2021〕11号）重构。三大维度：普及普惠水平（3项指标）、政府保障情况（11项指标）、幼儿园保教质量保障情况（3项指标），共17项一级指标、36项二级指标。达标标准：29项合格+7项基本合格为巩固\"学前双普\"；31项合格+5项基本合格为提高\"学前双普\"；33项合格+3项基本合格为创优\"学前双普\"。末级指标包含\"数据指标 + 佐证资料\"，可直接用于 /api/indicator-systems/:id/tree 的保存接口（取 tree 字段）。",
+    "description": "依据《县域学前教育普及普惠督导评估办法》（教督〔2020〕1号）、《辽宁省县域学前教育普及普惠督导评估实施方案》（辽政教督室〔2020〕6号）及《沈阳市县域学前教育普及普惠督导评估验收方案》（沈教督发〔2021〕11号）重构。三大维度：普及普惠水平（3项一级指标、3项二级指标）、政府保障情况（9项一级指标、22项二级指标）、幼儿园保教质量保障情况（5项一级指标、11项二级指标），共17项一级指标、36项二级指标。",
     "tree": [
-      {
-        "id": "SY-PJPH-1",
-        "code": "1",
-        "name": "普及普惠水平",
-        "description": "3项指标均要达到要求：学前三年毛入园率达到85%以上、普惠性幼儿园覆盖率达到80%以上、公办园在园幼儿占比达到50%以上。",
-        "level": 1,
-        "isLeaf": false,
-        "weight": 30,
-        "children": [
-          {
-            "id": "SY-PJPH-1-1",
-            "code": "1.1",
-            "name": "学前三年毛入园率达到85%以上",
-            "description": "全县学前三年毛入园率达到85%以上。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-1-1-D1",
-                "code": "1.1-D1",
-                "name": "学前三年毛入园率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 85%",
-                "description": "（在园幼儿总数 ÷ 3-5岁适龄儿童总数）× 100",
-                "calculationMethod": "(在园幼儿总数/3-5岁适龄儿童总数)*100",
-                "dataSource": "区县填报（教育事业统计/人口统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-1-2",
-            "code": "1.2",
-            "name": "普惠性幼儿园覆盖率达到80%以上",
-            "description": "全县普惠性幼儿园（公办园+普惠性民办园）覆盖率达到80%以上。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-1-2-D1",
-                "code": "1.2-D1",
-                "name": "普惠性幼儿园覆盖率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 80%",
-                "description": "（公办园在园幼儿数 + 普惠性民办园在园幼儿数）÷ 在园幼儿总数 × 100",
-                "calculationMethod": "((公办园在园幼儿数+普惠性民办园在园幼儿数)/在园幼儿总数)*100",
-                "dataSource": "区县填报（幼儿园分类统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-1-2-M1",
-                "code": "1.2-M1",
-                "name": "公办园和普惠性民办园名单公示网址",
-                "fileTypes": "PDF",
-                "maxSize": "20MB",
-                "description": "提供公办园和普惠性民办园名单公示网址的PDF文件。",
-                "required": true
-              }
+        {
+            "id": "SY-PJPH-1",
+            "code": "1",
+            "name": "普及普惠水平",
+            "description": "普及普惠水平维度，包含3项一级指标。",
+            "level": 1,
+            "isLeaf": false,
+            "weight": 30,
+            "children": [
+                {
+                    "id": "SY-PJPH-1-1",
+                    "code": "1.1",
+                    "name": "学前三年毛入园率",
+                    "description": "学前三年毛入园率相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-1-1-1",
+                            "code": "1.1.1",
+                            "name": "学前三年毛入园率达到85%",
+                            "description": "实际在园人数/户籍所在地3-6岁人口数*100%，达到85%以上为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-1-1-1-D1",
+                                    "code": "1.1.1-D1",
+                                    "name": "学前三年毛入园率",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": ">= 85%",
+                                    "description": "实际在园人数/户籍所在地3-6岁人口数*100%",
+                                    "calculationMethod": "(实际在园人数/户籍所在地3-6岁人口数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-1-2",
+                    "code": "1.2",
+                    "name": "普惠性幼儿园覆盖率",
+                    "description": "普惠性幼儿园覆盖率相关指标。公办园是指由国家机构举办,或者国有企业事业单位、街道、村集体利用财政性经费或者国有资产、集体资产举办的幼儿园。普惠性民办园是指通过教育部门认定、面向大众、质量合格、接受财政经费补助或政府其他方式的扶持、收费执行政府限价的非营利性民办幼儿园。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-1-2-1",
+                            "code": "1.2.1",
+                            "name": "公办园和普惠性民办园在园幼儿占比达到80%",
+                            "description": "公办园和普惠性民办园在园幼儿数的和/当地在册幼儿园3-6岁在园幼儿数*100%，达到80%以上为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-1-2-1-D1",
+                                    "code": "1.2.1-D1",
+                                    "name": "普惠性幼儿园覆盖率",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": ">= 80%",
+                                    "description": "公办园和普惠性民办园在园幼儿数的和/当地在册幼儿园3-6岁在园幼儿数*100%",
+                                    "calculationMethod": "((公办园在园幼儿数+普惠性民办园在园幼儿数)/在册幼儿园3-6岁在园幼儿数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-1-2-1-M1",
+                                    "code": "1.2.1-M1",
+                                    "name": "公办园和普惠性民办园名单公示网址",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供公办园和普惠性民办园名单公示网址。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-1-3",
+                    "code": "1.3",
+                    "name": "公办园在园幼儿占比",
+                    "description": "公办园在园幼儿占比相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-1-3-1",
+                            "code": "1.3.1",
+                            "name": "公办园在园幼儿占比达到50%",
+                            "description": "当地公办园(含公办教学点)3-6岁在园幼儿数/当地在册幼儿园3-6岁在园幼儿数*100%，达到50%以上为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-1-3-1-D1",
+                                    "code": "1.3.1-D1",
+                                    "name": "公办园在园幼儿占比",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": ">= 50%",
+                                    "description": "当地公办园(含公办教学点)3-6岁在园幼儿数/当地在册幼儿园3-6岁在园幼儿数*100%",
+                                    "calculationMethod": "(公办园3-6岁在园幼儿数/在册幼儿园3-6岁在园幼儿数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                }
             ]
-          },
-          {
-            "id": "SY-PJPH-1-3",
-            "code": "1.3",
-            "name": "公办园在园幼儿占比达到50%以上",
-            "description": "全县公办园在园幼儿占比达到50%以上。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-1-3-D1",
-                "code": "1.3-D1",
-                "name": "公办园在园幼儿占比",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 50%",
-                "description": "公办园在园幼儿数 ÷ 在园幼儿总数 × 100",
-                "calculationMethod": "(公办园在园幼儿数/在园幼儿总数)*100",
-                "dataSource": "区县填报（幼儿园分类统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          }
-        ]
-      },
-      {
-        "id": "SY-PJPH-2",
-        "code": "2",
-        "name": "政府保障情况",
-        "description": "11项指标均要达到要求（以政策落实、保障机制与关键约束为主）。",
-        "level": 1,
-        "isLeaf": false,
-        "weight": 40,
-        "children": [
-          {
-            "id": "SY-PJPH-2-1",
-            "code": "2.1",
-            "name": "党的领导坚强有力",
-            "description": "需提供佐证材料，证明党委政府重视学前教育发展。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-1-M1",
-                "code": "2.1-M1",
-                "name": "党的领导坚强有力佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供党委政府关于学前教育发展的会议纪要、文件、工作部署等佐证。",
-                "required": true
-              }
+        },
+        {
+            "id": "SY-PJPH-2",
+            "code": "2",
+            "name": "政府保障情况",
+            "description": "政府保障情况维度，包含9项一级指标、22项二级指标。",
+            "level": 1,
+            "isLeaf": false,
+            "weight": 40,
+            "children": [
+                {
+                    "id": "SY-PJPH-2-1",
+                    "code": "2.1",
+                    "name": "党的领导坚强有力",
+                    "description": "党的领导坚强有力相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-1-1",
+                            "code": "2.1.1",
+                            "name": "县委县政府加强对学前教育事业的领导，幼儿园党的组织和党的工作实现全覆盖",
+                            "description": "有3名以上正式党员的幼儿园(含民办),已单独建立党组织; 党员人数不足3人的,建立联合党组织或挂靠乡镇(街道)、村(社区)党组织; 没有党员的,配备党员教师或党建指导员,做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-1-1-D1",
+                                    "code": "2.1.1-D1",
+                                    "name": "幼儿园党组织覆盖情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "有3名以上正式党员的幼儿园已单独建立党组织；党员人数不足3人的建立联合党组织或挂靠党组织；没有党员的配备党员教师或党建指导员。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-1-1-M1",
+                                    "code": "2.1.1-M1",
+                                    "name": "《关于加强中小学校(幼儿园)党的建设工作的实施意见》的具体落实措施",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供《关于加强中小学校(幼儿园)党的建设工作的实施意见》的具体落实措施文件。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-2",
+                    "code": "2.2",
+                    "name": "发展规划科学合理",
+                    "description": "发展规划科学合理相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-2-1",
+                            "code": "2.2.1",
+                            "name": "制定幼儿园布局规划",
+                            "description": "制定且统筹规划、科学合理为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-2-1-D1",
+                                    "code": "2.2.1-D1",
+                                    "name": "幼儿园布局规划制定情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "制定且统筹规划、科学合理为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-2-1-M1",
+                                    "code": "2.2.1-M1",
+                                    "name": "学前教育专项布局规划",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供学前教育专项布局规划文件。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-2-1-M2",
+                                    "code": "2.2.1-M2",
+                                    "name": "区域控制性详细规划",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供区域控制性详细规划(包含普惠性幼儿园建设相关内容)。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-2-2",
+                            "code": "2.2.2",
+                            "name": "把普惠性幼儿园建设纳入城乡公共管理和公共服务设施统一规划",
+                            "description": "把普惠性幼儿园建设纳入城乡公共管理和公共服务设施统一规划，列入本地区控制性详细规划，做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-2-2-D1",
+                                    "code": "2.2.2-D1",
+                                    "name": "普惠性幼儿园纳入统一规划情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "把普惠性幼儿园建设纳入城乡公共管理和公共服务设施统一规划，列入本地区控制性详细规划，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-3",
+                    "code": "2.3",
+                    "name": "学前教育公共服务网络基本完善",
+                    "description": "学前教育公共服务网络基本完善相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-3-1",
+                            "code": "2.3.1",
+                            "name": "农村地区学前教育公共服务网络建设",
+                            "description": "农村地区每个乡镇原则上至少有一所公办中心园，大村独立建园或设园，小村联合办园，人口分散地区根据实际情况举办流动幼儿园、季节班等。按照普及普惠目标要求，结合本地实际，把发展普惠性学前教育资源作为重点任务，着力构建以普惠性资源为主体的学前教育公共服务体系，做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-3-1-D1",
+                                    "code": "2.3.1-D1",
+                                    "name": "农村地区学前教育公共服务网络建设情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "农村地区每个乡镇原则上至少有一所公办中心园，大村独立建园或设园，小村联合办园，人口分散地区根据实际情况举办流动幼儿园、季节班等。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-3-1-M1",
+                                    "code": "2.3.1-M1",
+                                    "name": "乡镇以及对应的乡镇中心幼儿园名单",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供乡镇以及对应的乡镇中心幼儿园名单。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-4",
+                    "code": "2.4",
+                    "name": "小区配套幼儿园管理规范",
+                    "description": "小区配套幼儿园管理规范相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-4-1",
+                            "code": "2.4.1",
+                            "name": "落实省定小区配套幼儿园建设管理办法",
+                            "description": "落实省定小区配套幼儿园建设管理办法，小区配套幼儿园与首期建设的居民住宅区同步规划、同步设计、同步建设、同步验收、同步交付使用，做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-4-1-D1",
+                                    "code": "2.4.1-D1",
+                                    "name": "小区配套幼儿园建设管理办法落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "小区配套幼儿园与首期建设的居民住宅区同步规划、同步设计、同步建设、同步验收、同步交付使用，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-4-1-M1",
+                                    "code": "2.4.1-M1",
+                                    "name": "落实小区配套幼儿园建设管理办法及政策的工作总结",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供落实小区配套幼儿园建设管理办法及政策的工作总结。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-4-1-M2",
+                                    "code": "2.4.1-M2",
+                                    "name": "小区配套幼儿园移交协议",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供小区配套幼儿园移交协议。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-4-1-M3",
+                                    "code": "2.4.1-M3",
+                                    "name": "小区配套幼儿园规划建设清单",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供小区配套幼儿园规划建设清单。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-4-1-M4",
+                                    "code": "2.4.1-M4",
+                                    "name": "小区配套幼儿园交接单",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供小区配套幼儿园交接单。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-4-1-M5",
+                                    "code": "2.4.1-M5",
+                                    "name": "小区配套幼儿园基本情况一览表",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供小区配套幼儿园基本情况一览表(附件4)。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-4-2",
+                            "code": "2.4.2",
+                            "name": "现有小区配套幼儿园办成公办园或普惠性民办园",
+                            "description": "现有小区配套幼儿园由当地政府统筹安排办成公办园或委托办成普惠性民办园，且运转良好。100%现有小区配套幼儿园举办成公办园或委托办成普惠性民办园为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-4-2-D1",
+                                    "code": "2.4.2-D1",
+                                    "name": "小区配套幼儿园公办或普惠性民办比例",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": "= 100%",
+                                    "description": "现有小区配套幼儿园办成公办园或普惠性民办园的比例",
+                                    "calculationMethod": "(办成公办园或普惠性民办园的小区配套幼儿园数/小区配套幼儿园总数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-5",
+                    "code": "2.5",
+                    "name": "财政投入到位",
+                    "description": "财政投入到位相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-5-1",
+                            "code": "2.5.1",
+                            "name": "落实省定公办园生均财政拨款标准或生均公用经费标准",
+                            "description": "做到足额落实为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-5-1-D1",
+                                    "code": "2.5.1-D1",
+                                    "name": "公办园生均财政拨款标准落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "做到足额落实为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-5-1-M1",
+                                    "code": "2.5.1-M1",
+                                    "name": "关于普惠性民办园认定、扶持及管理的相关文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供关于普惠性民办园认定、扶持及管理的相关文件。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-5-1-M2",
+                                    "code": "2.5.1-M2",
+                                    "name": "普惠性民办园生均公用经费财政拨款拨付情况证明",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供普惠性民办园生均公用经费财政拨款拨付(500元/生)情况证明。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-5-1-M3",
+                                    "code": "2.5.1-M3",
+                                    "name": "普惠性民办园学前教育奖补资金拨付情况证明",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供普惠性民办园学前教育奖补资金拨付情况证明。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-5-2",
+                            "code": "2.5.2",
+                            "name": "落实企事业单位、部队、高校、街道、村集体办幼儿园财政补助政策",
+                            "description": "建立幼儿园公用经费财政补助制度并年生均公用经费标准≥省定500元/生，为合格；建立幼儿园公用经费财政补助制度为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-5-2-D1",
+                                    "code": "2.5.2-D1",
+                                    "name": "企事业单位等办幼儿园财政补助政策落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "建立幼儿园公用经费财政补助制度并年生均公用经费标准≥省定500元/生为合格；建立幼儿园公用经费财政补助制度为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-5-3",
+                            "code": "2.5.3",
+                            "name": "落实省定普惠性民办园认定标准、补助标准及扶持政策",
+                            "description": "建立普惠性民办园公用经费财政补助制度且年生均公用经费标准≥省定500元/生,为合格;建立普惠性民办园的扶持制度和发展长效机制,为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-5-3-D1",
+                                    "code": "2.5.3-D1",
+                                    "name": "普惠性民办园认定标准和扶持政策落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "建立普惠性民办园公用经费财政补助制度且年生均公用经费标准≥省定500元/生为合格;建立普惠性民办园的扶持制度和发展长效机制为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-6",
+                    "code": "2.6",
+                    "name": "收费合理",
+                    "description": "收费合理相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-6-1",
+                            "code": "2.6.1",
+                            "name": "落实公办幼儿园收费标准和普惠性民办园收费办法",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-6-1-D1",
+                                    "code": "2.6.1-D1",
+                                    "name": "公办园和普惠性民办园收费标准落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-6-1-M1",
+                                    "code": "2.6.1-M1",
+                                    "name": "有关公办园和普惠性民办园收费标准文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供有关公办园和普惠性民办园收费标准文件。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-6-2",
+                            "code": "2.6.2",
+                            "name": "幼儿园收费标准根据社会经济发展水平动态调整",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-6-2-D1",
+                                    "code": "2.6.2-D1",
+                                    "name": "收费标准动态调整情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "幼儿园收费标准根据社会经济发展水平动态调整，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-6-3",
+                            "code": "2.6.3",
+                            "name": "各类幼儿园无不合理收费",
+                            "description": "幼儿园除收取保教费、住宿费及按规定收取的服务性收费、代收费外,无其他违规收费;没有跨学期预收费现象;没有关于幼儿园不合理收费的有效投诉;督导组在实地督导过程中没有发现明显违反相关政策规定的现象,做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-6-3-D1",
+                                    "code": "2.6.3-D1",
+                                    "name": "幼儿园收费规范情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "幼儿园除收取保教费、住宿费及按规定收取的服务性收费、代收费外,无其他违规收费;没有跨学期预收费现象;没有关于幼儿园不合理收费的有效投诉。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-7",
+                    "code": "2.7",
+                    "name": "教师工资待遇有保障",
+                    "description": "教师工资待遇有保障相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-7-1",
+                            "code": "2.7.1",
+                            "name": "落实公办园教师工资待遇保障政策，确保教师工资及时足额发放、同工同酬",
+                            "description": "落实省定及当地关于公办园教师工资待遇保障的政策,制定公办园编内编外幼儿教师同工同酬政策,没有拖欠教师工资现象,没有教师群体有关工资待遇问题的有效投诉,督查期间没有发现明显违反相关政策规定的现象,为合格;县域内公办园正式聘用的非在编教师与在编教师工资待遇差距逐年缩小,没有拖欠教师工资现象,没有教师群体有关工资待遇问题的有效投诉,督查期间没有发现明显违反相关政策规定的现象,为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-7-1-D1",
+                                    "code": "2.7.1-D1",
+                                    "name": "公办园教师工资待遇保障情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "落实公办园教师工资待遇保障政策,制定同工同酬政策为合格;公办园非在编与在编教师工资待遇差距逐年缩小为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-7-1-M1",
+                                    "code": "2.7.1-M1",
+                                    "name": "关于公办园幼儿教师同工同酬、保障公办园和民办园幼儿教师工资待遇的相关文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供关于公办园幼儿教师同工同酬、保障公办园和民办园幼儿教师工资待遇的相关文件。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-7-2",
+                            "code": "2.7.2",
+                            "name": "参照公办园教师工资收入水平，合理确定民办园相应教师工资收入",
+                            "description": "落实省定及当地关于民办幼儿园教师工资收入有关政策，合理确定民办园专任教师工资收入，没有拖欠教师工资现象，没有民办园教师群体有关工资待遇问题的有效投诉，督查期间没有发现明显违反相关政策规定的现象，为合格；逐步落实民办园专任教师工资收入保障政策，没有拖欠教师工资现象，没有民办园教师群体有关工资待遇问题的有效投诉，督查期间没有发现明显违反相关政策规定的现象，为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-7-2-D1",
+                                    "code": "2.7.2-D1",
+                                    "name": "民办园教师工资收入保障情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "合理确定民办园专任教师工资收入为合格;逐步落实民办园专任教师工资收入保障政策为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-8",
+                    "code": "2.8",
+                    "name": "安全风险防控机制健全",
+                    "description": "安全风险防控机制健全相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-8-1",
+                            "code": "2.8.1",
+                            "name": "落实各部门对幼儿园安全监管责任",
+                            "description": "落实教育、公安、生态环境、交通、住房城乡建设、卫生健康、市场监管、应急等部门对幼儿园所、食品、卫生、校车、消防等各方面的安全监管责任，做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-8-1-D1",
+                                    "code": "2.8.1-D1",
+                                    "name": "各部门安全监管责任落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "落实教育、公安、生态环境、交通、住房城乡建设、卫生健康、市场监管、应急等部门对幼儿园安全监管责任，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-8-1-M1",
+                                    "code": "2.8.1-M1",
+                                    "name": "有关幼儿园安全监管责任联动机制的文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供有关幼儿园安全监管责任联动机制的文件。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-8-1-M2",
+                                    "code": "2.8.1-M2",
+                                    "name": "有关建立学前教育联席会议制度的文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供有关建立学前教育联席会议制度的文件。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-8-2",
+                            "code": "2.8.2",
+                            "name": "督导评估认定前2年内无较大社会影响的安全责任事故",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-8-2-D1",
+                                    "code": "2.8.2-D1",
+                                    "name": "近2年安全责任事故情况",
+                                    "dataType": "数字",
+                                    "unit": "起",
+                                    "threshold": "= 0",
+                                    "description": "督导评估认定前2年内较大社会影响的安全责任事故数",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-2-9",
+                    "code": "2.9",
+                    "name": "监管制度比较完善",
+                    "description": "监管制度比较完善相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-2-9-1",
+                            "code": "2.9.1",
+                            "name": "对民办幼儿园审批严格执行「先证后照」制度，完善年检制度",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-1-D1",
+                                    "code": "2.9.1-D1",
+                                    "name": "民办幼儿园审批和年检制度执行情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "对民办幼儿园审批严格执行「先证后照」制度，完善年检制度，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-9-2",
+                            "code": "2.9.2",
+                            "name": "落实幼儿园基本信息备案及公示制度",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-2-D1",
+                                    "code": "2.9.2-D1",
+                                    "name": "幼儿园基本信息备案及公示制度落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "落实幼儿园基本信息备案及公示制度，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-9-2-M1",
+                                    "code": "2.9.2-M1",
+                                    "name": "幼儿园基本信息备案及公示情况",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供幼儿园基本信息备案及公示情况(可提供网址)。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-9-3",
+                            "code": "2.9.3",
+                            "name": "建立3—5年一轮覆盖所有幼儿园的办园行为督导评估制度",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-3-D1",
+                                    "code": "2.9.3-D1",
+                                    "name": "办园行为督导评估制度建立情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "建立3—5年一轮覆盖所有幼儿园的办园行为督导评估制度，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-9-3-M1",
+                                    "code": "2.9.3-M1",
+                                    "name": "幼儿园办园行为督导评估工作方案",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供幼儿园办园行为督导评估工作方案。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-9-3-M2",
+                                    "code": "2.9.3-M2",
+                                    "name": "上一年度督评报告",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供上一年度督评报告。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-9-4",
+                            "code": "2.9.4",
+                            "name": "幼儿园责任督学挂牌督导制度落实到位",
+                            "description": "建立幼儿园责任督学挂牌督导制度;县域内所有经审批注册的幼儿园均实现责任督学挂牌督导,做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-4-D1",
+                                    "code": "2.9.4-D1",
+                                    "name": "责任督学挂牌督导制度落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "建立幼儿园责任督学挂牌督导制度;县域内所有经审批注册的幼儿园均实现责任督学挂牌督导,做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-9-4-M1",
+                                    "code": "2.9.4-M1",
+                                    "name": "幼儿园责任督学挂牌督导工作方案",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供幼儿园责任督学挂牌督导工作方案。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-9-4-M2",
+                                    "code": "2.9.4-M2",
+                                    "name": "幼儿园责任区及责任督学名单",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供幼儿园责任区及责任督学名单。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-9-5",
+                            "code": "2.9.5",
+                            "name": "全面完成无证园治理工作",
+                            "description": "已开展无证园排查、分类和治理工作,县域内全部消除无证园,做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-5-D1",
+                                    "code": "2.9.5-D1",
+                                    "name": "无证园治理完成情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "已开展无证园排查、分类和治理工作,县域内全部消除无证园,做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-2-9-5-M1",
+                                    "code": "2.9.5-M1",
+                                    "name": "有关无证园取缔和治理工作方案",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供有关无证园取缔和治理工作方案。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-2-9-5-M2",
+                                    "code": "2.9.5-M2",
+                                    "name": "无证园取缔和治理工作总结",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供无证园取缔和治理工作总结。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-2-9-6",
+                            "code": "2.9.6",
+                            "name": "民办园没有上市、过度逐利等行为",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-2-9-6-D1",
+                                    "code": "2.9.6-D1",
+                                    "name": "民办园上市和过度逐利行为情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "民办园没有上市、过度逐利等行为，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                }
             ]
-          },
-          {
-            "id": "SY-PJPH-2-2",
-            "code": "2.2",
-            "name": "发展规划科学合理",
-            "description": "需提供县域学前教育发展规划及实施情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-2-M1",
-                "code": "2.2-M1",
-                "name": "发展规划科学合理佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供县域学前教育发展规划、布局规划、年度计划及实施情况等佐证。",
-                "required": true
-              }
+        },
+        {
+            "id": "SY-PJPH-3",
+            "code": "3",
+            "name": "幼儿园保教质量保障情况",
+            "description": "幼儿园保教质量保障情况维度，包含5项一级指标、11项二级指标。",
+            "level": 1,
+            "isLeaf": false,
+            "weight": 30,
+            "children": [
+                {
+                    "id": "SY-PJPH-3-1",
+                    "code": "3.1",
+                    "name": "办园条件合格",
+                    "description": "办园条件合格相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-3-1-1",
+                            "code": "3.1.1",
+                            "name": "幼儿园园舍条件、玩教具和幼儿图书配备普遍达到规定要求",
+                            "description": "符合国家、当地的建设标准、配备要求,为合格;县域内5%以内幼儿园未达到规定标准要求,且督查期间没有发现明显不达标现象,为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-1-1-D1",
+                                    "code": "3.1.1-D1",
+                                    "name": "园舍条件和配备达标情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "符合国家、当地的建设标准、配备要求为合格;县域内5%以内幼儿园未达到规定标准要求为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-3-1-1-M1",
+                                    "code": "3.1.1-M1",
+                                    "name": "园舍条件和配备情况说明",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "园舍条件:1.户外活动场地生均面积≥4平方米;2.幼儿活动用房生均建筑面积≥8.17平方米;3.生均建筑面积≥10.44平方米;幼儿园图书配备(3~5册/生);玩教具配备全部达到规定要求。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-3-2",
+                    "code": "3.2",
+                    "name": "班额普遍达标",
+                    "description": "班额普遍达标相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-3-2-1",
+                            "code": "3.2.1",
+                            "name": "2017年后规划设计的幼儿园符合《幼儿园建设标准》",
+                            "description": "做到为合格;县域内3%以内幼儿园未达到规定标准要求,为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-2-1-D1",
+                                    "code": "3.2.1-D1",
+                                    "name": "2017年后规划设计幼儿园达标情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格/基本合格",
+                                    "description": "做到为合格;县域内3%以内幼儿园未达到规定标准要求为基本合格。",
+                                    "thresholdType": "tiered",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-3-3",
+                    "code": "3.3",
+                    "name": "教师配足配齐",
+                    "description": "教师配足配齐相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-3-3-1",
+                            "code": "3.3.1",
+                            "name": "县域内85%以上的班额符合《幼儿园工作规程》有关规定",
+                            "description": "县域内85%及以上的班额符合规定要求为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-3-1-D1",
+                                    "code": "3.3.1-D1",
+                                    "name": "班额符合规定比例",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": ">= 85%",
+                                    "description": "县域内班额符合《幼儿园工作规程》有关规定的比例",
+                                    "calculationMethod": "(班额符合规定的班级数/班级总数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-3-2",
+                            "code": "3.3.2",
+                            "name": "按《幼儿园教职工配备标准(暂行)》配足配齐各类幼儿园教职工",
+                            "description": "县域内100%幼儿园按规定配足配齐各类教职工,为合格;县域内80%以上幼儿园按规定配足配齐各类教职工,为基本合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-3-2-D1",
+                                    "code": "3.3.2-D1",
+                                    "name": "教职工配备达标率",
+                                    "dataType": "数字",
+                                    "unit": "%",
+                                    "threshold": ">= 80%",
+                                    "description": "县域内按规定配足配齐各类教职工的幼儿园比例。100%为合格,80%以上为基本合格。",
+                                    "calculationMethod": "(教职工配备达标幼儿园数/幼儿园总数)*100",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "tiered",
+                                    "precision": 2,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-3-3",
+                            "code": "3.3.3",
+                            "name": "公办园没有「有编不补」的情况",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-3-3-D1",
+                                    "code": "3.3.3-D1",
+                                    "name": "公办园编制补充情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "公办园没有「有编不补」的情况，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-3-3-3-M1",
+                                    "code": "3.3.3-M1",
+                                    "name": "纳入事业单位管理的公办园核定编制的文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供纳入事业单位管理的公办园核定编制的文件。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-3-4",
+                            "code": "3.3.4",
+                            "name": "县域内幼儿园专任教师总数与在园幼儿总数之比不低于1:15",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-3-4-D1",
+                                    "code": "3.3.4-D1",
+                                    "name": "师幼比",
+                                    "dataType": "文本",
+                                    "unit": "",
+                                    "threshold": "<= 1:15",
+                                    "description": "县域内幼儿园专任教师总数与在园幼儿总数之比",
+                                    "calculationMethod": "专任教师总数:在园幼儿总数",
+                                    "dataSource": "区县填报",
+                                    "collectionFrequency": "年度",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-3-4",
+                    "code": "3.4",
+                    "name": "教师管理制度严格",
+                    "description": "教师管理制度严格相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-3-4-1",
+                            "code": "3.4.1",
+                            "name": "建立健全幼儿园教师资格准入制度和定期注册制度，全面落实幼儿园教师持教师资格证上岗制度",
+                            "description": "县域内幼儿园园长、专任教师全员持证上岗(因受疫情影响,对2020年新入职教师可实行「先上岗,再考证」阶段性措施),为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-4-1-D1",
+                                    "code": "3.4.1-D1",
+                                    "name": "教师持证上岗情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "县域内幼儿园园长、专任教师全员持证上岗为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [
+                                {
+                                    "id": "SY-PJPH-3-4-1-M1",
+                                    "code": "3.4.1-M1",
+                                    "name": "关于加强教师资格准入、师德师风建设、培训等工作的文件",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供关于加强教师资格准入、师德师风建设、培训等工作的文件。",
+                                    "required": true
+                                },
+                                {
+                                    "id": "SY-PJPH-3-4-1-M2",
+                                    "code": "3.4.1-M2",
+                                    "name": "上一年度幼儿教师培训工作方案、总结",
+                                    "fileTypes": "PDF",
+                                    "maxSize": "20MB",
+                                    "description": "提供上一年度幼儿教师培训工作方案、总结。",
+                                    "required": true
+                                }
+                            ],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "SY-PJPH-3-5",
+                    "code": "3.5",
+                    "name": "落实科学保教要求",
+                    "description": "落实科学保教要求相关指标。",
+                    "level": 2,
+                    "isLeaf": false,
+                    "children": [
+                        {
+                            "id": "SY-PJPH-3-5-1",
+                            "code": "3.5.1",
+                            "name": "落实幼儿园(含民办)园长、教师定期培训和全员轮训制度",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-5-1-D1",
+                                    "code": "3.5.1-D1",
+                                    "name": "园长教师培训轮训制度落实情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "落实幼儿园(含民办)园长、教师定期培训和全员轮训制度，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-5-2",
+                            "code": "3.5.2",
+                            "name": "加强师德师风建设，幼儿园普遍建立师德教育、考评、奖惩机制",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-5-2-D1",
+                                    "code": "3.5.2-D1",
+                                    "name": "师德师风建设机制情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "加强师德师风建设，幼儿园普遍建立师德教育、考评、奖惩机制，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-5-3",
+                            "code": "3.5.3",
+                            "name": "督导评估认定前2年内没有发生严重的师德师风事件",
+                            "description": "做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-5-3-D1",
+                                    "code": "3.5.3-D1",
+                                    "name": "近2年严重师德师风事件数",
+                                    "dataType": "数字",
+                                    "unit": "起",
+                                    "threshold": "= 0",
+                                    "description": "督导评估认定前2年内发生的严重师德师风事件数",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        },
+                        {
+                            "id": "SY-PJPH-3-5-4",
+                            "code": "3.5.4",
+                            "name": "县域内幼儿园落实科学保教要求，以游戏为基本活动，无「小学化」现象",
+                            "description": "按规定创设多种活动区域(区角);提供充足的符合幼儿年龄特点的玩教具、游戏材料、图画书;没有提前教授汉语拼音、识字、计算、英语等小学课程内容;没有以课堂集中授课方式为主组织安排一日活动;没有以机械背诵、记忆、抄写、计算等方式进行知识技能性强化训练的行为;没有对幼儿园「小学化」问题的有效投诉;督导组在实地督导过程中没有发现明显违反相关政策规定的现象,做到为合格。",
+                            "level": 3,
+                            "isLeaf": true,
+                            "dataIndicators": [
+                                {
+                                    "id": "SY-PJPH-3-5-4-D1",
+                                    "code": "3.5.4-D1",
+                                    "name": "科学保教和防止小学化情况",
+                                    "dataType": "逻辑",
+                                    "unit": "",
+                                    "threshold": "合格",
+                                    "description": "按规定创设活动区域、提供玩教具、无小学化现象等，做到为合格。",
+                                    "thresholdType": "single",
+                                    "precision": 0,
+                                    "actualValue": null
+                                }
+                            ],
+                            "supportingMaterials": [],
+                            "selfAssessment": {
+                                "description": "",
+                                "conclusion": null
+                            }
+                        }
+                    ]
+                }
             ]
-          },
-          {
-            "id": "SY-PJPH-2-3",
-            "code": "2.3",
-            "name": "学前教育公共服务网络基本完善",
-            "description": "需提供公共服务网络建设情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-3-M1",
-                "code": "2.3-M1",
-                "name": "公共服务网络完善佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供学前教育公共服务网络建设、覆盖情况、服务半径等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-2-4",
-            "code": "2.4",
-            "name": "小区配套幼儿园管理规范",
-            "description": "小区配套幼儿园应配建尽建、及时移交、规范使用。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-2-4-D1",
-                "code": "2.4-D1",
-                "name": "小区配套幼儿园配建率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "已配建配套幼儿园小区数 ÷ 应配建配套幼儿园小区总数 × 100",
-                "calculationMethod": "(已配建小区数/应配建小区总数)*100",
-                "dataSource": "区县填报（小区配套幼儿园统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              },
-              {
-                "id": "SY-PJPH-2-4-D2",
-                "code": "2.4-D2",
-                "name": "小区配套幼儿园移交率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "已移交配套幼儿园数 ÷ 应移交配套幼儿园总数 × 100",
-                "calculationMethod": "(已移交配套幼儿园数/应移交配套幼儿园总数)*100",
-                "dataSource": "区县填报（小区配套幼儿园统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-2-5",
-            "code": "2.5",
-            "name": "财政投入到位",
-            "description": "财政性学前教育经费占同级财政性教育经费的比例不低于5%，并逐年提高。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-2-5-D1",
-                "code": "2.5-D1",
-                "name": "财政性学前教育经费占比",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 5%",
-                "description": "财政性学前教育经费 ÷ 同级财政性教育经费总额 × 100",
-                "calculationMethod": "(财政性学前教育经费/同级财政性教育经费总额)*100",
-                "dataSource": "区县填报（财政/财务口径）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-2-6",
-            "code": "2.6",
-            "name": "收费合理",
-            "description": "公办园和普惠性民办园收费符合国家和省定标准。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-2-6-D1",
-                "code": "2.6-D1",
-                "name": "公办园收费达标率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "收费符合标准的公办园数 ÷ 公办园总数 × 100",
-                "calculationMethod": "(收费达标公办园数/公办园总数)*100",
-                "dataSource": "区县填报（收费管理统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              },
-              {
-                "id": "SY-PJPH-2-6-D2",
-                "code": "2.6-D2",
-                "name": "普惠性民办园收费达标率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "收费符合标准的普惠性民办园数 ÷ 普惠性民办园总数 × 100",
-                "calculationMethod": "(收费达标普惠性民办园数/普惠性民办园总数)*100",
-                "dataSource": "区县填报（收费管理统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-2-7",
-            "code": "2.7",
-            "name": "教师工资待遇有保障",
-            "description": "公办园教师工资及时足额发放，同工同酬。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-2-7-D1",
-                "code": "2.7-D1",
-                "name": "公办园教师工资保障达标（结论）",
-                "dataType": "逻辑",
-                "unit": "",
-                "threshold": "达标",
-                "description": "公办园教师工资及时足额发放，同工同酬。",
-                "thresholdType": "single",
-                "precision": 0
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-2-8",
-            "code": "2.8",
-            "name": "安全风险防控机制健全",
-            "description": "需提供安全风险防控机制建设情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-8-M1",
-                "code": "2.8-M1",
-                "name": "安全风险防控机制健全佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供安全管理制度、应急预案、安全演练记录、安全检查记录等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-2-9",
-            "code": "2.9",
-            "name": "监管制度比较完善",
-            "description": "需提供监管制度建设情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-9-M1",
-                "code": "2.9-M1",
-                "name": "监管制度完善佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供监管制度文件、监管记录、年检报告、整改通知等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-2-10",
-            "code": "2.10",
-            "name": "办园条件改善",
-            "description": "需提供办园条件改善情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-2-10-M1",
-                "code": "2.10-M1",
-                "name": "办园条件改善佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供办园条件改善计划、投入情况、改扩建项目等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-2-11",
-            "code": "2.11",
-            "name": "无重大安全责任事故",
-            "description": "近三年无重大安全责任事故。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-2-11-D1",
-                "code": "2.11-D1",
-                "name": "近三年重大安全责任事故数",
-                "dataType": "数字",
-                "unit": "起",
-                "threshold": "= 0",
-                "description": "近三年发生的重大安全责任事故数量",
-                "thresholdType": "single",
-                "precision": 0
-              }
-            ],
-            "supportingMaterials": []
-          }
-        ]
-      },
-      {
-        "id": "SY-PJPH-3",
-        "code": "3",
-        "name": "幼儿园保教质量保障情况",
-        "description": "3项指标均要达到要求（含办园条件、师资队伍、保教质量等）。",
-        "level": 1,
-        "isLeaf": false,
-        "weight": 30,
-        "children": [
-          {
-            "id": "SY-PJPH-3-1",
-            "code": "3.1",
-            "name": "办园条件合格",
-            "description": "所有幼儿园办园条件达到国家和省定标准。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-3-1-D1",
-                "code": "3.1-D1",
-                "name": "办园条件合格率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "办园条件合格的幼儿园数 ÷ 幼儿园总数 × 100",
-                "calculationMethod": "(办园条件合格幼儿园数/幼儿园总数)*100",
-                "dataSource": "区县填报（办园条件评估）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-3-2",
-            "code": "3.2",
-            "name": "班额基本达标",
-            "description": "幼儿园班额符合国家和省定标准。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-3-2-D1",
-                "code": "3.2-D1",
-                "name": "超标准班额班级数",
-                "dataType": "数字",
-                "unit": "个",
-                "threshold": "= 0",
-                "description": "超过国家和省定标准班额的班级数量",
-                "thresholdType": "single",
-                "precision": 0
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-3-3",
-            "code": "3.3",
-            "name": "教师配足配齐",
-            "description": "所有幼儿园按照国家和省定标准配足配齐教职工。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [
-              {
-                "id": "SY-PJPH-3-3-D1",
-                "code": "3.3-D1",
-                "name": "教职工配备达标率",
-                "dataType": "数字",
-                "unit": "%",
-                "threshold": ">= 100%",
-                "description": "教职工配备达标的幼儿园数 ÷ 幼儿园总数 × 100",
-                "calculationMethod": "(教职工配备达标幼儿园数/幼儿园总数)*100",
-                "dataSource": "区县填报（教职工配备统计）",
-                "collectionFrequency": "年度",
-                "thresholdType": "single",
-                "precision": 2
-              }
-            ],
-            "supportingMaterials": []
-          },
-          {
-            "id": "SY-PJPH-3-4",
-            "code": "3.4",
-            "name": "教师管理制度严格",
-            "description": "需提供教师管理制度建设情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-3-4-M1",
-                "code": "3.4-M1",
-                "name": "教师管理制度严格佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供教师管理制度、资格准入、培训管理、考核评价等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-3-5",
-            "code": "3.5",
-            "name": "落实科学保教要求",
-            "description": "需提供科学保教落实情况佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-3-5-M1",
-                "code": "3.5-M1",
-                "name": "科学保教要求落实佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供保教工作计划、课程设置、活动开展、教研活动等佐证。",
-                "required": true
-              }
-            ]
-          },
-          {
-            "id": "SY-PJPH-3-6",
-            "code": "3.6",
-            "name": "无\"小学化\"现象",
-            "description": "需提供防止和纠正\"小学化\"现象佐证材料。",
-            "level": 2,
-            "isLeaf": true,
-            "dataIndicators": [],
-            "supportingMaterials": [
-              {
-                "id": "SY-PJPH-3-6-M1",
-                "code": "3.6-M1",
-                "name": "无小学化现象佐证材料",
-                "fileTypes": "PDF,Word,Excel,JPG,PNG",
-                "maxSize": "20MB",
-                "description": "提供防止和纠正\"小学化\"现象的制度、措施、检查记录等佐证。",
-                "required": true
-              }
-            ]
-          }
-        ]
-      }
+        }
     ]
-  }
-  
+}
