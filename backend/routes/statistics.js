@@ -3284,7 +3284,8 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       }
     }
 
-    // 获取所有学校的填报数据（用于统计佐证材料上传情况）
+    // 获取所有义务教育学校的填报数据（用于统计佐证材料上传情况）
+    // 只包含义务教育阶段学校：小学、初中、九年一贯制、完全中学，排除幼儿园
     const allSchoolSubmissionsResult = await db.query(`
       SELECT s.id, s.school_id, s.data as form_data, s.status,
              sc.name as school_name, sc.school_type
@@ -3293,6 +3294,7 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       WHERE s.project_id = $1
         AND sc.district_id = $2
         AND s.status IN ('approved', 'submitted')
+        AND sc.school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')
       ORDER BY s.submitted_at DESC
     `, [projectId, districtId]);
 
@@ -3357,9 +3359,11 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       }
     }
 
-    // 获取区县下总学校数
+    // 获取区县下义务教育学校总数（排除幼儿园）
     const totalSchoolsResult = await db.query(
-      'SELECT COUNT(*) as count FROM schools WHERE district_id = $1',
+      `SELECT COUNT(*) as count FROM schools
+       WHERE district_id = $1
+       AND school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')`,
       [districtId]
     );
     const totalSchools = parseInt(totalSchoolsResult.rows[0].count) || 0;

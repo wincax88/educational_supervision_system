@@ -7,7 +7,7 @@
  * - 教育质量（9项指标）
  * - 社会认可度（1项指标）
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, Tree, Tag, Spin, Empty, Button, Tooltip, Divider } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import {
@@ -23,6 +23,7 @@ import {
   HeartOutlined,
   EyeOutlined,
   InfoCircleOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons';
 import {
   getResourceIndicatorsSummary,
@@ -78,6 +79,7 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
   const [schoolModalTab, setSchoolModalTab] = useState<'primary' | 'junior'>('primary');
   const [indicatorDetailVisible, setIndicatorDetailVisible] = useState(false);
   const [selectedIndicator, setSelectedIndicator] = useState<IndicatorDetail | null>(null);
+  const hasInitialExpanded = useRef(false);
 
   // 加载资源配置指标数据
   useEffect(() => {
@@ -396,6 +398,101 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
     // 一、资源配置指标
     const resourceChildren: DataNode[] = [];
 
+    // 七项指标达标率（学校级别）- 放在第一位
+    const primaryOverallCompliance = primaryData?.summary?.overallCompliance;
+    const juniorOverallCompliance = juniorData?.summary?.overallCompliance;
+    if (primaryOverallCompliance || juniorOverallCompliance) {
+      const overallChildren: DataNode[] = [];
+
+      // 小学七项指标达标率详情
+      if (primaryOverallCompliance) {
+        overallChildren.push({
+          key: 'overall-primary',
+          title: (
+            <div className={styles.indicatorTitle}>
+              <span className={styles.indicatorCode}>小学</span>
+              <span className={styles.indicatorName}>各校7项指标达标率</span>
+              <span className={styles.indicatorValue}>
+                {primaryOverallCompliance.compliantSchools}/{primaryData?.summary?.schoolCount || 0} 所达标
+              </span>
+              <span className={styles.indicatorThreshold}>标准: 至少6项达标，余项≥85%</span>
+              <Tag
+                icon={primaryOverallCompliance.allSchoolsCompliant ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                color={primaryOverallCompliance.allSchoolsCompliant ? 'success' : 'error'}
+              >
+                {primaryOverallCompliance.allSchoolsCompliant ? '全部达标' : '未全部达标'}
+              </Tag>
+            </div>
+          ),
+          isLeaf: true,
+        });
+      }
+
+      // 初中七项指标达标率详情
+      if (juniorOverallCompliance) {
+        overallChildren.push({
+          key: 'overall-junior',
+          title: (
+            <div className={styles.indicatorTitle}>
+              <span className={styles.indicatorCode}>初中</span>
+              <span className={styles.indicatorName}>各校7项指标达标率</span>
+              <span className={styles.indicatorValue}>
+                {juniorOverallCompliance.compliantSchools}/{juniorData?.summary?.schoolCount || 0} 所达标
+              </span>
+              <span className={styles.indicatorThreshold}>标准: 至少6项达标，余项≥85%</span>
+              <Tag
+                icon={juniorOverallCompliance.allSchoolsCompliant ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                color={juniorOverallCompliance.allSchoolsCompliant ? 'success' : 'error'}
+              >
+                {juniorOverallCompliance.allSchoolsCompliant ? '全部达标' : '未全部达标'}
+              </Tag>
+            </div>
+          ),
+          isLeaf: true,
+        });
+      }
+
+      const totalSchoolsForOverall = (primaryData?.summary?.schoolCount || 0) + (juniorData?.summary?.schoolCount || 0);
+      const compliantSchoolsForOverall = (primaryOverallCompliance?.compliantSchools || 0) + (juniorOverallCompliance?.compliantSchools || 0);
+      const allSchoolsCompliantForOverall = (primaryOverallCompliance?.allSchoolsCompliant ?? true) && (juniorOverallCompliance?.allSchoolsCompliant ?? true);
+
+      resourceChildren.push({
+        key: 'resource-overall-compliance',
+        title: (
+          <div className={styles.schoolTypeTitle}>
+            <span className={styles.schoolTypeName}>
+              <SafetyOutlined style={{ color: '#fa8c16' }} />
+              七项指标达标率
+            </span>
+            <div className={styles.dimensionStats}>
+              <Tooltip title="各学校7项资源配置指标达标情况（至少6项达标，余项≥85%）">
+                <Tag
+                  icon={allSchoolsCompliantForOverall ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                  color={allSchoolsCompliantForOverall ? 'success' : 'error'}
+                >
+                  {compliantSchoolsForOverall}/{totalSchoolsForOverall} 所学校达标
+                </Tag>
+              </Tooltip>
+              <Button
+                type="link"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSchoolModalTab('primary');
+                  setSchoolModalVisible(true);
+                }}
+                className={styles.detailButton}
+              >
+                查看学校详情
+              </Button>
+            </div>
+          </div>
+        ),
+        children: overallChildren,
+      });
+    }
+
     // 小学
     if (primaryData?.summary?.cvIndicators) {
       const primaryCompliant = primaryData.summary.cvIndicators.filter(cv => cv.isCompliant === true).length;
@@ -438,7 +535,7 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
             </div>
           </div>
         ),
-        children: primaryData.summary.cvIndicators.map(cv => renderCVIndicatorNode(cv, '小学')),
+        isLeaf: true,
       });
     }
 
@@ -484,7 +581,7 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
             </div>
           </div>
         ),
-        children: juniorData.summary.cvIndicators.map(cv => renderCVIndicatorNode(cv, '初中')),
+        isLeaf: true,
       });
     }
 
@@ -500,6 +597,9 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
     const allSchoolsCompliant = primaryData?.summary?.overallCompliance?.allSchoolsCompliant &&
       juniorData?.summary?.overallCompliance?.allSchoolsCompliant;
 
+    // 判断数据是否已加载（非 loading 状态且有数据对象）
+    const resourceDataLoaded = !loading && (primaryData !== null || juniorData !== null);
+
     nodes.push({
       key: 'dimension-resource',
       title: (
@@ -509,13 +609,19 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
             一、资源配置指标（7项差异系数 × 2）
           </span>
           <div className={styles.dimensionStats}>
-            {resourceAllCompliant !== null && resourceAllCompliant !== undefined ? (
+            {resourceDataLoaded ? (
               <>
                 <Tooltip title="7项差异系数达标情况（小学+初中）">
-                  <Tag icon={resourceAllCompliant ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-                    color={resourceAllCompliant ? 'success' : 'error'}>
-                    差异系数 {resourceCompliant}/{resourceTotal}
-                  </Tag>
+                  {resourceAllCompliant === null ? (
+                    <Tag icon={<ExclamationCircleOutlined />} color="warning">
+                      差异系数 {resourceCompliant}/{resourceTotal} 待计算
+                    </Tag>
+                  ) : (
+                    <Tag icon={resourceAllCompliant ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                      color={resourceAllCompliant ? 'success' : 'error'}>
+                      差异系数 {resourceCompliant}/{resourceTotal}
+                    </Tag>
+                  )}
                 </Tooltip>
                 {totalSchools > 0 && (
                   <Tooltip title="各学校7项指标达标率（至少6项达标，余项≥85%）">
@@ -629,7 +735,7 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
     }
 
     return nodes;
-  }, [primaryData, juniorData, govData, eduQualityData, socialRecogData]);
+  }, [primaryData, juniorData, govData, eduQualityData, socialRecogData, loading]);
 
   // 计算总体汇总
   const overallSummary = useMemo(() => {
@@ -659,9 +765,12 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
     };
   }, [primaryData, juniorData, govData, eduQualityData, socialRecogData]);
 
-  // 默认全部展开
+  // 默认全部展开 - 当所有数据加载完成后展开
+  const isAllDataLoaded = !loading && !govLoading && !eduQualityLoading && !socialRecogLoading;
+
   useEffect(() => {
-    if (treeData.length > 0 && expandedKeys.length === 0) {
+    // 当所有数据加载完成且尚未初始展开时，展开所有节点
+    if (isAllDataLoaded && treeData.length > 0 && !hasInitialExpanded.current) {
       // 递归收集所有非叶子节点的 key
       const collectAllKeys = (nodes: DataNode[]): React.Key[] => {
         const keys: React.Key[] = [];
@@ -674,8 +783,14 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
         return keys;
       };
       setExpandedKeys(collectAllKeys(treeData));
+      hasInitialExpanded.current = true;
     }
-  }, [treeData]);
+  }, [treeData, isAllDataLoaded]);
+
+  // 当 projectId 或 districtId 变化时重置初始展开状态
+  useEffect(() => {
+    hasInitialExpanded.current = false;
+  }, [projectId, districtId]);
 
   // 自定义节点图标
   const renderIcon = (props: any) => {

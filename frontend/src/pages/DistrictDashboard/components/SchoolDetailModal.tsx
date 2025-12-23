@@ -185,10 +185,31 @@ const SchoolDetailModal: React.FC<SchoolDetailModalProps> = ({
     },
   ];
 
+  // 渲染差异系数单元格
+  const renderCVCell = (cvIndicator: { cv: number | null; isCompliant: boolean | null } | undefined, threshold: number) => {
+    if (!cvIndicator || cvIndicator.cv === null) {
+      return <span style={{ color: '#999' }}>-</span>;
+    }
+    const color = cvIndicator.isCompliant ? '#52c41a' : '#ff4d4f';
+    const icon = cvIndicator.isCompliant ? <CheckCircleOutlined /> : <CloseCircleOutlined />;
+    return (
+      <Tooltip title={`标准: ≤${threshold}`}>
+        <span style={{ color, fontWeight: 600 }}>
+          {cvIndicator.cv.toFixed(4)} {icon}
+        </span>
+      </Tooltip>
+    );
+  };
+
   const renderTable = (data: ResourceIndicatorsSummary | null, schoolType: '小学' | '初中') => {
     if (!data?.schools || data.schools.length === 0) {
       return <Empty description={`暂无${schoolType}数据`} />;
     }
+
+    // 获取差异系数数据
+    const cvIndicators = data.summary?.cvIndicators || [];
+    const getCVByCode = (code: string) => cvIndicators.find(cv => cv.code === code);
+    const cvThreshold = schoolType === '小学' ? 0.50 : 0.45;
 
     return (
       <Table
@@ -202,6 +223,54 @@ const SchoolDetailModal: React.FC<SchoolDetailModalProps> = ({
           showTotal: (total) => `共 ${total} 所学校`,
         }}
         size="middle"
+        summary={() => (
+          <Table.Summary fixed>
+            <Table.Summary.Row style={{ background: '#fafafa', fontWeight: 600 }}>
+              <Table.Summary.Cell index={0} colSpan={1}>
+                <Tooltip title={`差异系数标准：${schoolType}≤${cvThreshold}`}>
+                  <span style={{ color: '#1890ff' }}>差异系数 (CV)</span>
+                </Tooltip>
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={1} align="right">
+                <span style={{ color: '#999' }}>-</span>
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={2} align="center">
+                {renderCVCell(getCVByCode('L1'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={3} align="center">
+                {renderCVCell(getCVByCode('L2'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={4} align="center">
+                {renderCVCell(getCVByCode('L3'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={5} align="center">
+                {renderCVCell(getCVByCode('L4'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={6} align="center">
+                {renderCVCell(getCVByCode('L5'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={7} align="center">
+                {renderCVCell(getCVByCode('L6'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={8} align="center">
+                {renderCVCell(getCVByCode('L7'), cvThreshold)}
+              </Table.Summary.Cell>
+              <Table.Summary.Cell index={9} align="center">
+                {data.summary?.allCvCompliant !== null && data.summary?.allCvCompliant !== undefined ? (
+                  data.summary.allCvCompliant ? (
+                    <Tag icon={<CheckCircleOutlined />} color="success">全部达标</Tag>
+                  ) : (
+                    <Tag icon={<CloseCircleOutlined />} color="error">
+                      {data.summary.compliantCvCount}/{data.summary.totalCvCount}
+                    </Tag>
+                  )
+                ) : (
+                  <span style={{ color: '#999' }}>-</span>
+                )}
+              </Table.Summary.Cell>
+            </Table.Summary.Row>
+          </Table.Summary>
+        )}
       />
     );
   };

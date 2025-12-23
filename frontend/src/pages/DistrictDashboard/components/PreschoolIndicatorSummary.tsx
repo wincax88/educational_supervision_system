@@ -7,7 +7,7 @@
  * - 维度三：幼儿园保教质量保障情况（6项指标）
  * - 综合达标情况与等级判定
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, Tree, Spin, Empty, Tag, Tooltip, Divider } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import {
@@ -124,6 +124,7 @@ const PreschoolIndicatorSummary: React.FC<PreschoolIndicatorSummaryProps> = ({
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [indicatorDetailVisible, setIndicatorDetailVisible] = useState(false);
   const [selectedIndicator, setSelectedIndicator] = useState<IndicatorDetail | null>(null);
+  const hasInitialExpanded = useRef(false);
 
   // 加载普及普惠水平指标数据
   useEffect(() => {
@@ -415,9 +416,12 @@ const PreschoolIndicatorSummary: React.FC<PreschoolIndicatorSummaryProps> = ({
     };
   }, [overallComplianceData]);
 
-  // 默认全部展开
+  // 默认全部展开 - 当所有数据加载完成后展开
+  const isAllDataLoaded = !universalizationLoading && !overallComplianceLoading;
+
   useEffect(() => {
-    if (treeData.length > 0 && expandedKeys.length === 0) {
+    // 当所有数据加载完成且尚未初始展开时，展开所有节点
+    if (isAllDataLoaded && treeData.length > 0 && !hasInitialExpanded.current) {
       // 递归收集所有非叶子节点的 key
       const collectAllKeys = (nodes: DataNode[]): React.Key[] => {
         const keys: React.Key[] = [];
@@ -430,8 +434,14 @@ const PreschoolIndicatorSummary: React.FC<PreschoolIndicatorSummaryProps> = ({
         return keys;
       };
       setExpandedKeys(collectAllKeys(treeData));
+      hasInitialExpanded.current = true;
     }
-  }, [treeData]);
+  }, [treeData, isAllDataLoaded]);
+
+  // 当 projectId 或 districtId 变化时重置初始展开状态
+  useEffect(() => {
+    hasInitialExpanded.current = false;
+  }, [projectId, districtId]);
 
   // 自定义节点图标
   const renderIcon = (props: any) => {
