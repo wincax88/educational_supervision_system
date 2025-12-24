@@ -27,6 +27,7 @@ import DistrictDashboard from './pages/DistrictDashboard';
 import DistrictProjectList from './pages/DistrictDashboard/DistrictProjectList';
 import ProjectDetail from './pages/ProjectDetail';
 import DistrictListPage from './pages/ProjectDetail/DistrictListPage';
+import SubmissionDetail from './pages/SubmissionDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/global.css';
 
@@ -230,6 +231,13 @@ const App: React.FC = () => {
             <Route path="expert" element={
               <ProtectedRoute requiredPermission="canReviewData">
                 <ExpertDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* 填报记录详情查看路由 - 支持通过 submissionId 查看 */}
+            <Route path="data-entry/:id" element={
+              <ProtectedRoute>
+                <SubmissionDetail />
               </ProtectedRoute>
             } />
 

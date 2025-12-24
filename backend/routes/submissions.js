@@ -1344,36 +1344,82 @@ router.post('/submissions/:id/submit', async (req, res) => {
 
     if (error) throw error;
 
-    // 同步更新关联任务的状态
-    // - 如果是从被驳回状态重新提交：更新任务状态为 in_progress 或 completed
-    // - 如果是免审核直接通过：任务状态设为 completed
+    // 同步更新关联任务的状态和 submission_id
+    // - 首次提交（需要审核）：更新任务状态为 in_progress，并关联 submission_id
+    // - 从被驳回状态重新提交：更新任务状态为 in_progress
+    // - 免审核直接通过：任务状态设为 completed
     if (toolId && submission.project_id) {
-      const taskStatus = requireReview
-        ? (wasRejected ? 'in_progress' : undefined)  // 需要审核：被驳回重新提交才更新
-        : 'completed';  // 免审核：直接完成
+      let taskStatus;
+      if (requireReview) {
+        // 需要审核：首次提交或重新提交都设为 in_progress
+        taskStatus = 'in_progress';
+      } else {
+        // 免审核：直接完成
+        taskStatus = 'completed';
+      }
 
-      if (taskStatus) {
-        const taskUpdateFields = { status: taskStatus, updated_at: timestamp };
-        if (taskStatus === 'completed') {
-          taskUpdateFields.completed_at = timestamp;
-        }
+      const taskUpdateFields = {
+        status: taskStatus,
+        submission_id: req.params.id,  // 始终关联 submission_id
+        updated_at: timestamp
+      };
+      if (taskStatus === 'completed') {
+        taskUpdateFields.completed_at = timestamp;
+      }
 
-        // 方式1：通过 submission_id 匹配
-        await db
+      // 方式1：通过已有 submission_id 匹配（针对重新提交的情况）
+      const { data: updatedBySubmissionId } = await db
+        .from('tasks')
+        .update(taskUpdateFields)
+        .eq('submission_id', req.params.id)
+        .select('id');
+
+      // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
+      let updatedByTarget = null;
+      if (submission.school_id) {
+        const targetStatuses = wasRejected ? ['rejected'] : ['pending', 'in_progress', 'rejected'];
+        const { data: updated } = await db
           .from('tasks')
           .update(taskUpdateFields)
-          .eq('submission_id', req.params.id);
+          .eq('project_id', submission.project_id)
+          .eq('tool_id', toolId)
+          .eq('target_id', submission.school_id)
+          .in('status', targetStatuses)
+          .select('id');
+        updatedByTarget = updated;
+      }
 
-        // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
-        if (submission.school_id) {
-          const targetStatuses = wasRejected ? ['rejected'] : ['pending', 'in_progress', 'rejected'];
-          await db
-            .from('tasks')
-            .update(taskUpdateFields)
-            .eq('project_id', submission.project_id)
-            .eq('tool_id', toolId)
-            .eq('target_id', submission.school_id)
-            .in('status', targetStatuses);
+      // 方式3：如果以上匹配都失败，尝试通过 submitter_org 查找匹配的学校样本
+      const noMatchYet = (!updatedBySubmissionId || updatedBySubmissionId.length === 0) &&
+                         (!updatedByTarget || updatedByTarget.length === 0);
+      if (noMatchYet) {
+        try {
+          const { data: fullSubmission } = await db
+            .from('submissions')
+            .select('submitter_org')
+            .eq('id', req.params.id)
+            .single();
+
+          if (fullSubmission?.submitter_org) {
+            const matchResult = await db.query(`
+              SELECT id FROM project_samples
+              WHERE project_id = $1 AND name = $2 AND type = 'school'
+              LIMIT 1
+            `, [submission.project_id, fullSubmission.submitter_org]);
+
+            if (matchResult.rows.length > 0) {
+              const targetStatuses = wasRejected ? ['rejected'] : ['pending', 'in_progress', 'rejected'];
+              await db
+                .from('tasks')
+                .update(taskUpdateFields)
+                .eq('project_id', submission.project_id)
+                .eq('tool_id', toolId)
+                .eq('target_id', matchResult.rows[0].id)
+                .in('status', targetStatuses);
+            }
+          }
+        } catch (e) {
+          console.warn('[submit] 方式3匹配失败:', e.message);
         }
       }
     }
@@ -1397,16 +1443,93 @@ router.post('/submissions/:id/submit', async (req, res) => {
 router.post('/submissions/:id/approve', async (req, res) => {
   try {
     const timestamp = now();
-    const { data, error } = await db
+
+    // 先获取提交记录信息，用于后续匹配任务
+    const { data: submission, error: fetchError } = await db
+      .from('submissions')
+      .select('id, project_id, form_id, tool_id, school_id, status')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!submission) {
+      return res.status(404).json({ code: 404, message: '填报记录不存在' });
+    }
+    if (submission.status !== 'submitted') {
+      return res.status(400).json({ code: 400, message: '只能审核已提交状态的填报记录' });
+    }
+
+    // 更新提交状态为审核通过
+    const { error } = await db
       .from('submissions')
       .update({ status: 'approved', approved_at: timestamp, updated_at: timestamp })
-      .eq('id', req.params.id)
-      .eq('status', 'submitted')
-      .select('id');
+      .eq('id', req.params.id);
 
     if (error) throw error;
-    if (!data || data.length === 0) {
-      return res.status(400).json({ code: 400, message: '只能审核已提交状态的填报记录' });
+
+    // 同步更新关联任务的状态为 completed
+    const toolId = submission.form_id || submission.tool_id;
+    if (toolId && submission.project_id) {
+      const taskUpdateFields = {
+        status: 'completed',
+        submission_id: req.params.id,
+        completed_at: timestamp,
+        updated_at: timestamp
+      };
+
+      // 方式1：通过 submission_id 匹配
+      const { data: updatedBySubmissionId } = await db
+        .from('tasks')
+        .update(taskUpdateFields)
+        .eq('submission_id', req.params.id)
+        .select('id');
+
+      // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
+      let updatedByTarget = null;
+      if (submission.school_id) {
+        const { data: updated } = await db
+          .from('tasks')
+          .update(taskUpdateFields)
+          .eq('project_id', submission.project_id)
+          .eq('tool_id', toolId)
+          .eq('target_id', submission.school_id)
+          .neq('status', 'completed')
+          .select('id');
+        updatedByTarget = updated;
+      }
+
+      // 方式3：如果以上匹配都失败，尝试通过 submitter_org 查找匹配的学校样本
+      const noMatchYet = (!updatedBySubmissionId || updatedBySubmissionId.length === 0) &&
+                         (!updatedByTarget || updatedByTarget.length === 0);
+      if (noMatchYet) {
+        try {
+          const { data: fullSubmission } = await db
+            .from('submissions')
+            .select('submitter_org')
+            .eq('id', req.params.id)
+            .single();
+
+          if (fullSubmission?.submitter_org) {
+            const matchResult = await db.query(`
+              SELECT id FROM project_samples
+              WHERE project_id = $1 AND name = $2 AND type = 'school'
+              LIMIT 1
+            `, [submission.project_id, fullSubmission.submitter_org]);
+
+            if (matchResult.rows.length > 0) {
+              await db
+                .from('tasks')
+                .update(taskUpdateFields)
+                .eq('project_id', submission.project_id)
+                .eq('tool_id', toolId)
+                .eq('target_id', matchResult.rows[0].id)
+                .neq('status', 'completed');
+            }
+          }
+        } catch (e) {
+          console.warn('[approve] 方式3匹配失败:', e.message);
+        }
+      }
     }
 
     // 审核通过后同步指标数据（写入 school_indicator_data，用于后续达标统计与详情回显）

@@ -303,6 +303,13 @@ router.post('/review-assignments/:id/review', async (req, res) => {
 
     const submissionId = assignments[0].submission_id;
 
+    // 获取填报记录信息，用于后续更新任务状态
+    const { data: submissionData } = await db.supabase
+      .from('submissions')
+      .select('project_id, tool_id, form_id, school_id, submitter_id')
+      .eq('id', submissionId)
+      .single();
+
     // 更新分配记录（使用 Supabase 客户端）
     await db.supabase
       .from('review_assignments')
@@ -325,6 +332,115 @@ router.post('/review-assignments/:id/review', async (req, res) => {
           updated_at: timestamp
         })
         .eq('id', submissionId);
+
+      // 审核通过后，同步更新关联任务的状态为 completed
+      if (submissionData) {
+        const toolId = submissionData.form_id || submissionData.tool_id;
+        const taskUpdateFields = {
+          status: 'completed',
+          completed_at: timestamp,
+          updated_at: timestamp
+        };
+
+        // 方式1：通过 submission_id 匹配
+        const { data: updatedBySubmissionId } = await db.supabase
+          .from('tasks')
+          .update(taskUpdateFields)
+          .eq('submission_id', submissionId)
+          .select('id');
+
+        // 方式2：通过 project_id + tool_id + assignee_id 匹配（利用唯一约束）
+        // 这是最可靠的匹配方式，因为任务表有 (project_id, tool_id, assignee_id) 唯一约束
+        if (submissionData.project_id && toolId && submissionData.submitter_id) {
+          const { data: updatedByAssignee } = await db.supabase
+            .from('tasks')
+            .update({
+              ...taskUpdateFields,
+              submission_id: submissionId  // 同时更新 submission_id，建立关联
+            })
+            .eq('project_id', submissionData.project_id)
+            .eq('tool_id', toolId)
+            .eq('assignee_id', submissionData.submitter_id)
+            .neq('status', 'completed')  // 只更新未完成的任务，避免重复更新
+            .select('id');
+
+          if (updatedByAssignee && updatedByAssignee.length > 0) {
+            console.log(`[review] 通过方式2（assignee_id）更新了 ${updatedByAssignee.length} 个任务，submissionId: ${submissionId}`);
+          }
+        }
+
+        // 方式3：通过 project_id + tool_id + target_id(school_id) 匹配（备用方案）
+        let updatedByTarget = null;
+        if (submissionData.project_id && toolId && submissionData.school_id) {
+          const { data: updated } = await db.supabase
+            .from('tasks')
+            .update({
+              ...taskUpdateFields,
+              submission_id: submissionId  // 同时更新 submission_id，建立关联
+            })
+            .eq('project_id', submissionData.project_id)
+            .eq('tool_id', toolId)
+            .eq('target_id', submissionData.school_id)
+            .neq('status', 'completed')  // 只更新未完成的任务，避免重复更新
+            .select('id');
+
+          updatedByTarget = updated;
+          if (updatedByTarget && updatedByTarget.length > 0) {
+            console.log(`[review] 通过方式3（target_id）更新了 ${updatedByTarget.length} 个任务，submissionId: ${submissionId}`);
+          }
+        }
+
+        // 方式4：如果以上匹配都失败，尝试通过 submitter_org 查找匹配的学校样本，再匹配任务
+        const noMatchYet = (!updatedBySubmissionId || updatedBySubmissionId.length === 0) &&
+                           (!updatedByTarget || updatedByTarget.length === 0);
+        if (noMatchYet && submissionData.project_id && toolId) {
+          try {
+            // 获取 submission 的 submitter_org
+            const { data: fullSubmission } = await db.supabase
+              .from('submissions')
+              .select('submitter_org')
+              .eq('id', submissionId)
+              .single();
+
+            if (fullSubmission?.submitter_org) {
+              // 通过 submitter_org 查找匹配的 project_samples
+              const matchResult = await db.query(`
+                SELECT id FROM project_samples
+                WHERE project_id = $1 AND name = $2 AND type = 'school'
+                LIMIT 1
+              `, [submissionData.project_id, fullSubmission.submitter_org]);
+
+              if (matchResult.rows.length > 0) {
+                const matchedSampleId = matchResult.rows[0].id;
+                const { data: updatedByOrgMatch } = await db.supabase
+                  .from('tasks')
+                  .update({
+                    ...taskUpdateFields,
+                    submission_id: submissionId
+                  })
+                  .eq('project_id', submissionData.project_id)
+                  .eq('tool_id', toolId)
+                  .eq('target_id', matchedSampleId)
+                  .neq('status', 'completed')
+                  .select('id');
+
+                if (updatedByOrgMatch && updatedByOrgMatch.length > 0) {
+                  console.log(`[review] 通过方式4（submitter_org匹配）更新了 ${updatedByOrgMatch.length} 个任务，submissionId: ${submissionId}, matchedSampleId: ${matchedSampleId}`);
+                  updatedByTarget = updatedByOrgMatch; // 标记为已匹配
+                }
+              }
+            }
+          } catch (e) {
+            console.warn(`[review] 方式4匹配失败:`, e.message);
+          }
+        }
+
+        // 如果所有方式都没匹配到，记录警告
+        if ((!updatedBySubmissionId || updatedBySubmissionId.length === 0) &&
+            (!updatedByTarget || updatedByTarget.length === 0)) {
+          console.warn(`[review] 未找到匹配的任务，submissionId: ${submissionId}, projectId: ${submissionData.project_id}, toolId: ${toolId}, submitterId: ${submissionData.submitter_id}, schoolId: ${submissionData.school_id}`);
+        }
+      }
     } else {
       await db.supabase
         .from('submissions')
