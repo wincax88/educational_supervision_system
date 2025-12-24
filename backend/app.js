@@ -22,6 +22,7 @@ const { router: complianceRoutes, setDb: setComplianceDb } = require('./routes/c
 const { router: personnelRoutes, setDb: setPersonnelDb } = require('./routes/personnel');
 const { router: samplesRoutes, setDb: setSamplesDb } = require('./routes/samples');
 const { router: taskRoutes, setDb: setTaskDb } = require('./routes/tasks');
+const { router: reviewAssignmentRoutes, setDb: setReviewAssignmentDb } = require('./routes/reviewAssignments');
 const { router: userRoutes } = require('./routes/users');
 const uploadsRouteFactory = require('./routes/uploads');
 const userStore = require('./services/userStore');
@@ -56,6 +57,7 @@ function createApp(db) {
     setPersonnelDb(db);
     setSamplesDb(db);
     setTaskDb(db);
+    setReviewAssignmentDb(db);
     dbConnected = true;
   }
 
@@ -72,6 +74,7 @@ function createApp(db) {
   app.use('/api', personnelRoutes);
   app.use('/api', samplesRoutes);
   app.use('/api', taskRoutes);
+  app.use('/api', reviewAssignmentRoutes);
   app.use('/api', userRoutes);
 
   // 文件上传路由

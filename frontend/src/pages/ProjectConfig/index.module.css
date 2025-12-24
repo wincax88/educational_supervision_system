@@ -1062,3 +1062,39 @@
     flex-wrap: wrap;
   }
 }
+
+/* ==================== 专家评审分配 ==================== */
+.expertListCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.selectedSubmissionList {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.selectedSubmissionItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.selectedSubmissionItem:last-child {
+  margin-bottom: 0;
+}
+
+.selectedSubmissionMore {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  padding: 8px;
+}

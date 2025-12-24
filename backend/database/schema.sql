@@ -535,3 +535,44 @@ CREATE INDEX IF NOT EXISTS idx_tasks_tool ON tasks(tool_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+
+-- ============================================================================
+-- 审核任务分配表
+-- ============================================================================
+
+-- 审核任务分配表 (评审专家分配)
+CREATE TABLE IF NOT EXISTS review_assignments (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,               -- 关联 projects.id，由程序验证
+  submission_id TEXT NOT NULL,            -- 关联 submissions.id，由程序验证
+  reviewer_id TEXT NOT NULL,              -- 关联 project_personnel.id（专家），由程序验证
+  status TEXT DEFAULT 'pending',          -- 状态: pending | completed
+  assigned_at TEXT,                       -- 分配时间
+  reviewed_at TEXT,                       -- 审核时间
+  review_result TEXT,                     -- 审核结果: approved | rejected
+  review_comment TEXT,                    -- 审核意见
+  created_at TEXT,
+  updated_at TEXT,
+  UNIQUE(submission_id, reviewer_id)      -- 同一填报记录只能分配给同一专家一次
+);
+
+-- 审核任务分配表索引
+CREATE INDEX IF NOT EXISTS idx_review_assignments_project ON review_assignments(project_id);
+CREATE INDEX IF NOT EXISTS idx_review_assignments_submission ON review_assignments(submission_id);
+CREATE INDEX IF NOT EXISTS idx_review_assignments_reviewer ON review_assignments(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_review_assignments_status ON review_assignments(status);
+
+-- 专家审核范围配置表
+CREATE TABLE IF NOT EXISTS reviewer_scopes (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,               -- 关联 projects.id，由程序验证
+  reviewer_id TEXT NOT NULL,              -- 关联 project_personnel.id（专家），由程序验证
+  scope_type TEXT NOT NULL,               -- 范围类型: district | school | tool | all
+  scope_id TEXT,                          -- 范围ID（区县ID/学校ID/工具ID，all 时为空）
+  created_at TEXT,
+  UNIQUE(project_id, reviewer_id, scope_type, scope_id)
+);
+
+-- 专家审核范围表索引
+CREATE INDEX IF NOT EXISTS idx_reviewer_scopes_project ON reviewer_scopes(project_id);
+CREATE INDEX IF NOT EXISTS idx_reviewer_scopes_reviewer ON reviewer_scopes(reviewer_id);

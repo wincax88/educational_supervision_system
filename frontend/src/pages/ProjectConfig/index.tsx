@@ -730,16 +730,18 @@ const ProjectConfig: React.FC = () => {
             //     />
             //   ),
             // },
-            // {
-            //   key: 'review',
-            //   label: '专家评审',
-            //   children: (
-            //     <ExpertReviewTab
-            //       projectId={projectId || ''}
-            //       projectStatus={project.status}
-            //     />
-            //   ),
-            // },
+            {
+              key: 'review',
+              label: '专家评审',
+              children: (
+                <ExpertReviewTab
+                  projectId={projectId || ''}
+                  projectStatus={project.status}
+                  personnel={personnel}
+                  disabled={isReadOnly}
+                />
+              ),
+            },
           ]}
         />
       </Card>
