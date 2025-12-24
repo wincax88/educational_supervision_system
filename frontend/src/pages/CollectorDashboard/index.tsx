@@ -544,8 +544,8 @@ const CollectorDashboard: React.FC = () => {
     [districtSchoolTasksGrouped]
   );
 
-  // 开始填报
-  const handleStartTask = async (task: Task) => {
+  // 开始填报（可选传入区县名称，用于学校任务场景）
+  const handleStartTask = async (task: Task, districtName?: string) => {
     try {
       if (task.status === 'pending') {
         await taskService.startTask(task.id);
@@ -556,7 +556,9 @@ const CollectorDashboard: React.FC = () => {
       if (task.targetName) params.set('targetName', task.targetName);
       if (task.targetType) params.set('targetType', task.targetType);
       if (task.assigneeOrg) params.set('assigneeOrg', task.assigneeOrg);
-      if (task.assigneeDistrict) params.set('assigneeDistrict', task.assigneeDistrict);
+      // 优先使用传入的区县名称，其次使用任务中的区县字段
+      const district = districtName || task.assigneeDistrict;
+      if (district) params.set('assigneeDistrict', district);
       // 传递工具目标类型
       if (task.toolTarget) params.set('toolTarget', task.toolTarget);
 
@@ -569,7 +571,7 @@ const CollectorDashboard: React.FC = () => {
         targetName: task.targetName,
         targetType: task.targetType,
         assigneeOrg: task.assigneeOrg,
-        assigneeDistrict: task.assigneeDistrict,
+        assigneeDistrict: district,
         toolTarget: task.toolTarget,
       });
       console.log('[handleStartTask] 跳转 URL:', url);
@@ -1117,13 +1119,13 @@ const CollectorDashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* 区县填报员：下属学校任务进度（按区县->学校分组） */}
+      {/* 区县填报员：学校任务（按区县->学校分组） */}
       {isDistrictScope && districtSchoolTasksGrouped.length > 0 && totalSchoolTasksCount > 0 && (
         <Card
           title={
             <Space>
               <BankOutlined style={{ color: '#52c41a' }} />
-              下属学校任务进度
+              学校任务
               <Tag color="blue">{districtSchoolTasksGrouped.length} 个区县</Tag>
               <Tag color="green">{totalSchoolsCount} 所学校</Tag>
               <Tag>{totalSchoolTasksCount} 个任务</Tag>
@@ -1221,6 +1223,26 @@ const CollectorDashboard: React.FC = () => {
                                         >
                                           查看指标
                                         </Button>,
+                                        task.status === 'completed' ? (
+                                          <Button
+                                            key="check"
+                                            type="link"
+                                            size="small"
+                                            onClick={() => handleStartTask(task, districtGroup.district.name)}
+                                          >
+                                            查看
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            key="fill"
+                                            type="primary"
+                                            size="small"
+                                            icon={<FormOutlined />}
+                                            onClick={() => handleStartTask(task, districtGroup.district.name)}
+                                          >
+                                            {task.status === 'pending' ? '填报' : '继续'}
+                                          </Button>
+                                        ),
                                       ]}
                                     >
                                       <List.Item.Meta

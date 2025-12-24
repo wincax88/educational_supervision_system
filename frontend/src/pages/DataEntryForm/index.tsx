@@ -1647,6 +1647,16 @@ const DataEntryForm: React.FC = () => {
             </div>
             {getStatusTag(submission?.status)}
           </div>
+          {/* 显示当前填报范围（区县 - 学校） */}
+          {(taskTargetFromQuery.targetName || resolvedScope?.name) && (
+            <div className={styles.formScopeInfo}>
+              <span className={styles.scopeLabel}>填报范围：</span>
+              <span className={styles.scopeName}>
+                {taskTargetFromQuery.assigneeDistrict && `${taskTargetFromQuery.assigneeDistrict} - `}
+                {taskTargetFromQuery.targetName || resolvedScope?.name}
+              </span>
+            </div>
+          )}
           <p className={styles.formDescription}>{toolInfo.description}</p>
         </div>
       )}

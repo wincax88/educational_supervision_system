@@ -167,6 +167,29 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     return matchStatus && matchTool && matchKeyword;
   });
 
+  // 获取所有学校的ID列表
+  const allSchoolIds = samples.filter(s => s.type === 'school').map(s => s.id);
+
+  // 当选择工具时，检查采集对象是否包含"学校"
+  const handleToolChange = (toolId: string) => {
+    const selectedTool = tools.find(t => t.toolId === toolId);
+    if (selectedTool?.toolTarget?.includes('学校')) {
+      // 如果采集对象包含学校，自动设置为指定学校模式，并选中所有学校
+      setTargetType('school');
+      assignForm.setFieldsValue({
+        toolId,
+        targetIds: allSchoolIds
+      });
+    } else {
+      // 否则重置为全部模式
+      setTargetType('all');
+      assignForm.setFieldsValue({
+        toolId,
+        targetIds: undefined
+      });
+    }
+  };
+
   // 打开分配任务弹窗
   const handleOpenAssignModal = () => {
     assignForm.resetFields();
@@ -574,13 +597,14 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             label="采集工具"
             rules={[{ required: true, message: '请选择采集工具' }]}
           >
-            <Select placeholder="请选择要分配的采集工具">
+            <Select placeholder="请选择要分配的采集工具" onChange={handleToolChange}>
               {tools.map(tool => (
                 <Select.Option key={tool.toolId} value={tool.toolId}>
                   <Space>
                     <FileTextOutlined style={{ color: '#1890ff' }} />
                     {tool.toolName}
                     {tool.toolType && <Tag className={styles.toolTypeTag}>{tool.toolType}</Tag>}
+                    {tool.toolTarget && <Tag color="cyan">{tool.toolTarget}</Tag>}
                   </Space>
                 </Select.Option>
               ))}
