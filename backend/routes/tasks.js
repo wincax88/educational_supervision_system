@@ -478,7 +478,7 @@ router.post('/tasks/:id/reset', async (req, res) => {
 // 获取我的任务列表（采集员视角）
 router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
   try {
-    const { projectId, status, scopeType, scopeId } = req.query;
+    const { projectId, status, scopeType, scopeId, includeSubSchools } = req.query;
     // 通过登录会话（token.timestamp）拿到当前 username/scopes
     const username = req.auth?.username;
     const u = username ? userStore.getUser(username) : null;
@@ -504,8 +504,10 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
     const districtIds = districtScopes.map(s => s.id).filter(Boolean);
     const districtNames = districtScopes.map(s => s.name).filter(Boolean);
 
-    // 去重：同一项目同一工具，只展示一个入口（避免“同名任务”出现两条）
-    const distinctOn = `DISTINCT ON (t.project_id, t.tool_id)`;
+    // 去重：同一项目同一工具，只展示一个入口（避免"同名任务"出现两条）
+    // 但如果需要查看下属学校任务，则不去重，以便显示每个学校的每个任务
+    const needDistinct = includeSubSchools !== 'true';
+    const distinctOn = needDistinct ? `DISTINCT ON (t.project_id, t.tool_id)` : '';
 
     let sql = `
       SELECT ${distinctOn}
@@ -515,6 +517,17 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         t.assignee_id as "assigneeId",
         t.target_type as "targetType",
         t.target_id as "targetId",
+        COALESCE(
+          -- 优先从 project_samples 获取名称（target_id 可能是样本 ID）
+          (SELECT name FROM project_samples WHERE id = t.target_id),
+          -- 兼容旧数据：从 schools/districts 表获取
+          CASE
+            WHEN t.target_type = 'school' THEN (SELECT name FROM schools WHERE id = t.target_id)
+            WHEN t.target_type = 'district' THEN (SELECT name FROM districts WHERE id = t.target_id)
+            ELSE NULL
+          END,
+          pp.organization
+        ) as "targetName",
         t.status,
         t.due_date as "dueDate",
         t.submission_id as "submissionId",
@@ -523,6 +536,7 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         t.updated_at as "updatedAt",
         dt.name as "toolName",
         dt.type as "toolType",
+        dt.target as "toolTarget",
         p.name as "projectName",
         pp.name as "assigneeName",
         pp.organization as "assigneeOrg",
@@ -626,6 +640,33 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '学校')`);
       } else if (st === 'district') {
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '区县')`);
+
+        // 如果是区县 scope 且需要包含下属学校任务
+        if (includeSubSchools === 'true') {
+          try {
+            // 查询该区县下所有学校（从项目样本表获取，sid 是区县样本 ID）
+            const schoolsResult = await db.query(
+              'SELECT id, name FROM project_samples WHERE parent_id = $1 AND type = $2',
+              [sid, 'school']
+            );
+            const subSchoolIds = schoolsResult.rows.map(s => s.id);
+            const subSchoolNames = schoolsResult.rows.map(s => s.name);
+
+            // 扩展过滤条件，包含下属学校的任务
+            if (subSchoolIds.length > 0) {
+              scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
+              params.push(subSchoolIds);
+            }
+            if (subSchoolNames.length > 0) {
+              scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+              params.push(subSchoolNames);
+            }
+            // 也包含学校级别的通用任务
+            scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '学校')`);
+          } catch (err) {
+            console.warn('查询下属学校失败:', err);
+          }
+        }
       } else {
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = ''))`);
       }
@@ -636,21 +677,48 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
     }
 
     // DISTINCT ON 要求 ORDER BY 以 distinct key 作为前缀（并优先返回"更紧急"的那条）
-    sql += `
-      ORDER BY
-        t.project_id,
-        t.tool_id,
-        CASE t.status
-          WHEN 'overdue' THEN 5
-          WHEN 'rejected' THEN 4
-          WHEN 'in_progress' THEN 3
-          WHEN 'pending' THEN 2
-          WHEN 'completed' THEN 1
-          ELSE 0
-        END DESC,
-        t.due_date ASC NULLS LAST,
-        t.created_at DESC
-    `;
+    // 如果不使用 DISTINCT ON（查看下属学校任务），则按学校名称分组排序
+    if (needDistinct) {
+      sql += `
+        ORDER BY
+          t.project_id,
+          t.tool_id,
+          CASE t.status
+            WHEN 'overdue' THEN 5
+            WHEN 'rejected' THEN 4
+            WHEN 'in_progress' THEN 3
+            WHEN 'pending' THEN 2
+            WHEN 'completed' THEN 1
+            ELSE 0
+          END DESC,
+          t.due_date ASC NULLS LAST,
+          t.created_at DESC
+      `;
+    } else {
+      // 按目标名称（学校名称）分组，然后按工具名称排序
+      sql += `
+        ORDER BY
+          COALESCE(
+            (SELECT name FROM project_samples WHERE id = t.target_id),
+            CASE
+              WHEN t.target_type = 'school' THEN (SELECT name FROM schools WHERE id = t.target_id)
+              WHEN t.target_type = 'district' THEN (SELECT name FROM districts WHERE id = t.target_id)
+              ELSE NULL
+            END,
+            pp.organization
+          ) ASC NULLS LAST,
+          dt.name ASC,
+          CASE t.status
+            WHEN 'overdue' THEN 5
+            WHEN 'rejected' THEN 4
+            WHEN 'in_progress' THEN 3
+            WHEN 'pending' THEN 2
+            WHEN 'completed' THEN 1
+            ELSE 0
+          END DESC,
+          t.created_at DESC
+      `;
+    }
 
     const result = await db.query(sql, params);
     res.json({ code: 200, data: result.rows });

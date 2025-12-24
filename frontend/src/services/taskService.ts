@@ -12,6 +12,7 @@ export interface Task {
   toolId: string;
   toolName?: string;
   toolType?: string;
+  toolTarget?: string;  // 工具目标对象（学校、区县等）
   assigneeId: string;
   assigneeName?: string;
   assigneeOrg?: string;
@@ -112,8 +113,18 @@ export async function getMyTasks(params?: {
   /** 可选：当前选中的范围（用于 school_reporter / district_admin 多范围场景，避免看起来"重复"） */
   scopeType?: 'city' | 'district' | 'school';
   scopeId?: string;
+  /** 可选：是否包含下属学校的任务（仅对区县填报员有效） */
+  includeSubSchools?: boolean;
 }): Promise<Task[]> {
-  return get<Task[]>('/my/tasks', params as Record<string, string>);
+  const queryParams: Record<string, string> = {};
+  if (params) {
+    if (params.projectId) queryParams.projectId = params.projectId;
+    if (params.status) queryParams.status = params.status;
+    if (params.scopeType) queryParams.scopeType = params.scopeType;
+    if (params.scopeId) queryParams.scopeId = params.scopeId;
+    if (params.includeSubSchools) queryParams.includeSubSchools = 'true';
+  }
+  return get<Task[]>('/my/tasks', queryParams);
 }
 
 // 我的项目类型

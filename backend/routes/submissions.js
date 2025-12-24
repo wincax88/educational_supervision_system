@@ -1125,32 +1125,90 @@ router.post('/submissions', async (req, res) => {
       return res.status(400).json({ code: 400, message: '项目不存在' });
     }
 
-    // 验证表单是否存在（程序层面引用验证）
-    const formResult = await db.query('SELECT id FROM data_tools WHERE id = $1', [formId]);
+    // 验证表单是否存在并获取目标类型（程序层面引用验证）
+    const formResult = await db.query('SELECT id, target FROM data_tools WHERE id = $1', [formId]);
     if (!formResult.rows[0]) {
       return res.status(400).json({ code: 400, message: '表单不存在' });
     }
+    const formTarget = formResult.rows[0].target; // '学校' | '区县' | 其他
 
     const id = generateId();
     const timestamp = now();
 
     // 兼容数据库 submissions.school_id 为 NOT NULL 的情况：
-    // - 优先使用前端传入的 schoolId
-    // - 其次：submitterId 若恰好是 schools.id，则复用
-    // - 再其次：用 submitterOrg 匹配 schools.name（若唯一）
+    // school_id 实际上是"填报主体ID"，可以是学校ID或区县样本ID
     let resolvedSchoolId = schoolId || null;
+
+    // 区县级表单：尝试从 project_samples 或 districts 匹配区县
+    if (!resolvedSchoolId && formTarget === '区县' && submitterOrg) {
+      // 去掉常见后缀（如"教育局"、"教育和体育局"等）后的名称
+      const orgNameVariants = [
+        submitterOrg,
+        submitterOrg.replace(/教育局$/, ''),
+        submitterOrg.replace(/教育和体育局$/, ''),
+        submitterOrg.replace(/教体局$/, ''),
+      ].filter((v, i, arr) => arr.indexOf(v) === i); // 去重
+
+      // 优先从 project_samples 匹配（项目配置的区县样本）
+      for (const orgName of orgNameVariants) {
+        const districtSample = await db.query(
+          `SELECT id FROM project_samples WHERE project_id = $1 AND type = 'district' AND name = $2 LIMIT 1`,
+          [projectId, orgName]
+        );
+        if (districtSample.rows?.[0]?.id) {
+          resolvedSchoolId = districtSample.rows[0].id;
+          break;
+        }
+      }
+
+      // 如果精确匹配失败，尝试包含关系匹配（区县名称包含在 submitterOrg 中）
+      if (!resolvedSchoolId) {
+        const districtSampleLike = await db.query(
+          `SELECT id FROM project_samples WHERE project_id = $1 AND type = 'district' AND $2 LIKE '%' || name || '%' LIMIT 1`,
+          [projectId, submitterOrg]
+        );
+        if (districtSampleLike.rows?.[0]?.id) {
+          resolvedSchoolId = districtSampleLike.rows[0].id;
+        }
+      }
+
+      // 其次从 districts 表匹配
+      if (!resolvedSchoolId) {
+        for (const orgName of orgNameVariants) {
+          const districtById = await db.query('SELECT id FROM districts WHERE name = $1 LIMIT 1', [orgName]);
+          if (districtById.rows?.[0]?.id) {
+            resolvedSchoolId = districtById.rows[0].id;
+            break;
+          }
+        }
+      }
+    }
+
+    // 学校级表单：尝试匹配学校
     if (!resolvedSchoolId && submitterId) {
       const schoolById = await db.query('SELECT id FROM schools WHERE id = $1 LIMIT 1', [submitterId]);
       if (schoolById.rows?.[0]?.id) resolvedSchoolId = schoolById.rows[0].id;
     }
     if (!resolvedSchoolId && submitterOrg) {
-      const schoolByName = await db.query('SELECT id FROM schools WHERE name = $1 LIMIT 2', [submitterOrg]);
-      if ((schoolByName.rows || []).length === 1) resolvedSchoolId = schoolByName.rows[0].id;
+      // 尝试从 project_samples 匹配学校样本
+      const schoolSample = await db.query(
+        `SELECT id FROM project_samples WHERE project_id = $1 AND type = 'school' AND name = $2 LIMIT 1`,
+        [projectId, submitterOrg]
+      );
+      if (schoolSample.rows?.[0]?.id) {
+        resolvedSchoolId = schoolSample.rows[0].id;
+      } else {
+        // 其次从 schools 表匹配
+        const schoolByName = await db.query('SELECT id FROM schools WHERE name = $1 LIMIT 2', [submitterOrg]);
+        if ((schoolByName.rows || []).length === 1) resolvedSchoolId = schoolByName.rows[0].id;
+      }
     }
+
     if (!resolvedSchoolId) {
+      const targetType = formTarget === '区县' ? '区县' : '学校';
       return res.status(400).json({
         code: 400,
-        message: '缺少 schoolId：请在创建填报时传入 schoolId（schools.id，可先调用 GET /api/schools 查询），或将 submitterOrg 设置为唯一的学校名称以便自动匹配',
+        message: `缺少填报主体：请确保 submitterOrg（${submitterOrg || '未提供'}）能匹配到项目中配置的${targetType}样本`,
       });
     }
 

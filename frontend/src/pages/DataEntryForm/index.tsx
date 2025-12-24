@@ -264,14 +264,74 @@ const DataEntryForm: React.FC = () => {
     return null;
   }, [user]);
 
+  // 从 URL 查询参数中获取任务目标信息（用于 scope 为空时的备用）
+  const taskTargetFromQuery = useMemo(() => {
+    const sp = new URLSearchParams(location.search);
+    return {
+      targetId: sp.get('targetId'),
+      targetName: sp.get('targetName'),
+      targetType: sp.get('targetType') as 'district' | 'school' | 'all' | null,
+      assigneeOrg: sp.get('assigneeOrg'),
+      assigneeDistrict: sp.get('assigneeDistrict'),
+      toolTarget: sp.get('toolTarget'),
+    };
+  }, [location.search]);
+
+  // 备用范围：当用户 scopes 为空时，从任务参数中构造
+  const fallbackScope = useMemo(() => {
+    const { targetId, targetName, targetType, assigneeOrg, assigneeDistrict, toolTarget } = taskTargetFromQuery;
+
+    // 调试日志
+    console.log('[DataEntryForm] 任务参数:', taskTargetFromQuery);
+
+    // 如果是区县级表单（工具目标是区县）
+    if (toolTarget === '区县' || targetType === 'district') {
+      // 确定区县名称：优先 targetName -> assigneeDistrict -> assigneeOrg
+      const districtName = targetName || assigneeDistrict || assigneeOrg;
+      if (districtName) {
+        const scope = { type: 'district' as const, id: targetId || '', name: districtName };
+        console.log('[DataEntryForm] 构造区县范围:', scope);
+        return scope;
+      }
+    }
+
+    // 如果是学校级表单
+    if (toolTarget === '学校' || targetType === 'school') {
+      // 确定学校名称：优先 targetName -> assigneeOrg
+      const schoolName = targetName || assigneeOrg;
+      if (schoolName) {
+        const scope = { type: 'school' as const, id: targetId || '', name: schoolName };
+        console.log('[DataEntryForm] 构造学校范围:', scope);
+        return scope;
+      }
+    }
+
+    // 没有足够信息构造范围
+    console.log('[DataEntryForm] 无法构造备用范围');
+    return null;
+  }, [taskTargetFromQuery]);
+
   // 根据工具目标类型获取对应的范围
   const resolvedScope = useMemo(() => {
-    if (!toolInfo) return resolvedSchoolScope || resolvedDistrictScope;
-    // 如果工具目标是区县，使用区县范围
-    if (toolInfo.target === '区县') return resolvedDistrictScope;
-    // 否则默认使用学校范围
-    return resolvedSchoolScope;
-  }, [toolInfo, resolvedSchoolScope, resolvedDistrictScope]);
+    let scope = null;
+
+    if (!toolInfo) {
+      scope = resolvedSchoolScope || resolvedDistrictScope;
+    } else if (toolInfo.target === '区县') {
+      // 如果工具目标是区县，使用区县范围
+      scope = resolvedDistrictScope;
+    } else {
+      // 否则默认使用学校范围
+      scope = resolvedSchoolScope;
+    }
+
+    // 如果用户没有配置 scope，使用从任务参数中构造的备用范围
+    if (!scope && fallbackScope) {
+      return fallbackScope;
+    }
+
+    return scope;
+  }, [toolInfo, resolvedSchoolScope, resolvedDistrictScope, fallbackScope]);
 
   // 判断是否为区县级表单
   const isDistrictForm = toolInfo?.target === '区县';

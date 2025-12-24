@@ -24,6 +24,7 @@ import {
   List,
   Modal,
   Checkbox,
+  Collapse,
 } from 'antd';
 import {
   FormOutlined,
@@ -41,6 +42,8 @@ import {
   ProjectOutlined,
   EyeOutlined,
   DatabaseOutlined,
+  BankOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
@@ -49,6 +52,7 @@ import * as taskService from '../../services/taskService';
 import type { Task, TaskStatus, MyProject, ToolFullSchema } from '../../services/taskService';
 import { getSchool, getSchoolCompliance, getSchoolIndicatorData, School, SchoolCompliance, SchoolIndicatorData, SchoolIndicatorItem } from '../../services/schoolService';
 import { getDistrictSchoolsIndicatorSummary, DistrictSchoolsIndicatorSummary } from '../../services/districtService';
+import { getSamples } from '../../services/sampleService';
 import { getResourceIndicatorsSummary, ResourceIndicatorsSummary } from '../../services/statisticsService';
 import { getSubmissions, getSubmission, Submission } from '../../services/submissionService';
 import styles from './index.module.css';
@@ -93,6 +97,11 @@ const CollectorDashboard: React.FC = () => {
   const [districtMiddleData, setDistrictMiddleData] = useState<DistrictSchoolsIndicatorSummary | null>(null);
   const [districtPrimaryCVData, setDistrictPrimaryCVData] = useState<ResourceIndicatorsSummary | null>(null);
   const [districtMiddleCVData, setDistrictMiddleCVData] = useState<ResourceIndicatorsSummary | null>(null);
+  // 区县下的学校列表（按区县分组，用于显示所有学校的任务进度）
+  const [districtSchoolsGrouped, setDistrictSchoolsGrouped] = useState<Array<{
+    district: { id: string; name: string };
+    schools: Array<{ id: string; name: string }>;
+  }>>([]);
 
   // 采集员/学校填报员可能绑定多个范围
   const resolvedScope = useMemo(() => {
@@ -163,19 +172,77 @@ const CollectorDashboard: React.FC = () => {
     if (!selectedProject) return;
     setLoading(true);
     try {
+      // 区县填报员需要加载下属学校的任务（通过 scope 类型或用户角色判断）
+      const isDistrictReporter = resolvedScope?.type === 'district' || user?.role === 'district_reporter';
       const data = await taskService.getMyTasks(
         resolvedScope
-          ? { projectId: selectedProject.id, scopeType: resolvedScope.type, scopeId: resolvedScope.id }
-          : { projectId: selectedProject.id }
+          ? {
+              projectId: selectedProject.id,
+              scopeType: resolvedScope.type,
+              scopeId: resolvedScope.id,
+              includeSubSchools: isDistrictReporter,
+            }
+          : { projectId: selectedProject.id, includeSubSchools: isDistrictReporter }
       );
       setTasks(data);
+
+      // 区县填报员：同时加载区县下所有学校列表（从项目样本表获取）
+      if (isDistrictReporter && selectedProject?.id) {
+        try {
+          // 获取用户所有区县 scope
+          const scopes = (user?.scopes || []) as Array<{ type: string; id: string; name?: string }>;
+          const districtScopes = scopes.filter(s => s?.type === 'district' && s?.id);
+
+          // 获取当前 scope 的区县名称
+          const districtNames = resolvedScope?.name
+            ? [resolvedScope.name]
+            : districtScopes.map(s => s.name).filter(Boolean);
+
+          // 获取项目样本树形结构（区县 -> 学校）
+          const sampleTree = await getSamples(selectedProject.id).catch(() => []);
+
+          // 从树中提取学校（按区县分组）
+          const grouped: Array<{
+            district: { id: string; name: string };
+            schools: Array<{ id: string; name: string }>;
+          }> = [];
+
+          sampleTree.forEach(district => {
+            // 如果有区县名称过滤条件，只取匹配的区县下的学校
+            // 如果没有（scopes 为空），则取所有区县下的学校
+            if (district.type === 'district') {
+              const shouldInclude = districtNames.length === 0 || districtNames.includes(district.name);
+              if (shouldInclude) {
+                const schools: Array<{ id: string; name: string }> = [];
+                // 区县的 children 就是学校列表
+                (district.children || []).forEach(child => {
+                  if (child.type === 'school') {
+                    schools.push({ id: child.id, name: child.name });
+                  }
+                });
+                if (schools.length > 0) {
+                  grouped.push({
+                    district: { id: district.id, name: district.name },
+                    schools,
+                  });
+                }
+              }
+            }
+          });
+
+          setDistrictSchoolsGrouped(grouped);
+        } catch (err) {
+          console.error('加载区县学校列表失败:', err);
+          setDistrictSchoolsGrouped([]);
+        }
+      }
     } catch (error) {
       console.error('加载任务失败:', error);
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [resolvedScope, selectedProject]);
+  }, [resolvedScope, selectedProject, user?.role]);
 
   // 加载学校信息
   useEffect(() => {
@@ -365,13 +432,149 @@ const CollectorDashboard: React.FC = () => {
     return matchStatus && matchKeyword;
   });
 
+  // 区县填报员：分组任务（区县任务 vs 下属学校任务）
+  // 通过 scope 类型或用户角色判断
+  const isDistrictScope = resolvedScope?.type === 'district' || user?.role === 'district_reporter';
+
+  // 判断任务是否为区县级任务
+  const isDistrictTask = (t: Task) => {
+    // 明确标记为区县级
+    if (t.targetType === 'district') return true;
+    if (t.toolTarget === '区县') return true;
+    // 工具名称包含"区县"
+    if (t.toolName?.includes('区县')) return true;
+    return false;
+  };
+
+  // 判断任务是否为学校级任务
+  const isSchoolTask = (t: Task) => {
+    // 明确标记为学校级
+    if (t.targetType === 'school') return true;
+    if (t.toolTarget === '学校') return true;
+    // 工具名称包含"校"但不包含"区县"
+    if (t.toolName && (t.toolName.includes('-校') || t.toolName.endsWith('校'))) return true;
+    return false;
+  };
+
+  // 我的区县任务
+  const myDistrictTasks = useMemo(() => {
+    if (!isDistrictScope) return filteredTasks;
+    return filteredTasks.filter(t => isDistrictTask(t));
+  }, [filteredTasks, isDistrictScope]);
+
+  // 下属学校任务
+  const subSchoolTasks = useMemo(() => {
+    if (!isDistrictScope) return [];
+    return filteredTasks.filter(t => isSchoolTask(t));
+  }, [filteredTasks, isDistrictScope]);
+
+  // 其他未分类任务（如问卷等）
+  const otherTasks = useMemo(() => {
+    if (!isDistrictScope) return [];
+    return filteredTasks.filter(t => !isDistrictTask(t) && !isSchoolTask(t));
+  }, [filteredTasks, isDistrictScope]);
+
+  // 所有学校名称集合（用于匹配任务）
+  const allSchoolNames = useMemo(() => {
+    const names = new Set<string>();
+    const ids = new Set<string>();
+    districtSchoolsGrouped.forEach(d => {
+      d.schools.forEach(s => {
+        names.add(s.name);
+        ids.add(s.id);
+      });
+    });
+    return { names, ids };
+  }, [districtSchoolsGrouped]);
+
+  // 按区县->学校分组（包含所有学校，即使没有任务）
+  const districtSchoolTasksGrouped = useMemo(() => {
+    return districtSchoolsGrouped.map(districtGroup => {
+      const schoolsWithTasks = districtGroup.schools.map(school => {
+        // 匹配该学校的任务：通过 targetId（学校样本ID）或 targetName/assigneeOrg（学校名称）
+        const schoolTasks = subSchoolTasks.filter(task =>
+          task.targetId === school.id ||
+          task.targetName === school.name ||
+          task.assigneeOrg === school.name
+        );
+        return {
+          school,
+          tasks: schoolTasks,
+          stats: {
+            total: schoolTasks.length,
+            completed: schoolTasks.filter(t => t.status === 'completed').length,
+          },
+        };
+      });
+
+      // 计算区县整体统计
+      const districtStats = {
+        totalSchools: schoolsWithTasks.length,
+        totalTasks: schoolsWithTasks.reduce((sum, s) => sum + s.stats.total, 0),
+        completedTasks: schoolsWithTasks.reduce((sum, s) => sum + s.stats.completed, 0),
+      };
+
+      return {
+        district: districtGroup.district,
+        schools: schoolsWithTasks,
+        stats: districtStats,
+      };
+    });
+  }, [subSchoolTasks, districtSchoolsGrouped]);
+
+  // 未匹配到具体学校的学校级任务（通用任务）
+  const unmatchedSchoolTasks = useMemo(() => {
+    return subSchoolTasks.filter(task => {
+      // 如果任务的 targetId 或 targetName 或 assigneeOrg 能匹配到任何学校，则不是未匹配任务
+      const matchedById = task.targetId && allSchoolNames.ids.has(task.targetId);
+      const matchedByTargetName = task.targetName && allSchoolNames.names.has(task.targetName);
+      const matchedByOrg = task.assigneeOrg && allSchoolNames.names.has(task.assigneeOrg);
+      return !matchedById && !matchedByTargetName && !matchedByOrg;
+    });
+  }, [subSchoolTasks, allSchoolNames]);
+
+  // 统计：总学校数和总任务数
+  const totalSchoolsCount = useMemo(() =>
+    districtSchoolTasksGrouped.reduce((sum, d) => sum + d.schools.length, 0),
+    [districtSchoolTasksGrouped]
+  );
+
+  const totalSchoolTasksCount = useMemo(() =>
+    districtSchoolTasksGrouped.reduce((sum, d) => sum + d.stats.totalTasks, 0),
+    [districtSchoolTasksGrouped]
+  );
+
   // 开始填报
   const handleStartTask = async (task: Task) => {
     try {
       if (task.status === 'pending') {
         await taskService.startTask(task.id);
       }
-      navigate(`/home/balanced/entry/${task.projectId}/form/${task.toolId}`);
+      // 构建查询参数，传递目标信息（用于区县填报员没有 scope 时的备用）
+      const params = new URLSearchParams();
+      if (task.targetId) params.set('targetId', task.targetId);
+      if (task.targetName) params.set('targetName', task.targetName);
+      if (task.targetType) params.set('targetType', task.targetType);
+      if (task.assigneeOrg) params.set('assigneeOrg', task.assigneeOrg);
+      if (task.assigneeDistrict) params.set('assigneeDistrict', task.assigneeDistrict);
+      // 传递工具目标类型
+      if (task.toolTarget) params.set('toolTarget', task.toolTarget);
+
+      const queryString = params.toString();
+      const url = `/home/balanced/entry/${task.projectId}/form/${task.toolId}${queryString ? `?${queryString}` : ''}`;
+
+      // 调试日志：打印任务数据和生成的 URL
+      console.log('[handleStartTask] 任务数据:', {
+        targetId: task.targetId,
+        targetName: task.targetName,
+        targetType: task.targetType,
+        assigneeOrg: task.assigneeOrg,
+        assigneeDistrict: task.assigneeDistrict,
+        toolTarget: task.toolTarget,
+      });
+      console.log('[handleStartTask] 跳转 URL:', url);
+
+      navigate(url);
     } catch (error) {
       message.error('启动任务失败');
     }
@@ -814,68 +1017,307 @@ const CollectorDashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* 任务列表 */}
-      <Card
-        title={
-          <Space>
-            <FormOutlined />
-            填报任务列表
-          </Space>
-        }
-        extra={
-          <Space>
-            <Select
-              placeholder="状态筛选"
-              style={{ width: 120 }}
-              allowClear
-              value={statusFilter || undefined}
-              onChange={setStatusFilter}
-            >
-              <Select.Option value="pending">待开始</Select.Option>
-              <Select.Option value="in_progress">进行中</Select.Option>
-              <Select.Option value="completed">已完成</Select.Option>
-              <Select.Option value="rejected">已驳回</Select.Option>
-              <Select.Option value="overdue">已逾期</Select.Option>
-            </Select>
-            <Input
-              placeholder="搜索任务"
-              prefix={<SearchOutlined />}
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              style={{ width: 180 }}
-              allowClear
-            />
-            <Button icon={<ReloadOutlined />} onClick={loadTasks}>
-              刷新
-            </Button>
-          </Space>
-        }
-        className={styles.taskCard}
-      >
-        <Spin spinning={loading}>
-          {filteredTasks.length > 0 ? (
+      {/* 筛选栏 */}
+      <Card className={styles.taskCard} style={{ marginBottom: 16 }}>
+        <Space>
+          <Select
+            placeholder="状态筛选"
+            style={{ width: 120 }}
+            allowClear
+            value={statusFilter || undefined}
+            onChange={setStatusFilter}
+          >
+            <Select.Option value="pending">待开始</Select.Option>
+            <Select.Option value="in_progress">进行中</Select.Option>
+            <Select.Option value="completed">已完成</Select.Option>
+            <Select.Option value="rejected">已驳回</Select.Option>
+            <Select.Option value="overdue">已逾期</Select.Option>
+          </Select>
+          <Input
+            placeholder="搜索任务"
+            prefix={<SearchOutlined />}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            style={{ width: 180 }}
+            allowClear
+          />
+          <Button icon={<ReloadOutlined />} onClick={loadTasks}>
+            刷新
+          </Button>
+        </Space>
+      </Card>
+
+      {/* 区县填报员：我的区县任务 */}
+      {isDistrictScope && (
+        <Card
+          title={
+            <Space>
+              <ApartmentOutlined style={{ color: '#1890ff' }} />
+              我的区县任务
+              <Tag color="blue">{myDistrictTasks.length}</Tag>
+            </Space>
+          }
+          className={styles.taskCard}
+          style={{ marginBottom: 16 }}
+        >
+          <Spin spinning={loading}>
+            {myDistrictTasks.length > 0 ? (
+              <Table
+                rowKey="id"
+                columns={columns}
+                dataSource={myDistrictTasks}
+                pagination={{
+                  total: myDistrictTasks.length,
+                  pageSize: 10,
+                  showTotal: (total) => `共 ${total} 条任务`,
+                }}
+              />
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  statusFilter || keyword
+                    ? '没有符合条件的区县任务'
+                    : '暂无区县级填报任务'
+                }
+              />
+            )}
+          </Spin>
+        </Card>
+      )}
+
+      {/* 区县填报员：未匹配到具体学校的学校级任务 */}
+      {isDistrictScope && unmatchedSchoolTasks.length > 0 && (
+        <Card
+          title={
+            <Space>
+              <BankOutlined style={{ color: '#faad14' }} />
+              学校级填报任务
+              <Tag color="warning">{unmatchedSchoolTasks.length}</Tag>
+              <Tooltip title="这些任务是学校级别的填报任务，由区县填报员统一完成">
+                <InfoCircleOutlined style={{ color: '#999' }} />
+              </Tooltip>
+            </Space>
+          }
+          className={styles.taskCard}
+          style={{ marginBottom: 16 }}
+        >
+          <Spin spinning={loading}>
             <Table
               rowKey="id"
               columns={columns}
-              dataSource={filteredTasks}
+              dataSource={unmatchedSchoolTasks}
               pagination={{
-                total: filteredTasks.length,
+                total: unmatchedSchoolTasks.length,
                 pageSize: 10,
                 showTotal: (total) => `共 ${total} 条任务`,
               }}
             />
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={
-                statusFilter || keyword
-                  ? '没有符合条件的任务'
-                  : '暂无填报任务'
-              }
+          </Spin>
+        </Card>
+      )}
+
+      {/* 区县填报员：下属学校任务进度（按区县->学校分组） */}
+      {isDistrictScope && districtSchoolTasksGrouped.length > 0 && totalSchoolTasksCount > 0 && (
+        <Card
+          title={
+            <Space>
+              <BankOutlined style={{ color: '#52c41a' }} />
+              下属学校任务进度
+              <Tag color="blue">{districtSchoolTasksGrouped.length} 个区县</Tag>
+              <Tag color="green">{totalSchoolsCount} 所学校</Tag>
+              <Tag>{totalSchoolTasksCount} 个任务</Tag>
+            </Space>
+          }
+          className={styles.taskCard}
+          style={{ marginBottom: 16 }}
+        >
+          <Spin spinning={loading}>
+            <Collapse
+              defaultActiveKey={districtSchoolTasksGrouped.map(d => d.district.id)}
+              items={districtSchoolTasksGrouped.map(districtGroup => {
+                const districtCompletionRate = districtGroup.stats.totalTasks > 0
+                  ? Math.round((districtGroup.stats.completedTasks / districtGroup.stats.totalTasks) * 100)
+                  : 0;
+                return {
+                  key: districtGroup.district.id,
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                      <Space>
+                        <ApartmentOutlined style={{ color: '#1890ff' }} />
+                        <span style={{ fontWeight: 600, fontSize: 15 }}>{districtGroup.district.name}</span>
+                        <Tag color="blue">{districtGroup.stats.totalSchools} 所学校</Tag>
+                        {districtGroup.stats.totalTasks > 0 && (
+                          <Tag color={districtCompletionRate === 100 ? 'success' : 'processing'}>
+                            {districtGroup.stats.completedTasks}/{districtGroup.stats.totalTasks} 任务已完成
+                          </Tag>
+                        )}
+                      </Space>
+                      {districtGroup.stats.totalTasks > 0 && (
+                        <Progress
+                          percent={districtCompletionRate}
+                          size="small"
+                          style={{ width: 120, marginRight: 16 }}
+                          strokeColor={districtCompletionRate === 100 ? '#52c41a' : '#1890ff'}
+                        />
+                      )}
+                    </div>
+                  ),
+                  children: (
+                    <div style={{ paddingLeft: 16 }}>
+                      {districtGroup.schools.map(schoolData => {
+                        const schoolCompletionRate = schoolData.stats.total > 0
+                          ? Math.round((schoolData.stats.completed / schoolData.stats.total) * 100)
+                          : 0;
+                        const hasNoTasks = schoolData.tasks.length === 0;
+                        return (
+                          <div
+                            key={schoolData.school.id}
+                            style={{
+                              marginBottom: 12,
+                              padding: '12px 16px',
+                              background: '#fafafa',
+                              borderRadius: 6,
+                              border: '1px solid #f0f0f0',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: hasNoTasks ? 0 : 8 }}>
+                              <Space>
+                                <BankOutlined style={{ color: '#52c41a' }} />
+                                <span style={{ fontWeight: 500 }}>{schoolData.school.name}</span>
+                                {hasNoTasks ? (
+                                  <Tag color="default">暂无任务</Tag>
+                                ) : (
+                                  <Tag color={schoolCompletionRate === 100 ? 'success' : schoolCompletionRate > 0 ? 'processing' : 'default'}>
+                                    {schoolData.stats.completed}/{schoolData.stats.total} 已完成
+                                  </Tag>
+                                )}
+                              </Space>
+                              {!hasNoTasks && (
+                                <Progress
+                                  percent={schoolCompletionRate}
+                                  size="small"
+                                  style={{ width: 100 }}
+                                  strokeColor={schoolCompletionRate === 100 ? '#52c41a' : '#1890ff'}
+                                />
+                              )}
+                            </div>
+                            {!hasNoTasks && (
+                              <List
+                                size="small"
+                                dataSource={schoolData.tasks}
+                                renderItem={(task) => {
+                                  const statusCfg = statusConfig[task.status] || statusConfig.pending;
+                                  return (
+                                    <List.Item
+                                      style={{ padding: '8px 0', borderBottom: '1px dashed #e8e8e8' }}
+                                      actions={[
+                                        <Button
+                                          key="view"
+                                          type="link"
+                                          size="small"
+                                          icon={<EyeOutlined />}
+                                          onClick={() => handleViewIndicators(task)}
+                                        >
+                                          查看指标
+                                        </Button>,
+                                      ]}
+                                    >
+                                      <List.Item.Meta
+                                        avatar={<FileTextOutlined style={{ color: '#1890ff', fontSize: 16 }} />}
+                                        title={<span style={{ fontSize: 13 }}>{task.toolName || '未知工具'}</span>}
+                                        description={
+                                          <Space size="small">
+                                            <Badge status={statusCfg.color as any} text={statusCfg.text} />
+                                            {task.dueDate && (
+                                              <span style={{ color: '#999', fontSize: 12 }}>
+                                                截止: {new Date(task.dueDate).toLocaleDateString('zh-CN')}
+                                              </span>
+                                            )}
+                                          </Space>
+                                        }
+                                      />
+                                    </List.Item>
+                                  );
+                                }}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ),
+                };
+              })}
             />
-          )}
-        </Spin>
-      </Card>
+          </Spin>
+        </Card>
+      )}
+
+      {/* 区县填报员：其他任务（问卷等） */}
+      {isDistrictScope && otherTasks.length > 0 && (
+        <Card
+          title={
+            <Space>
+              <FormOutlined style={{ color: '#faad14' }} />
+              其他任务
+              <Tag color="warning">{otherTasks.length}</Tag>
+            </Space>
+          }
+          className={styles.taskCard}
+          style={{ marginBottom: 16 }}
+        >
+          <Spin spinning={loading}>
+            <Table
+              rowKey="id"
+              columns={columns}
+              dataSource={otherTasks}
+              pagination={{
+                total: otherTasks.length,
+                pageSize: 10,
+                showTotal: (total) => `共 ${total} 条任务`,
+              }}
+            />
+          </Spin>
+        </Card>
+      )}
+
+      {/* 非区县填报员：原有任务列表 */}
+      {!isDistrictScope && (
+        <Card
+          title={
+            <Space>
+              <FormOutlined />
+              填报任务列表
+            </Space>
+          }
+          className={styles.taskCard}
+        >
+          <Spin spinning={loading}>
+            {filteredTasks.length > 0 ? (
+              <Table
+                rowKey="id"
+                columns={columns}
+                dataSource={filteredTasks}
+                pagination={{
+                  total: filteredTasks.length,
+                  pageSize: 10,
+                  showTotal: (total) => `共 ${total} 条任务`,
+                }}
+              />
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  statusFilter || keyword
+                    ? '没有符合条件的任务'
+                    : '暂无填报任务'
+                }
+              />
+            )}
+          </Spin>
+        </Card>
+      )}
 
       {/* 快捷入口 - 逾期任务提醒 */}
       {stats.overdue > 0 && (
