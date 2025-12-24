@@ -651,10 +651,12 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
           key: `l2-${l2Indicator.id}`,
           title: (
             <div className={styles.schoolTypeTitle}>
-              <span className={styles.indicatorCode}>{l2Indicator.code}</span>
-              <Tooltip title={l2Indicator.name}>
-                <span className={styles.schoolTypeName}>{l2Indicator.name}</span>
-              </Tooltip>
+              <div className={styles.schoolTypeTitleContent}>
+                <span className={styles.indicatorCode}>{l2Indicator.code}</span>
+                <Tooltip title={l2Indicator.name}>
+                  <span className={styles.schoolTypeName}>{l2Indicator.name}</span>
+                </Tooltip>
+              </div>
               {l2Children.length > 0 && (
                 <Tag color="default">
                   {l2Indicator.dataIndicators.length > 0 ? `${l2Indicator.dataIndicators.length}项数据指标` : ''}
