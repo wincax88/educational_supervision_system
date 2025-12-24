@@ -63,6 +63,26 @@ export async function deleteUser(username: string): Promise<void> {
   return del<void>(`/users/${encodeURIComponent(username)}`);
 }
 
+// 批量导入用户
+export interface ImportUserData {
+  username: string;
+  password: string;
+  roles?: UserRole[];
+  status?: UserStatus;
+  scopes?: ScopeItem[];
+}
+
+export interface ImportResult {
+  success: number;
+  failed: number;
+  errors: string[];
+  created: string[];
+}
+
+export async function importUsers(users: ImportUserData[]): Promise<ImportResult> {
+  return post<ImportResult>('/users/import', { users });
+}
+
 // 角色显示名称映射
 export const roleDisplayNames: Record<UserRole, string> = {
   admin: '系统管理员',

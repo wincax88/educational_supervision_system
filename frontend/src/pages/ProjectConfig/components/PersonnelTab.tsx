@@ -45,16 +45,20 @@ const TARGET_TYPES = [
   { label: '家长', value: '家长' },
 ];
 
-// 角色定义
-// | 角色 | 所属层级 | 可操作的采集工具 | 权限范围 |
-// | 系统管理员 | 省级/国家级 | 所有工具模板 | 创建/维护工具模板、项目全局配置 |
-// | 市级管理员 | 市级 | 查看工具、汇总报表 | 查看区县进度，不可编辑数据 |
-// | 区县管理员 | 区县 | 表单审核工具、Excel汇总模板 | 审核本区县所有学校数据、退回修改 |
-// | 学校填报员 | 学校 | 在线表单、Excel填报模板 | 仅编辑本校原始要素 |
+// 角色定义（新角色体系）
+// | 角色 | 代码 | 职责 | 权限范围 |
+// | 项目管理员 | project_admin | 项目配置和管理 | 配置项目、管理人员、查看进度、生成报表 |
+// | 数据采集员 | data_collector | 数据填报和采集 | 填报所属区县内所有学校的数据 |
+// | 项目评估专家 | project_expert | 项目评审和评估 | 审核提交的数据、评审评估结果 |
 
 // 获取角色显示名和描述
 const getRoleInfo = (role: string): RoleInfo => {
   const roleMap: Record<string, RoleInfo> = {
+    // 新角色体系
+    'project_admin': { name: '项目管理员', desc: '项目配置和管理，配置项目、管理人员、查看进度' },
+    'data_collector': { name: '数据采集员', desc: '数据填报和采集，填报所属区县内所有学校的数据' },
+    'project_expert': { name: '项目评估专家', desc: '数据审核和评估，审核提交的数据、评审评估结果' },
+    // 保留旧角色兼容
     'system_admin': { name: '系统管理员', desc: '省级/国家级，创建/维护工具模板、项目全局配置' },
     'city_admin': { name: '市级管理员', desc: '市级，查看区县进度，不可编辑数据' },
     'district_admin': { name: '区县管理员', desc: '区县，审核本区县所有学校数据、退回修改' },
@@ -107,11 +111,15 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
     return acc;
   }, {} as Record<string, ProjectTool[]>);
 
-  // 获取区县填报员列表
+  // 获取新角色体系人员列表
+  const projectAdmins = personnel['project_admin'] || [];
+  const dataCollectors = personnel['data_collector'] || [];
+  const projectExperts = personnel['project_expert'] || [];
+  const filteredDataCollectors = filterPersonnel('data_collector');
+
+  // 保留旧角色兼容
   const districtReporters = personnel['district_reporter'] || [];
   const filteredDistrictReporters = filterPersonnel('district_reporter');
-
-  // 获取学校填报员列表
   const schoolReporters = personnel['school_reporter'] || [];
   const filteredSchoolReporters = filterPersonnel('school_reporter');
 
@@ -122,9 +130,13 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       return;
     }
 
-    const allReporters = [...districtReporters, ...schoolReporters];
-    if (allReporters.length === 0) {
-      message.warning('暂无填报员，请先添加人员');
+    // 优先使用新角色体系的数据采集员，兼容旧角色
+    const allCollectors = dataCollectors.length > 0
+      ? dataCollectors
+      : [...districtReporters, ...schoolReporters];
+
+    if (allCollectors.length === 0) {
+      message.warning('暂无数据采集员，请先添加人员');
       return;
     }
 
@@ -241,6 +253,46 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
     }] : []),
   ];
 
+  // 数据采集员表格列定义（包含负责区县）
+  const dataCollectorColumns: ColumnsType<Personnel> = [
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      key: 'name',
+      width: 100,
+      render: (name) => (
+        <Space>
+          <UserOutlined />
+          <span className={styles.personName}>{name}</span>
+        </Space>
+      )
+    },
+    { title: '单位', dataIndex: 'organization', key: 'organization', width: 150 },
+    {
+      title: '负责区县',
+      dataIndex: 'districtName',
+      key: 'districtName',
+      width: 120,
+      render: (districtName: string) => districtName ? (
+        <Tag color="blue">{districtName}</Tag>
+      ) : <span style={{ color: '#999' }}>未分配</span>
+    },
+    { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
+    ...(!disabled ? [{
+      title: '操作',
+      key: 'action',
+      width: 80,
+      render: (_: unknown, record: Personnel) => (
+        <Button
+          type="text"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => onDeletePerson(record)}
+        />
+      ),
+    }] : []),
+  ];
+
   return (
     <div className={styles.personnelTab}>
       {/* 统计卡片 */}
@@ -248,16 +300,24 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         <Row gutter={24}>
           <Col span={4}>
             <Statistic
-              title="区县填报员"
-              value={districtReporters.length}
+              title="项目管理员"
+              value={projectAdmins.length}
               suffix="人"
               prefix={<UserOutlined />}
             />
           </Col>
           <Col span={4}>
             <Statistic
-              title="学校填报员"
-              value={schoolReporters.length}
+              title="数据采集员"
+              value={dataCollectors.length}
+              suffix="人"
+              prefix={<UserOutlined />}
+            />
+          </Col>
+          <Col span={4}>
+            <Statistic
+              title="项目评估专家"
+              value={projectExperts.length}
               suffix="人"
               prefix={<UserOutlined />}
             />
@@ -269,7 +329,7 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
               suffix="个"
             />
           </Col>
-          <Col span={12}>
+          <Col span={8}>
             <div style={{ paddingTop: 8 }}>
               <div style={{ marginBottom: 8, color: '#666' }}>按填报对象筛选</div>
               <Space>
@@ -290,13 +350,13 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
                   ))}
                 </Select>
                 {!disabled && (
-                  <Tooltip title="根据采集工具的填报对象自动分配给对应的填报员">
+                  <Tooltip title="根据采集工具的填报对象自动分配给数据采集员">
                     <Button
                       type="primary"
                       icon={<ThunderboltOutlined />}
                       onClick={handleAutoAssign}
                       loading={autoAssigning}
-                      disabled={(districtReporters.length === 0 && schoolReporters.length === 0) || tools.length === 0}
+                      disabled={(dataCollectors.length === 0 && districtReporters.length === 0 && schoolReporters.length === 0) || tools.length === 0}
                     >
                       自动分配任务
                     </Button>
@@ -331,9 +391,9 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         </Card>
       )}
 
-      {/* 区县填报员配置 */}
+      {/* 项目管理员配置 */}
       <div className={styles.personnelHeader}>
-        <h3 className={styles.sectionTitle}>区县填报员</h3>
+        <h3 className={styles.sectionTitle}>项目管理员</h3>
         <div className={styles.personnelActions}>
           <Input
             placeholder="搜索人员"
@@ -354,19 +414,19 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => onAddPerson('district_reporter')}
+              onClick={() => onAddPerson('project_admin')}
             >
-              添加填报员
+              添加管理员
             </Button>
           )}
         </div>
       </div>
 
-      {/* 区县填报员列表 */}
+      {/* 项目管理员列表 */}
       <Table
         rowKey="id"
         columns={personnelColumns}
-        dataSource={filteredDistrictReporters}
+        dataSource={projectAdmins}
         pagination={{
           pageSize: 10,
           showTotal: (total) => `共 ${total} 人`,
@@ -376,27 +436,27 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         className={styles.personnelTable}
       />
 
-      {/* 学校填报员配置 */}
+      {/* 数据采集员配置 */}
       <div className={styles.personnelHeader} style={{ marginTop: 24 }}>
-        <h3 className={styles.sectionTitle}>学校填报员</h3>
+        <h3 className={styles.sectionTitle}>数据采集员</h3>
         <div className={styles.personnelActions}>
           {!disabled && (
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => onAddPerson('school_reporter')}
+              onClick={() => onAddPerson('data_collector')}
             >
-              添加填报员
+              添加采集员
             </Button>
           )}
         </div>
       </div>
 
-      {/* 学校填报员列表 */}
+      {/* 数据采集员列表 */}
       <Table
         rowKey="id"
-        columns={personnelColumns}
-        dataSource={filteredSchoolReporters}
+        columns={dataCollectorColumns}
+        dataSource={filteredDataCollectors}
         pagination={{
           pageSize: 10,
           showTotal: (total) => `共 ${total} 人`,
@@ -406,9 +466,39 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         className={styles.personnelTable}
       />
 
-      {/* 其他角色折叠显示 */}
+      {/* 项目评估专家配置 */}
+      <div className={styles.personnelHeader} style={{ marginTop: 24 }}>
+        <h3 className={styles.sectionTitle}>项目评估专家</h3>
+        <div className={styles.personnelActions}>
+          {!disabled && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => onAddPerson('project_expert')}
+            >
+              添加专家
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 项目评估专家列表 */}
+      <Table
+        rowKey="id"
+        columns={personnelColumns}
+        dataSource={projectExperts}
+        pagination={{
+          pageSize: 10,
+          showTotal: (total) => `共 ${total} 人`,
+          showSizeChanger: true,
+        }}
+        size="small"
+        className={styles.personnelTable}
+      />
+
+      {/* 其他角色（旧角色兼容）折叠显示 */}
       <div style={{ marginTop: 24 }}>
-        {['district_admin', 'city_admin', 'system_admin'].map(role => {
+        {['district_reporter', 'school_reporter', 'district_admin', 'city_admin', 'system_admin'].map(role => {
           const roleInfo = getRoleInfo(role);
           const rolePersonnel = personnel[role] || [];
 

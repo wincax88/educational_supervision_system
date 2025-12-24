@@ -29,19 +29,24 @@ import type {
 import type { ImportFilter } from '../hooks';
 import styles from '../index.module.css';
 
-// 角色定义
-// | 角色 | 所属层级 | 可操作的采集工具 | 权限范围 |
-// | 系统管理员 | 省级/国家级 | 所有工具模板 | 创建/维护工具模板、项目全局配置 |
-// | 市级管理员 | 市级 | 查看工具、汇总报表 | 查看区县进度，不可编辑数据 |
-// | 区县管理员 | 区县 | 表单审核工具、Excel汇总模板 | 审核本区县所有学校数据、退回修改 |
-// | 学校填报员 | 学校 | 在线表单、Excel填报模板 | 仅编辑本校原始要素 |
+// 角色定义（新角色体系）
+// | 角色 | 代码 | 职责 | 权限范围 |
+// | 项目管理员 | project_admin | 项目配置和管理 | 配置项目、管理人员、查看进度、生成报表 |
+// | 数据采集员 | data_collector | 数据填报和采集 | 填报所属区县内所有学校的数据 |
+// | 项目评估专家 | project_expert | 项目评审和评估 | 审核提交的数据、评审评估结果 |
 
 // 获取角色显示名和描述
 const getRoleInfo = (role: string): RoleInfo => {
   const roleMap: Record<string, RoleInfo> = {
+    // 新角色体系
+    'project_admin': { name: '项目管理员', desc: '项目配置和管理，配置项目、管理人员、查看进度' },
+    'data_collector': { name: '数据采集员', desc: '数据填报和采集，填报所属区县内所有学校的数据' },
+    'project_expert': { name: '项目评估专家', desc: '数据审核和评估，审核提交的数据、评审评估结果' },
+    // 保留旧角色兼容
     'system_admin': { name: '系统管理员', desc: '省级/国家级，创建/维护工具模板、项目全局配置' },
     'city_admin': { name: '市级管理员', desc: '市级，查看区县进度，不可编辑数据' },
     'district_admin': { name: '区县管理员', desc: '区县，审核本区县所有学校数据、退回修改' },
+    'district_reporter': { name: '区县填报员', desc: '区县，填报区县级采集工具数据' },
     'school_reporter': { name: '学校填报员', desc: '学校，仅编辑本校原始要素' },
   };
   return roleMap[role] || { name: role, desc: '' };
@@ -75,20 +80,32 @@ interface AvailableOrganization {
   districtName?: string;  // 学校所属区县名称
 }
 
+// 区县选项（用于数据采集员选择负责区县）
+interface DistrictOption {
+  id: string;
+  name: string;
+}
+
 interface AddPersonModalProps {
   visible: boolean;
   onCancel: () => void;
   onSubmit: (values: PersonnelFormValues) => void;
-  onBatchSubmit?: (users: SystemUserOption[], role: string) => void;  // 批量添加
+  onBatchSubmit?: (users: SystemUserOption[], role: string, districtId?: string) => void;  // 批量添加
   form: FormInstance;
   userList?: SystemUserOption[];
   loadingUsers?: boolean;
   presetRole?: string;  // 预设角色（从角色标题行点击时传入）
   availableOrganizations?: AvailableOrganization[];  // 可选的组织列表（来自填报学校配置）
+  availableDistricts?: DistrictOption[];  // 可选的区县列表（数据采集员使用）
 }
 
 // 系统角色到人员角色的映射（一对一，保持一致）
 const systemRoleToPersonnelRole: Record<string, string> = {
+  // 新角色映射
+  project_admin: 'project_admin',
+  data_collector: 'data_collector',
+  project_expert: 'project_expert',
+  // 保留旧角色兼容
   admin: 'system_admin',
   city_admin: 'city_admin',
   district_admin: 'district_admin',
@@ -97,6 +114,11 @@ const systemRoleToPersonnelRole: Record<string, string> = {
 
 // 人员角色到系统角色的映射（用于筛选）
 const personnelRoleToSystemRoles: Record<string, string[]> = {
+  // 新角色映射
+  project_admin: ['project_admin', 'admin'],
+  data_collector: ['data_collector'],
+  project_expert: ['project_expert'],
+  // 保留旧角色兼容
   system_admin: ['admin'],
   city_admin: ['city_admin'],
   district_admin: ['district_admin'],
@@ -105,14 +127,25 @@ const personnelRoleToSystemRoles: Record<string, string[]> = {
 
 // 人员配置角色显示名称
 const roleDisplayNames: Record<string, string> = {
+  // 新角色体系
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目评估专家',
+  // 保留旧角色兼容
   system_admin: '系统管理员',
   city_admin: '市级管理员',
   district_admin: '区县管理员',
+  district_reporter: '区县填报员',
   school_reporter: '学校填报员',
 };
 
 // 系统角色显示名称（用于下拉选项）
 const systemRoleDisplayNames: Record<string, string> = {
+  // 新角色体系
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目评估专家',
+  // 保留旧角色兼容
   admin: '系统管理员',
   city_admin: '市级管理员',
   district_admin: '区县管理员',
@@ -135,9 +168,12 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   loadingUsers = false,
   presetRole,
   availableOrganizations = [],
+  availableDistricts = [],
 }) => {
   const [selectMode, setSelectMode] = React.useState<'select' | 'manual'>('select');
   const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
+  const [selectedRole, setSelectedRole] = React.useState<string>(presetRole || '');
+  const [selectedDistrictId, setSelectedDistrictId] = React.useState<string>('');
 
   // 根据预设角色过滤可选组织
   const filteredOrganizations = React.useMemo(() => {
@@ -159,8 +195,10 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   React.useEffect(() => {
     if (visible) {
       setSelectedUsers([]);
+      setSelectedDistrictId('');
       if (presetRole) {
         setSelectMode('select');
+        setSelectedRole(presetRole);
         form.setFieldsValue({ role: presetRole });
       }
     }
@@ -187,9 +225,14 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
     if (selectedUsers.length === 0) {
       return;
     }
+    // 数据采集员必须选择负责的区县
+    if (presetRole === 'data_collector' && !selectedDistrictId) {
+      message.warning('请选择负责的区县');
+      return;
+    }
     const selectedUserObjects = filteredUsers.filter(u => selectedUsers.includes(u.username));
     if (onBatchSubmit && presetRole) {
-      onBatchSubmit(selectedUserObjects, presetRole);
+      onBatchSubmit(selectedUserObjects, presetRole, selectedDistrictId || undefined);
     }
   };
 
@@ -197,6 +240,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   const handleCancel = () => {
     setSelectMode('select');
     setSelectedUsers([]);
+    setSelectedDistrictId('');
+    setSelectedRole('');
     onCancel();
   };
 
@@ -252,6 +297,31 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
             style={{ width: '100%' }}
             maxTagCount="responsive"
           />
+          {/* 数据采集员需要选择负责的区县 */}
+          {presetRole === 'data_collector' && availableDistricts.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ marginBottom: 8, color: '#666' }}>
+                选择负责的区县 <span style={{ color: '#ff4d4f' }}>*</span>
+              </div>
+              <Select
+                placeholder="请选择负责的区县"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                }
+                options={availableDistricts.map(d => ({
+                  value: d.id,
+                  label: d.name,
+                }))}
+                value={selectedDistrictId || undefined}
+                onChange={setSelectedDistrictId}
+                style={{ width: '100%' }}
+              />
+              <p style={{ color: '#999', marginTop: 4, fontSize: 12 }}>
+                数据采集员将可以填报该区县内所有学校的数据
+              </p>
+            </div>
+          )}
           {filteredUsers.length === 0 && !loadingUsers && (
             <p style={{ color: '#999', marginTop: 8, fontSize: 13 }}>
               {presetRole === 'expert'
@@ -320,13 +390,42 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
               name="role"
               rules={[{ required: true, message: '请选择角色类型' }]}
             >
-              <Select placeholder="请选择角色类型">
-                <Select.Option value="system_admin">系统管理员（省级/国家级）</Select.Option>
-                <Select.Option value="city_admin">市级管理员</Select.Option>
-                <Select.Option value="district_admin">区县管理员</Select.Option>
-                <Select.Option value="school_reporter">学校填报员</Select.Option>
+              <Select
+                placeholder="请选择角色类型"
+                onChange={(value: string) => {
+                  setSelectedRole(value);
+                  // 如果不是数据采集员，清空区县选择
+                  if (value !== 'data_collector') {
+                    form.setFieldsValue({ districtId: undefined });
+                  }
+                }}
+              >
+                <Select.Option value="project_admin">项目管理员（项目配置和管理）</Select.Option>
+                <Select.Option value="data_collector">数据采集员（按区县填报数据）</Select.Option>
+                <Select.Option value="project_expert">项目评估专家（数据审核和评估）</Select.Option>
               </Select>
             </Form.Item>
+
+            {/* 数据采集员需要选择负责的区县 */}
+            {selectedRole === 'data_collector' && availableDistricts.length > 0 && (
+              <Form.Item
+                label="负责区县"
+                name="districtId"
+                rules={[{ required: true, message: '数据采集员必须选择负责的区县' }]}
+              >
+                <Select
+                  placeholder="请选择负责的区县"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={availableDistricts.map(d => ({
+                    value: d.id,
+                    label: d.name,
+                  }))}
+                />
+              </Form.Item>
+            )}
 
             <Form.Item
               label="姓名"
@@ -393,6 +492,7 @@ interface ImportModalProps {
   onLoadSample: () => void;
   onConfirm: () => void;
   onReset: () => void;
+  onFileChange?: (file: File) => void;
 }
 
 export const ImportModal: React.FC<ImportModalProps> = ({
@@ -407,6 +507,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   onLoadSample,
   onConfirm,
   onReset,
+  onFileChange,
 }) => {
   const importColumns: ColumnsType<ImportRecord> = [
     {
@@ -508,7 +609,12 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             <Upload.Dragger
               accept=".xlsx,.xls,.csv"
               showUploadList={false}
-              beforeUpload={() => false}
+              beforeUpload={(file) => {
+                if (onFileChange) {
+                  onFileChange(file as unknown as File);
+                }
+                return false;
+              }}
               className={styles.uploadDragger}
             >
               <p className={styles.uploadIcon}>📋</p>

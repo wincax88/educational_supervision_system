@@ -196,13 +196,28 @@ const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId, disabled = false
   // 切换必填状态
   const handleToggleRequired = async (tool: ProjectTool, checked: boolean) => {
     try {
-      await projectToolService.updateProjectTool(projectId, tool.toolId, checked);
+      await projectToolService.updateProjectTool(projectId, tool.toolId, { isRequired: checked });
       setTools(prev =>
         prev.map(t =>
           t.toolId === tool.toolId ? { ...t, isRequired: checked ? 1 : 0 } : t
         )
       );
       message.success(checked ? '已设为必填' : '已设为选填');
+    } catch (error) {
+      message.error('更新失败');
+    }
+  };
+
+  // 切换审核配置
+  const handleToggleReview = async (tool: ProjectTool, checked: boolean) => {
+    try {
+      await projectToolService.updateProjectTool(projectId, tool.toolId, { requireReview: checked });
+      setTools(prev =>
+        prev.map(t =>
+          t.toolId === tool.toolId ? { ...t, requireReview: checked } : t
+        )
+      );
+      message.success(checked ? '已开启审核' : '已关闭审核（提交后直接通过）');
     } catch (error) {
       message.error('更新失败');
     }
@@ -296,6 +311,25 @@ const DataEntryTab: React.FC<DataEntryTabProps> = ({ projectId, disabled = false
           size="small"
           disabled={disabled}
         />
+      ),
+    },
+    {
+      title: '需审核',
+      dataIndex: 'requireReview',
+      key: 'requireReview',
+      width: 100,
+      align: 'center',
+      render: (requireReview, record) => (
+        <Tooltip title={requireReview !== false ? '提交后需要项目评估专家审核' : '提交后直接通过，无需审核'}>
+          <Switch
+            checked={requireReview !== false}
+            onChange={(checked) => handleToggleReview(record, checked)}
+            size="small"
+            disabled={disabled}
+            checkedChildren="审核"
+            unCheckedChildren="免审"
+          />
+        </Tooltip>
       ),
     },
     {

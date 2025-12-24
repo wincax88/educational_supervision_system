@@ -15,6 +15,7 @@ export interface Task {
   assigneeId: string;
   assigneeName?: string;
   assigneeOrg?: string;
+  assigneeDistrict?: string;  // 采集员负责的区县名称
   targetType?: 'district' | 'school' | 'all';
   targetId?: string;
   targetName?: string;

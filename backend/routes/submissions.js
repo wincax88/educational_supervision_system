@@ -1248,34 +1248,74 @@ router.post('/submissions/:id/submit', async (req, res) => {
     }
 
     const wasRejected = submission.status === 'rejected';
+    const toolId = submission.form_id || submission.tool_id;
+
+    // 查询该工具是否需要审核
+    let requireReview = true; // 默认需要审核
+    if (toolId && submission.project_id) {
+      const { data: toolConfig } = await db
+        .from('project_tools')
+        .select('require_review')
+        .eq('project_id', submission.project_id)
+        .eq('tool_id', toolId)
+        .single();
+
+      if (toolConfig && toolConfig.require_review === false) {
+        requireReview = false;
+      }
+    }
+
+    // 根据审核配置决定提交后状态
+    // require_review=true: status='submitted' (待审核)
+    // require_review=false: status='approved' (直接通过)
+    const newStatus = requireReview ? 'submitted' : 'approved';
+    const updateFields = {
+      status: newStatus,
+      submitted_at: timestamp,
+      updated_at: timestamp,
+    };
+    if (!requireReview) {
+      updateFields.approved_at = timestamp; // 免审核直接设置审核通过时间
+    }
 
     // 更新提交状态
     const { error } = await db
       .from('submissions')
-      .update({ status: 'submitted', submitted_at: timestamp, updated_at: timestamp })
+      .update(updateFields)
       .eq('id', req.params.id);
 
     if (error) throw error;
 
-    // 如果是从被驳回状态重新提交，同步更新任务状态为 in_progress
-    if (wasRejected) {
-      const toolId = submission.form_id || submission.tool_id;
-      if (toolId && submission.project_id) {
+    // 同步更新关联任务的状态
+    // - 如果是从被驳回状态重新提交：更新任务状态为 in_progress 或 completed
+    // - 如果是免审核直接通过：任务状态设为 completed
+    if (toolId && submission.project_id) {
+      const taskStatus = requireReview
+        ? (wasRejected ? 'in_progress' : undefined)  // 需要审核：被驳回重新提交才更新
+        : 'completed';  // 免审核：直接完成
+
+      if (taskStatus) {
+        const taskUpdateFields = { status: taskStatus, updated_at: timestamp };
+        if (taskStatus === 'completed') {
+          taskUpdateFields.completed_at = timestamp;
+        }
+
         // 方式1：通过 submission_id 匹配
         await db
           .from('tasks')
-          .update({ status: 'in_progress', updated_at: timestamp })
+          .update(taskUpdateFields)
           .eq('submission_id', req.params.id);
 
         // 方式2：通过 project_id + tool_id + target_id(school_id) 匹配
         if (submission.school_id) {
+          const targetStatuses = wasRejected ? ['rejected'] : ['pending', 'in_progress', 'rejected'];
           await db
             .from('tasks')
-            .update({ status: 'in_progress', updated_at: timestamp })
+            .update(taskUpdateFields)
             .eq('project_id', submission.project_id)
             .eq('tool_id', toolId)
             .eq('target_id', submission.school_id)
-            .eq('status', 'rejected'); // 只更新被驳回状态的任务
+            .in('status', targetStatuses);
         }
       }
     }
@@ -1288,7 +1328,8 @@ router.post('/submissions/:id/submit', async (req, res) => {
       console.warn('[submission] sync indicators on submit failed:', e.message);
     }
 
-    return res.json({ code: 200, message: '提交成功' });
+    const message = requireReview ? '提交成功，等待审核' : '提交成功，已自动通过';
+    return res.json({ code: 200, message, data: { status: newStatus, requireReview } });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }

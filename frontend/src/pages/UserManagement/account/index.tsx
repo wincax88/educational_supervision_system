@@ -1,11 +1,36 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Modal, Select, Space, Table, Tag, message, Upload, Alert } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { UploadFile } from 'antd/es/upload';
 import styles from './index.module.css';
-import { createUser, deleteUser, getUsers, roleOptions, allRoleOptions, roleDisplayNames, SystemUser, updateUser, ScopeItem, UserRole } from '../../../services/userService';
+import { createUser, deleteUser, getUsers, roleOptions, allRoleOptions, roleDisplayNames, SystemUser, updateUser, ScopeItem, UserRole, importUsers, ImportUserData } from '../../../services/userService';
 import { getDistricts, District } from '../../../services/districtService';
 import { getSchools, School } from '../../../services/schoolService';
+
+// 角色代码映射（CSV中使用的角色代码 -> 系统角色）
+const roleCodeMap: Record<string, UserRole> = {
+  admin: 'admin',
+  city_admin: 'city_admin',
+  district_admin: 'district_admin',
+  district_reporter: 'district_reporter',
+  school_reporter: 'school_reporter',
+  expert: 'expert',
+  // 中文映射
+  '系统管理员': 'admin',
+  '市级管理员': 'city_admin',
+  '区县管理员': 'district_admin',
+  '区县填报员': 'district_reporter',
+  '学校填报员': 'school_reporter',
+  '评估专家': 'expert',
+  // 新角色体系兼容
+  project_admin: 'admin',
+  data_collector: 'district_reporter',
+  project_expert: 'expert',
+  '项目管理员': 'admin',
+  '数据采集员': 'district_reporter',
+  '项目评估专家': 'expert',
+};
 
 const { Search } = Input;
 
@@ -48,6 +73,13 @@ const AccountManagement: React.FC = () => {
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
   const [pwdForm] = Form.useForm();
+
+  // 导入相关状态
+  const [importOpen, setImportOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importData, setImportData] = useState<ImportUserData[]>([]);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   // 区县和学校数据
   const [districts, setDistricts] = useState<District[]>([]);
@@ -241,6 +273,121 @@ const AccountManagement: React.FC = () => {
     });
   };
 
+  // 解析CSV文件
+  const parseCSV = (text: string): ImportUserData[] => {
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim());
+    const usernameIdx = headers.findIndex(h => h === '用户名' || h === 'username');
+    const passwordIdx = headers.findIndex(h => h === '密码' || h === 'password');
+    const rolesIdx = headers.findIndex(h => h === '角色' || h === 'roles' || h === 'role');
+    const statusIdx = headers.findIndex(h => h === '状态' || h === 'status');
+
+    if (usernameIdx === -1 || passwordIdx === -1) {
+      throw new Error('CSV文件必须包含"用户名"和"密码"列');
+    }
+
+    const result: ImportUserData[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim());
+      if (!values[usernameIdx] || !values[passwordIdx]) continue;
+
+      // 解析角色
+      let roles: UserRole[] = ['school_reporter'];
+      if (rolesIdx !== -1 && values[rolesIdx]) {
+        const roleStr = values[rolesIdx];
+        const mappedRole = roleCodeMap[roleStr];
+        if (mappedRole) {
+          roles = [mappedRole];
+        }
+      }
+
+      // 解析状态
+      let status: 'active' | 'inactive' = 'active';
+      if (statusIdx !== -1 && values[statusIdx]) {
+        const statusStr = values[statusIdx].toLowerCase();
+        if (statusStr === 'inactive' || statusStr === '停用') {
+          status = 'inactive';
+        }
+      }
+
+      result.push({
+        username: values[usernameIdx],
+        password: values[passwordIdx],
+        roles,
+        status,
+      });
+    }
+
+    return result;
+  };
+
+  // 处理文件上传
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const data = parseCSV(text);
+        if (data.length === 0) {
+          setImportErrors(['CSV文件为空或格式不正确']);
+          setImportData([]);
+        } else {
+          setImportData(data);
+          setImportErrors([]);
+        }
+      } catch (err) {
+        setImportErrors([(err as Error).message]);
+        setImportData([]);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+    return false; // 阻止自动上传
+  };
+
+  // 执行导入
+  const handleImport = async () => {
+    if (importData.length === 0) {
+      message.warning('没有可导入的数据');
+      return;
+    }
+
+    setImportLoading(true);
+    try {
+      const result = await importUsers(importData);
+      if (result.success > 0) {
+        message.success(`成功导入 ${result.success} 个账号`);
+      }
+      if (result.failed > 0) {
+        setImportErrors(result.errors);
+      } else {
+        setImportOpen(false);
+        setImportData([]);
+        setFileList([]);
+        setImportErrors([]);
+      }
+      load();
+    } catch (e: unknown) {
+      message.error((e as Error).message || '导入失败');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // 下载模板
+  const downloadTemplate = () => {
+    const template = `用户名,密码,角色,状态
+admin_zhang,Pass@123456,admin,active
+collector_wang,Pass@123456,school_reporter,active
+expert_zhou,Pass@123456,expert,active`;
+    const blob = new Blob(['\ufeff' + template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'users_import_template.csv';
+    link.click();
+  };
+
   // 渲染数据范围标签
   const renderScopes = (scopes: ScopeItem[]) => {
     if (!scopes || scopes.length === 0) return '-';
@@ -351,6 +498,9 @@ const AccountManagement: React.FC = () => {
           </div>
           <div className={styles.actions}>
             <Button onClick={load}>刷新</Button>
+            <Button icon={<UploadOutlined />} onClick={() => setImportOpen(true)}>
+              批量导入
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
               新增账号
             </Button>
@@ -499,6 +649,147 @@ const AccountManagement: React.FC = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 批量导入 */}
+      <Modal
+        title="批量导入账号"
+        open={importOpen}
+        onCancel={() => {
+          setImportOpen(false);
+          setImportData([]);
+          setFileList([]);
+          setImportErrors([]);
+        }}
+        footer={null}
+        width={640}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Alert
+            type="info"
+            showIcon
+            message="CSV文件格式说明"
+            description={
+              <div>
+                <p style={{ margin: '4px 0' }}>文件必须包含以下列：<strong>用户名</strong>、<strong>密码</strong></p>
+                <p style={{ margin: '4px 0' }}>可选列：<strong>角色</strong>（admin/school_reporter/expert等）、<strong>状态</strong>（active/inactive）</p>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={downloadTemplate}
+                  style={{ padding: 0 }}
+                >
+                  下载模板文件
+                </Button>
+              </div>
+            }
+          />
+        </div>
+
+        <Upload.Dragger
+          accept=".csv"
+          fileList={fileList}
+          beforeUpload={(file) => {
+            setFileList([file]);
+            handleFileUpload(file);
+            return false;
+          }}
+          onRemove={() => {
+            setFileList([]);
+            setImportData([]);
+            setImportErrors([]);
+          }}
+          maxCount={1}
+        >
+          <p className="ant-upload-drag-icon">
+            <UploadOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+          </p>
+          <p className="ant-upload-text">点击或拖拽CSV文件到此处</p>
+          <p className="ant-upload-hint">仅支持 .csv 格式文件</p>
+        </Upload.Dragger>
+
+        {importData.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <Alert
+              type="success"
+              showIcon
+              message={`已解析 ${importData.length} 条账号数据`}
+              description={
+                <Table
+                  size="small"
+                  dataSource={importData.slice(0, 5)}
+                  rowKey="username"
+                  pagination={false}
+                  columns={[
+                    { title: '用户名', dataIndex: 'username', width: 120 },
+                    {
+                      title: '角色',
+                      dataIndex: 'roles',
+                      render: (roles: UserRole[]) => (
+                        <Space>
+                          {roles.map(r => (
+                            <Tag key={r} color={roleTagColor[r]}>{roleDisplayNames[r]}</Tag>
+                          ))}
+                        </Space>
+                      ),
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'status',
+                      width: 80,
+                      render: (s: string) => statusTag(s as SystemUser['status']),
+                    },
+                  ]}
+                />
+              }
+            />
+            {importData.length > 5 && (
+              <p style={{ color: '#999', marginTop: 8, fontSize: 12 }}>
+                ... 还有 {importData.length - 5} 条数据未显示
+              </p>
+            )}
+          </div>
+        )}
+
+        {importErrors.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <Alert
+              type="error"
+              showIcon
+              message="导入错误"
+              description={
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  {importErrors.slice(0, 5).map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                  {importErrors.length > 5 && <li>... 还有 {importErrors.length - 5} 条错误</li>}
+                </ul>
+              }
+            />
+          </div>
+        )}
+
+        <div style={{ marginTop: 24, textAlign: 'right' }}>
+          <Space>
+            <Button onClick={() => {
+              setImportOpen(false);
+              setImportData([]);
+              setFileList([]);
+              setImportErrors([]);
+            }}>
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleImport}
+              loading={importLoading}
+              disabled={importData.length === 0}
+            >
+              确认导入 ({importData.length})
+            </Button>
+          </Space>
+        </div>
       </Modal>
     </div>
   );

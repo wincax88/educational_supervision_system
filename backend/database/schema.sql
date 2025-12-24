@@ -139,7 +139,8 @@ CREATE TABLE IF NOT EXISTS project_personnel (
   organization TEXT,
   phone TEXT,
   id_card TEXT,
-  role TEXT NOT NULL,                -- 枚举值由程序验证：leader | member | expert | observer
+  role TEXT NOT NULL,                -- 枚举值由程序验证：project_admin | data_collector | project_expert
+  district_id TEXT,                  -- 关联区县ID（来自project_samples，type=district），用于数据采集员限制填报范围
   status TEXT DEFAULT 'active',       -- 枚举值由程序验证：active | inactive
   created_at TEXT,
   updated_at TEXT
@@ -147,6 +148,7 @@ CREATE TABLE IF NOT EXISTS project_personnel (
 
 CREATE INDEX IF NOT EXISTS idx_project_personnel_project ON project_personnel(project_id);
 CREATE INDEX IF NOT EXISTS idx_project_personnel_role ON project_personnel(role);
+CREATE INDEX IF NOT EXISTS idx_project_personnel_district ON project_personnel(district_id);
 
 -- 填报记录表
 CREATE TABLE IF NOT EXISTS submissions (
@@ -188,6 +190,7 @@ CREATE TABLE IF NOT EXISTS project_tools (
   tool_id TEXT NOT NULL,             -- 关联 data_tools.id，由程序验证
   sort_order INTEGER DEFAULT 0,
   is_required INTEGER DEFAULT 1,
+  require_review BOOLEAN DEFAULT true, -- 是否需要审核，true=提交后需审核，false=提交后直接通过
   created_at TEXT,
   UNIQUE(project_id, tool_id)
 );

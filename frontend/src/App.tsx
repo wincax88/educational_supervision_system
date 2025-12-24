@@ -239,6 +239,18 @@ const App: React.FC = () => {
                 <div style={{ padding: 24 }}>评估报告页面（开发中）</div>
               </ProtectedRoute>
             } />
+
+            {/* 通用工具编辑路由 - 支持从项目配置页直接跳转 */}
+            <Route path="form-tool/:id" element={
+              <ProtectedRoute requiredPermission="canManageProjects">
+                <FormToolEdit />
+              </ProtectedRoute>
+            } />
+            <Route path="form-tool/:id/edit" element={
+              <ProtectedRoute requiredPermission="canManageProjects">
+                <FormToolEdit />
+              </ProtectedRoute>
+            } />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

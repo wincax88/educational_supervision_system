@@ -37,10 +37,12 @@ router.get('/projects/:projectId/tasks', async (req, res) => {
         dt.name as "toolName",
         dt.type as "toolType",
         pp.name as "assigneeName",
-        pp.organization as "assigneeOrg"
+        pp.organization as "assigneeOrg",
+        ps.name as "assigneeDistrict"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
+      LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
       WHERE t.project_id = $1
     `;
     const params = [projectId];
@@ -143,10 +145,12 @@ router.get('/tasks/:id', async (req, res) => {
         dt.name as "toolName",
         dt.type as "toolType",
         pp.name as "assigneeName",
-        pp.organization as "assigneeOrg"
+        pp.organization as "assigneeOrg",
+        ps.name as "assigneeDistrict"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
+      LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
       WHERE t.id = $1
     `, [id]);
 
@@ -521,11 +525,13 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         dt.type as "toolType",
         p.name as "projectName",
         pp.name as "assigneeName",
-        pp.organization as "assigneeOrg"
+        pp.organization as "assigneeOrg",
+        psd.name as "assigneeDistrict"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
       LEFT JOIN projects p ON t.project_id = p.id
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
+      LEFT JOIN project_samples psd ON pp.district_id = psd.id AND psd.type = 'district'
       WHERE 1=1
     `;
     const params = [];

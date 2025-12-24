@@ -23,24 +23,55 @@ router.get('/projects/:projectId/tools', async (req, res) => {
       return res.status(404).json({ code: 404, message: '项目不存在' });
     }
 
-    const result = await db.query(`
-      SELECT
-        pt.id,
-        pt.project_id as "projectId",
-        pt.tool_id as "toolId",
-        pt.sort_order as "sortOrder",
-        pt.is_required as "isRequired",
-        pt.created_at as "createdAt",
-        dt.name as "toolName",
-        dt.type as "toolType",
-        dt.target as "toolTarget",
-        dt.description as "toolDescription",
-        dt.status as "toolStatus"
-      FROM project_tools pt
-      LEFT JOIN data_tools dt ON pt.tool_id = dt.id
-      WHERE pt.project_id = $1
-      ORDER BY pt.sort_order
-    `, [projectId]);
+    // 尝试包含 require_review 列的查询，如果失败则使用不包含该列的查询
+    let result;
+    try {
+      result = await db.query(`
+        SELECT
+          pt.id,
+          pt.project_id as "projectId",
+          pt.tool_id as "toolId",
+          pt.sort_order as "sortOrder",
+          pt.is_required as "isRequired",
+          pt.require_review as "requireReview",
+          pt.created_at as "createdAt",
+          dt.name as "toolName",
+          dt.type as "toolType",
+          dt.target as "toolTarget",
+          dt.description as "toolDescription",
+          dt.status as "toolStatus"
+        FROM project_tools pt
+        LEFT JOIN data_tools dt ON pt.tool_id = dt.id
+        WHERE pt.project_id = $1
+        ORDER BY pt.sort_order
+      `, [projectId]);
+    } catch (queryError) {
+      // 如果 require_review 列不存在，使用不包含该列的查询
+      if (queryError.message && queryError.message.includes('require_review')) {
+        result = await db.query(`
+          SELECT
+            pt.id,
+            pt.project_id as "projectId",
+            pt.tool_id as "toolId",
+            pt.sort_order as "sortOrder",
+            pt.is_required as "isRequired",
+            pt.created_at as "createdAt",
+            dt.name as "toolName",
+            dt.type as "toolType",
+            dt.target as "toolTarget",
+            dt.description as "toolDescription",
+            dt.status as "toolStatus"
+          FROM project_tools pt
+          LEFT JOIN data_tools dt ON pt.tool_id = dt.id
+          WHERE pt.project_id = $1
+          ORDER BY pt.sort_order
+        `, [projectId]);
+        // 添加默认的 requireReview 值
+        result.rows = result.rows.map(row => ({ ...row, requireReview: true }));
+      } else {
+        throw queryError;
+      }
+    }
 
     res.json({ code: 200, data: result.rows });
   } catch (error) {
@@ -52,7 +83,7 @@ router.get('/projects/:projectId/tools', async (req, res) => {
 router.post('/projects/:projectId/tools', async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { toolId, isRequired = 1 } = req.body;
+    const { toolId, isRequired = 1, requireReview = true } = req.body;
 
     if (!toolId) {
       return res.status(400).json({ code: 400, message: '工具ID不能为空' });
@@ -89,17 +120,38 @@ router.post('/projects/:projectId/tools', async (req, res) => {
     if (maxErr) throw maxErr;
     const sortOrder = ((maxRows?.[0]?.sort_order ?? -1) + 1);
 
-    const { data, error } = await db
-      .from('project_tools')
-      .insert({
-        id,
-        project_id: projectId,
-        tool_id: toolId,
-        sort_order: sortOrder,
-        is_required: isRequired ? 1 : 0,
-        created_at: timestamp,
-      })
-      .select('id');
+    // 构建插入数据，require_review 列可能不存在
+    const insertData = {
+      id,
+      project_id: projectId,
+      tool_id: toolId,
+      sort_order: sortOrder,
+      is_required: isRequired ? 1 : 0,
+      created_at: timestamp,
+    };
+
+    // 尝试包含 require_review 字段插入
+    let data, error;
+    try {
+      const result = await db
+        .from('project_tools')
+        .insert({ ...insertData, require_review: requireReview !== false })
+        .select('id');
+      data = result.data;
+      error = result.error;
+    } catch (insertError) {
+      // 如果 require_review 列不存在，不包含该字段重试
+      if (insertError.message && insertError.message.includes('require_review')) {
+        const result = await db
+          .from('project_tools')
+          .insert(insertData)
+          .select('id');
+        data = result.data;
+        error = result.error;
+      } else {
+        throw insertError;
+      }
+    }
 
     if (error) throw error;
     return res.json({ code: 200, data: { id: data?.[0]?.id || id }, message: '关联成功' });
@@ -148,17 +200,30 @@ router.post('/projects/:projectId/tools/batch', async (req, res) => {
       if (existing) continue;
 
       const id = generateId();
-      const { error: insErr } = await db
-        .from('project_tools')
-        .insert({
-          id,
-          project_id: projectId,
-          tool_id: toolId,
-          sort_order: sortOrder++,
-          is_required: 1,
-          created_at: timestamp,
-        });
-      if (insErr) throw insErr;
+      const insertData = {
+        id,
+        project_id: projectId,
+        tool_id: toolId,
+        sort_order: sortOrder++,
+        is_required: 1,
+        created_at: timestamp,
+      };
+      // 尝试包含 require_review 字段插入
+      try {
+        const { error: insErr } = await db
+          .from('project_tools')
+          .insert({ ...insertData, require_review: true });
+        if (insErr) throw insErr;
+      } catch (insertError) {
+        if (insertError.message && insertError.message.includes('require_review')) {
+          const { error: insErr } = await db
+            .from('project_tools')
+            .insert(insertData);
+          if (insErr) throw insErr;
+        } else {
+          throw insertError;
+        }
+      }
     }
 
     return res.json({ code: 200, message: '批量关联成功' });
@@ -190,18 +255,66 @@ router.delete('/projects/:projectId/tools/:toolId', async (req, res) => {
   }
 });
 
-// 更新关联属性（是否必填）
+// 更新关联属性（是否必填、是否需要审核）
 router.put('/projects/:projectId/tools/:toolId', async (req, res) => {
   try {
     const { projectId, toolId } = req.params;
-    const { isRequired } = req.body;
+    const { isRequired, requireReview } = req.body;
 
-    const { data, error } = await db
-      .from('project_tools')
-      .update({ is_required: isRequired ? 1 : 0 })
-      .eq('project_id', projectId)
-      .eq('tool_id', toolId)
-      .select('id');
+    const updates = {};
+    if (isRequired !== undefined) {
+      updates.is_required = isRequired ? 1 : 0;
+    }
+
+    // 先尝试不包含 require_review 的更新
+    const hasRequireReviewUpdate = requireReview !== undefined;
+
+    if (Object.keys(updates).length === 0 && !hasRequireReviewUpdate) {
+      return res.status(400).json({ code: 400, message: '没有要更新的字段' });
+    }
+
+    let data, error;
+
+    // 如果有 require_review 更新，尝试包含该字段
+    if (hasRequireReviewUpdate) {
+      try {
+        const result = await db
+          .from('project_tools')
+          .update({ ...updates, require_review: requireReview })
+          .eq('project_id', projectId)
+          .eq('tool_id', toolId)
+          .select('id');
+        data = result.data;
+        error = result.error;
+      } catch (updateError) {
+        // 如果 require_review 列不存在，忽略该字段
+        if (updateError.message && updateError.message.includes('require_review')) {
+          if (Object.keys(updates).length === 0) {
+            // 只有 require_review 更新但列不存在，返回成功（向后兼容）
+            return res.json({ code: 200, message: '更新成功' });
+          }
+          const result = await db
+            .from('project_tools')
+            .update(updates)
+            .eq('project_id', projectId)
+            .eq('tool_id', toolId)
+            .select('id');
+          data = result.data;
+          error = result.error;
+        } else {
+          throw updateError;
+        }
+      }
+    } else {
+      const result = await db
+        .from('project_tools')
+        .update(updates)
+        .eq('project_id', projectId)
+        .eq('tool_id', toolId)
+        .select('id');
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) throw error;
     if (!data || data.length === 0) {

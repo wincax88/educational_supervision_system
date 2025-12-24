@@ -92,6 +92,7 @@ const ProjectConfig: React.FC = () => {
     addPerson,
     deletePerson,
     loadSampleImportData,
+    parseImportFile,
     confirmImport,
     clearImportData,
     filterPersonnel,
@@ -252,6 +253,13 @@ const ProjectConfig: React.FC = () => {
   const handleResetImport = () => {
     setImportStep('upload');
     clearImportData();
+  };
+
+  const handleFileChange = async (file: File) => {
+    const success = await parseImportFile(file);
+    if (success) {
+      setImportStep('preview');
+    }
   };
 
   // ==================== 样本配置处理 ====================
@@ -691,19 +699,18 @@ const ProjectConfig: React.FC = () => {
                 />
               ),
             },
-            // 以下 Tab 暂时隐藏
-            // {
-            //   key: 'task',
-            //   label: '任务分配',
-            //   children: (
-            //     <TaskAssignmentTab
-            //       projectId={projectId || ''}
-            //       projectStatus={project.status}
-            //       personnel={personnel}
-            //       disabled={isReadOnly}
-            //     />
-            //   ),
-            // },
+            {
+              key: 'task',
+              label: '任务分配',
+              children: (
+                <TaskAssignmentTab
+                  projectId={projectId || ''}
+                  projectStatus={project.status}
+                  personnel={personnel}
+                  disabled={isReadOnly}
+                />
+              ),
+            },
             // {
             //   key: 'sample',
             //   label: '评估样本',
@@ -765,6 +772,7 @@ const ProjectConfig: React.FC = () => {
         onLoadSample={handleLoadSampleData}
         onConfirm={handleConfirmImport}
         onReset={handleResetImport}
+        onFileChange={handleFileChange}
       />
 
       <MorePersonModal

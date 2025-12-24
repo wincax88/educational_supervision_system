@@ -47,6 +47,61 @@ router.post('/users', (req, res) => {
   }
 });
 
+// 批量导入用户（注意：必须在 /users/:username 之前定义，避免被参数路由捕获）
+router.post('/users/import', (req, res) => {
+  try {
+    const { users } = req.body || {};
+
+    if (!Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ code: 400, message: '请提供用户数据' });
+    }
+
+    const results = { success: 0, failed: 0, errors: [], created: [] };
+
+    for (const user of users) {
+      try {
+        const { username, password, roles, status, scopes } = user;
+
+        if (!username || !password) {
+          results.failed++;
+          results.errors.push(`${username || '未知'}: 用户名和密码为必填项`);
+          continue;
+        }
+
+        // 检查用户是否已存在
+        const existing = userStore.getUser(username);
+        if (existing) {
+          results.failed++;
+          results.errors.push(`${username}: 用户名已存在`);
+          continue;
+        }
+
+        const created = userStore.createUser({
+          username,
+          password,
+          roles: roles || ['school_reporter'],
+          status: status || 'active',
+          scopes: scopes || [],
+        });
+
+        results.success++;
+        results.created.push(created.username);
+      } catch (err) {
+        results.failed++;
+        results.errors.push(`${user.username || '未知'}: ${err.message}`);
+      }
+    }
+
+    res.json({
+      code: 200,
+      data: results,
+      message: `导入完成：成功 ${results.success} 条，失败 ${results.failed} 条`,
+    });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
 // 更新用户
 router.put('/users/:username', (req, res) => {
   try {

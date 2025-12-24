@@ -9,12 +9,19 @@ export interface ProjectTool {
   toolId: string;
   sortOrder: number;
   isRequired: number;
+  requireReview: boolean;  // 是否需要审核
   createdAt: string;
   toolName: string;
   toolType: '表单' | '问卷';
   toolTarget: string;
   toolDescription: string;
   toolStatus: 'published' | 'editing' | 'draft';
+}
+
+// 更新项目工具配置参数
+export interface UpdateProjectToolParams {
+  isRequired?: boolean;
+  requireReview?: boolean;
 }
 
 // 可用工具类型（未关联的已发布工具）
@@ -58,13 +65,13 @@ export async function removeProjectTool(projectId: string, toolId: string): Prom
   return del(`/projects/${projectId}/tools/${toolId}`);
 }
 
-// 更新关联属性（是否必填）
+// 更新关联属性（是否必填、是否需要审核）
 export async function updateProjectTool(
   projectId: string,
   toolId: string,
-  isRequired: boolean
+  params: UpdateProjectToolParams
 ): Promise<void> {
-  return put(`/projects/${projectId}/tools/${toolId}`, { isRequired });
+  return put(`/projects/${projectId}/tools/${toolId}`, params);
 }
 
 // 调整工具排序

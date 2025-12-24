@@ -1,0 +1,11 @@
+用户名,密码,姓名,角色,状态,备注
+admin_zhang,Pass@123456,张明华,project_admin,active,项目管理员
+admin_li,Pass@123456,李文静,project_admin,active,项目管理员
+collector_wang,Pass@123456,王建国,data_collector,active,数据采集员-铁西区
+collector_liu,Pass@123456,刘晓燕,data_collector,active,数据采集员-沈河区
+collector_chen,Pass@123456,陈志强,data_collector,active,数据采集员-和平区
+collector_zhao,Pass@123456,赵雪梅,data_collector,active,数据采集员-大东区
+collector_sun,Pass@123456,孙伟民,data_collector,active,数据采集员-皇姑区
+expert_zhou,Pass@123456,周丽华,project_expert,active,项目评估专家
+expert_wu,Pass@123456,吴建设,project_expert,active,项目评估专家
+expert_zheng,Pass@123456,郑小明,project_expert,active,项目评估专家

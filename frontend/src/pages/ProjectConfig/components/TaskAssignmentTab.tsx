@@ -24,6 +24,8 @@ import {
   Tooltip,
   Badge,
   DatePicker,
+  Radio,
+  TreeSelect,
 } from 'antd';
 import {
   PlusOutlined,
@@ -35,12 +37,16 @@ import {
   ExclamationCircleOutlined,
   FileTextOutlined,
   CalendarOutlined,
+  ApartmentOutlined,
+  BankOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import * as taskService from '../../../services/taskService';
 import * as projectToolService from '../../../services/projectToolService';
+import * as sampleService from '../../../services/sampleService';
 import type { Task, TaskStats, TaskStatus } from '../../../services/taskService';
 import type { ProjectTool } from '../../../services/projectToolService';
+import type { Sample } from '../../../services/sampleService';
 import type { Personnel } from '../types';
 import styles from '../index.module.css';
 
@@ -61,6 +67,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskStats | null>(null);
   const [tools, setTools] = useState<ProjectTool[]>([]);
+  const [samples, setSamples] = useState<Sample[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [toolFilter, setToolFilter] = useState<string>('');
   const [keyword, setKeyword] = useState('');
@@ -68,22 +75,66 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   const [assignForm] = Form.useForm();
   const [assignLoading, setAssignLoading] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [targetType, setTargetType] = useState<'all' | 'district' | 'school'>('all');
 
-  // 获取数据采集员列表
-  const collectors = personnel['data_collector'] || [];
+  // 获取数据采集员列表（支持新旧角色）
+  const collectors = [
+    ...(personnel['data_collector'] || []),
+    ...(personnel['district_reporter'] || []),
+    ...(personnel['school_reporter'] || []),
+  ];
+
+  // 获取区县列表
+  const districts = samples.filter(s => s.type === 'district');
+
+  // 构建区县-学校树形结构（用于TreeSelect）
+  const buildSchoolTree = useCallback(() => {
+    const tree: any[] = [];
+    districts.forEach(district => {
+      const schools = samples.filter(s => s.type === 'school' && s.parentId === district.id);
+      tree.push({
+        value: district.id,
+        title: district.name,
+        icon: <ApartmentOutlined />,
+        selectable: false,
+        children: schools.map(school => ({
+          value: school.id,
+          title: school.name,
+          icon: <BankOutlined />,
+        })),
+      });
+    });
+    // 添加没有区县的学校
+    const orphanSchools = samples.filter(s => s.type === 'school' && !s.parentId);
+    if (orphanSchools.length > 0) {
+      tree.push({
+        value: 'no-district',
+        title: '未分配区县',
+        selectable: false,
+        children: orphanSchools.map(school => ({
+          value: school.id,
+          title: school.name,
+          icon: <BankOutlined />,
+        })),
+      });
+    }
+    return tree;
+  }, [districts, samples]);
 
   // 加载任务和统计数据
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [taskData, statsData, toolData] = await Promise.all([
+      const [taskData, statsData, toolData, sampleData] = await Promise.all([
         taskService.getProjectTasks(projectId),
         taskService.getTaskStats(projectId),
         projectToolService.getProjectTools(projectId),
+        sampleService.getSampleList(projectId).catch(() => []),
       ]);
       setTasks(taskData);
       setStats(statsData);
       setTools(toolData);
+      setSamples(sampleData);
     } catch (error) {
       console.error('加载数据失败:', error);
       // 如果API还没实现，使用模拟数据
@@ -119,6 +170,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   // 打开分配任务弹窗
   const handleOpenAssignModal = () => {
     assignForm.resetFields();
+    setTargetType('all');
     setAssignModalVisible(true);
   };
 
@@ -129,14 +181,39 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
       return;
     }
 
+    // 如果选择了区县或学校模式，必须选择目标
+    if (targetType !== 'all' && (!values.targetIds || values.targetIds.length === 0)) {
+      message.warning(targetType === 'district' ? '请选择区县' : '请选择学校');
+      return;
+    }
+
     setAssignLoading(true);
     try {
-      await taskService.batchCreateTasks({
-        projectId,
-        toolId: values.toolId,
-        assigneeIds: values.assigneeIds,
-        dueDate: values.dueDate?.format('YYYY-MM-DD'),
-      });
+      // 根据目标类型，为每个目标创建任务
+      if (targetType === 'all') {
+        // 全部模式：只创建一个任务（不指定具体目标）
+        await taskService.batchCreateTasks({
+          projectId,
+          toolId: values.toolId,
+          assigneeIds: values.assigneeIds,
+          dueDate: values.dueDate?.format('YYYY-MM-DD'),
+        });
+      } else {
+        // 区县/学校模式：为每个目标创建任务
+        const targetIds = values.targetIds;
+        for (const targetId of targetIds) {
+          for (const assigneeId of values.assigneeIds) {
+            await taskService.createTask({
+              projectId,
+              toolId: values.toolId,
+              assigneeId,
+              targetType,
+              targetId,
+              dueDate: values.dueDate?.format('YYYY-MM-DD'),
+            });
+          }
+        }
+      }
       message.success('任务分配成功');
       setAssignModalVisible(false);
       loadData();
@@ -145,6 +222,13 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     } finally {
       setAssignLoading(false);
     }
+  };
+
+  // 获取目标名称
+  const getTargetName = (task: Task) => {
+    if (!task.targetType || !task.targetId) return null;
+    const sample = samples.find(s => s.id === task.targetId);
+    return sample?.name || task.targetId;
   };
 
   // 删除任务
@@ -201,20 +285,13 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     {
       title: '采集员',
       key: 'assignee',
-      width: 150,
+      width: 120,
       render: (_, record) => (
         <Space>
           <UserOutlined />
           <span>{record.assigneeName || '未知'}</span>
         </Space>
       ),
-    },
-    {
-      title: '所属单位',
-      dataIndex: 'assigneeOrg',
-      key: 'assigneeOrg',
-      ellipsis: true,
-      render: (org) => org || '-',
     },
     {
       title: '采集工具',
@@ -227,10 +304,37 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
       ),
     },
     {
+      title: '填报范围',
+      key: 'target',
+      width: 150,
+      render: (_, record) => {
+        const targetName = getTargetName(record);
+        if (!targetName) {
+          return <Tag>全部</Tag>;
+        }
+        const icon = record.targetType === 'district' ? <ApartmentOutlined /> : <BankOutlined />;
+        const color = record.targetType === 'district' ? 'blue' : 'green';
+        const typeText = record.targetType === 'district' ? '区县' : '学校';
+        return (
+          <Tooltip title={`${typeText}: ${targetName}`}>
+            <Tag icon={icon} color={color}>{targetName}</Tag>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      title: '所属单位',
+      dataIndex: 'assigneeOrg',
+      key: 'assigneeOrg',
+      ellipsis: true,
+      width: 150,
+      render: (org) => org || '-',
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 90,
       render: (status: TaskStatus) => {
         const config = statusConfig[status] || statusConfig.pending;
         return (
@@ -242,7 +346,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
       title: '截止日期',
       dataIndex: 'dueDate',
       key: 'dueDate',
-      width: 120,
+      width: 110,
       render: (date) => date ? (
         <Space>
           <CalendarOutlined />
@@ -254,13 +358,13 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
       title: '完成时间',
       dataIndex: 'completedAt',
       key: 'completedAt',
-      width: 160,
+      width: 150,
       render: (time) => time ? new Date(time).toLocaleString('zh-CN') : '-',
     },
     {
       title: '操作',
       key: 'action',
-      width: 100,
+      width: 80,
       render: (_, record) => (
         <Space>
           {!disabled && record.status === 'pending' && (
@@ -278,20 +382,6 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
       ),
     },
   ];
-
-  // 项目未到填报阶段
-  if (projectStatus === '配置中') {
-    return (
-      <div className={styles.taskAssignmentTab}>
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="项目尚在配置中，暂无任务分配"
-        >
-          <p style={{ color: '#999' }}>请先完成项目配置并启动填报后再分配任务</p>
-        </Empty>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.taskAssignmentTab}>
@@ -473,10 +563,10 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
         open={assignModalVisible}
         onCancel={() => setAssignModalVisible(false)}
         footer={null}
-        width={560}
+        width={640}
       >
         <p className={styles.modalSubtitle}>
-          选择采集工具和采集员，为他们分配数据采集任务
+          选择采集工具、填报范围和填报账号。
         </p>
         <Form form={assignForm} onFinish={handleAssignTasks} layout="vertical">
           <Form.Item
@@ -496,14 +586,85 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
               ))}
             </Select>
           </Form.Item>
+
+          {/* 填报范围类型 */}
+          <Form.Item
+            label="填报范围"
+            extra="选择任务的填报范围类型"
+          >
+            <Radio.Group
+              value={targetType}
+              onChange={(e) => {
+                setTargetType(e.target.value);
+                assignForm.setFieldsValue({ targetIds: undefined });
+              }}
+            >
+              <Radio.Button value="all">
+                全部（按采集员权限）
+              </Radio.Button>
+              <Radio.Button value="district">
+                指定区县
+              </Radio.Button>
+              <Radio.Button value="school">
+                指定学校
+              </Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+
+          {/* 区县选择 */}
+          {targetType === 'district' && (
+            <Form.Item
+              name="targetIds"
+              label="选择区县"
+              rules={[{ required: true, message: '请选择区县' }]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="请选择区县（可多选）"
+                optionFilterProp="children"
+                maxTagCount={3}
+              >
+                {districts.map(d => (
+                  <Select.Option key={d.id} value={d.id}>
+                    <Space>
+                      <ApartmentOutlined style={{ color: '#1890ff' }} />
+                      {d.name}
+                    </Space>
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+
+          {/* 学校选择 */}
+          {targetType === 'school' && (
+            <Form.Item
+              name="targetIds"
+              label="选择学校"
+              rules={[{ required: true, message: '请选择学校' }]}
+            >
+              <TreeSelect
+                multiple
+                treeData={buildSchoolTree()}
+                placeholder="请选择学校（可多选）"
+                treeIcon
+                showSearch
+                treeNodeFilterProp="title"
+                maxTagCount={3}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          )}
+
           <Form.Item
             name="assigneeIds"
-            label="数据采集员"
-            rules={[{ required: true, message: '请选择数据采集员' }]}
+            label="填报账号"
+            rules={[{ required: true, message: '请选择填报账号' }]}
+            extra={targetType === 'all' ? '采集员将根据其关联的区县确定可填报范围' : '指定的填报账号将负责所选范围的数据填报'}
           >
             <Select
               mode="multiple"
-              placeholder="请选择数据采集员（可多选）"
+              placeholder="请选择填报账号（可多选）"
               optionFilterProp="children"
               maxTagCount={3}
             >
@@ -512,12 +673,16 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
                   <Space>
                     <UserOutlined />
                     {p.name}
+                    {p.districtName && (
+                      <Tag color="blue" style={{ marginLeft: 4 }}>{p.districtName}</Tag>
+                    )}
                     <span style={{ color: '#999' }}>({p.organization})</span>
                   </Space>
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item
             name="dueDate"
             label="截止日期"
@@ -528,6 +693,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
               style={{ width: '100%' }}
             />
           </Form.Item>
+
           <Form.Item className={styles.formFooter}>
             <Button onClick={() => setAssignModalVisible(false)}>取消</Button>
             <Button type="primary" htmlType="submit" loading={assignLoading}>

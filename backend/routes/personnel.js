@@ -12,31 +12,35 @@ const now = () => new Date().toISOString().split('T')[0];
 
 // ==================== 项目人员 CRUD ====================
 
-// 获取项目人员列表
+// 获取项目人员列表（扩展：关联查询区县名称）
 router.get('/projects/:projectId/personnel', async (req, res) => {
   try {
     const { projectId } = req.params;
     const { role, status } = req.query;
 
+    // 关联 project_samples 表获取区县名称
     let sql = `
-      SELECT id, project_id as "projectId", name, organization, phone, id_card as "idCard",
-             role, status, created_at as "createdAt", updated_at as "updatedAt"
-      FROM project_personnel
-      WHERE project_id = $1
+      SELECT pp.id, pp.project_id as "projectId", pp.name, pp.organization, pp.phone, pp.id_card as "idCard",
+             pp.role, pp.district_id as "districtId", pp.status,
+             pp.created_at as "createdAt", pp.updated_at as "updatedAt",
+             ps.name as "districtName"
+      FROM project_personnel pp
+      LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
+      WHERE pp.project_id = $1
     `;
     const params = [projectId];
     let paramIndex = 2;
 
     if (role) {
-      sql += ` AND role = $${paramIndex++}`;
+      sql += ` AND pp.role = $${paramIndex++}`;
       params.push(role);
     }
     if (status) {
-      sql += ` AND status = $${paramIndex++}`;
+      sql += ` AND pp.status = $${paramIndex++}`;
       params.push(status);
     }
 
-    sql += ' ORDER BY role, created_at DESC';
+    sql += ' ORDER BY pp.role, pp.created_at DESC';
 
     const result = await db.query(sql, params);
     res.json({ code: 200, data: result.rows });
@@ -57,8 +61,13 @@ router.get('/projects/:projectId/personnel/stats', async (req, res) => {
       GROUP BY role
     `, [projectId]);
 
+    // 新角色体系：project_admin, data_collector, project_expert
     const stats = {
       total: 0,
+      project_admin: 0,
+      data_collector: 0,
+      project_expert: 0,
+      // 保留旧角色兼容
       system_admin: 0,
       city_admin: 0,
       district_admin: 0,
@@ -77,16 +86,19 @@ router.get('/projects/:projectId/personnel/stats', async (req, res) => {
   }
 });
 
-// 获取单个人员
+// 获取单个人员（扩展：关联查询区县名称）
 router.get('/projects/:projectId/personnel/:id', async (req, res) => {
   try {
     const { projectId, id } = req.params;
 
     const result = await db.query(`
-      SELECT id, project_id as "projectId", name, organization, phone, id_card as "idCard",
-             role, status, created_at as "createdAt", updated_at as "updatedAt"
-      FROM project_personnel
-      WHERE id = $1 AND project_id = $2
+      SELECT pp.id, pp.project_id as "projectId", pp.name, pp.organization, pp.phone, pp.id_card as "idCard",
+             pp.role, pp.district_id as "districtId", pp.status,
+             pp.created_at as "createdAt", pp.updated_at as "updatedAt",
+             ps.name as "districtName"
+      FROM project_personnel pp
+      LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
+      WHERE pp.id = $1 AND pp.project_id = $2
     `, [id, projectId]);
 
     if (result.rows.length === 0) {
@@ -99,7 +111,7 @@ router.get('/projects/:projectId/personnel/:id', async (req, res) => {
   }
 });
 
-// 添加人员
+// 添加人员（扩展：支持 districtId 字段）
 router.post('/projects/:projectId/personnel', async (req, res) => {
   try {
     // 缺表时给出更清晰的提示（Supabase PostgREST 否则会报 schema cache）
@@ -112,21 +124,28 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
     }
 
     const { projectId } = req.params;
-    const { name, organization, phone, idCard, role } = req.body;
+    const { name, organization, phone, idCard, role, districtId } = req.body;
 
     if (!name || !role) {
       return res.status(400).json({ code: 400, message: '姓名和角色为必填项' });
     }
 
-    // 角色定义：
-    // system_admin - 系统管理员（省级/国家级）
-    // city_admin - 市级管理员
-    // district_admin - 区县管理员
-    // district_reporter - 区县填报员
-    // school_reporter - 学校填报员
-    const validRoles = ['system_admin', 'city_admin', 'district_admin', 'district_reporter', 'school_reporter'];
+    // 新角色体系：
+    // project_admin - 项目管理员（项目配置和管理）
+    // data_collector - 数据采集员（数据填报，按区县限制）
+    // project_expert - 项目评估专家（数据审核和评估）
+    // 保留旧角色兼容：system_admin, city_admin, district_admin, district_reporter, school_reporter
+    const validRoles = [
+      'project_admin', 'data_collector', 'project_expert',
+      'system_admin', 'city_admin', 'district_admin', 'district_reporter', 'school_reporter'
+    ];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ code: 400, message: '无效的角色类型' });
+    }
+
+    // 数据采集员必须关联区县
+    if (role === 'data_collector' && !districtId) {
+      return res.status(400).json({ code: 400, message: '数据采集员必须选择负责的区县' });
     }
 
     const id = generateId();
@@ -142,6 +161,7 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
         phone: phone || '',
         id_card: idCard || '',
         role,
+        district_id: districtId || null,
         status: 'active',
         created_at: timestamp,
         updated_at: timestamp,
@@ -155,11 +175,11 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
   }
 });
 
-// 更新人员
+// 更新人员（扩展：支持 districtId 字段）
 router.put('/projects/:projectId/personnel/:id', async (req, res) => {
   try {
     const { projectId, id } = req.params;
-    const { name, organization, phone, idCard, role, status } = req.body;
+    const { name, organization, phone, idCard, role, districtId, status } = req.body;
 
     const timestamp = now();
 
@@ -169,6 +189,7 @@ router.put('/projects/:projectId/personnel/:id', async (req, res) => {
       ...(phone !== undefined ? { phone } : {}),
       ...(idCard !== undefined ? { id_card: idCard } : {}),
       ...(role !== undefined ? { role } : {}),
+      ...(districtId !== undefined ? { district_id: districtId } : {}),
       ...(status !== undefined ? { status } : {}),
       updated_at: timestamp,
     };
@@ -214,7 +235,7 @@ router.delete('/projects/:projectId/personnel/:id', async (req, res) => {
   }
 });
 
-// 批量导入人员
+// 批量导入人员（扩展：支持新角色和 districtId）
 router.post('/projects/:projectId/personnel/import', async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -225,7 +246,11 @@ router.post('/projects/:projectId/personnel/import', async (req, res) => {
     }
 
     const timestamp = now();
-    const validRoles = ['system_admin', 'city_admin', 'district_admin', 'district_reporter', 'school_reporter'];
+    // 新角色 + 旧角色兼容
+    const validRoles = [
+      'project_admin', 'data_collector', 'project_expert',
+      'system_admin', 'city_admin', 'district_admin', 'district_reporter', 'school_reporter'
+    ];
     const results = { success: 0, failed: 0, errors: [] };
 
     for (const person of personnel) {
@@ -242,6 +267,13 @@ router.post('/projects/:projectId/personnel/import', async (req, res) => {
           continue;
         }
 
+        // 数据采集员必须关联区县
+        if (person.role === 'data_collector' && !person.districtId) {
+          results.failed++;
+          results.errors.push(`${person.name}: 数据采集员必须选择负责的区县`);
+          continue;
+        }
+
         const id = generateId();
         const { error } = await db
           .from('project_personnel')
@@ -253,6 +285,7 @@ router.post('/projects/:projectId/personnel/import', async (req, res) => {
             phone: person.phone || '',
             id_card: person.idCard || '',
             role: person.role,
+            district_id: person.districtId || null,
             status: 'active',
             created_at: timestamp,
             updated_at: timestamp,

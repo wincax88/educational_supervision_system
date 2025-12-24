@@ -10,6 +10,8 @@ export interface Personnel {
   phone: string;
   idCard: string;
   role: string;
+  districtId?: string;     // 关联区县ID（数据采集员使用）
+  districtName?: string;   // 关联区县名称
 }
 
 // 样本数据对象配置
@@ -60,6 +62,7 @@ export interface ImportRecord {
   organization: string;
   phone: string;
   idCard: string;
+  districtId?: string;  // 负责区县ID（数据采集员专用）
 }
 
 // 角色信息
@@ -85,6 +88,7 @@ export interface PersonnelFormValues {
   organization: string;
   phone: string;
   idCard?: string;
+  districtId?: string;   // 数据采集员关联的区县ID
 }
 
 // 样本表单值

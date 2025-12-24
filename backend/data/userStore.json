@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-22T14:34:07.613Z",
+  "updatedAt": "2025-12-24T05:30:00.149Z",
   "users": [
     {
       "username": "AAA",
@@ -147,6 +147,127 @@
       "status": "active",
       "createdAt": "2025-12-17",
       "updatedAt": "2025-12-17"
+    },
+    {
+      "username": "test_user",
+      "password": "Pass@123456",
+      "roles": [
+        "admin"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "admin_zhang",
+      "password": "Pass@123456",
+      "roles": [
+        "admin"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "admin_li",
+      "password": "Pass@123456",
+      "roles": [
+        "admin"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "collector_wang",
+      "password": "Pass@123456",
+      "roles": [
+        "district_reporter"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "collector_liu",
+      "password": "Pass@123456",
+      "roles": [
+        "district_reporter"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "collector_chen",
+      "password": "Pass@123456",
+      "roles": [
+        "district_reporter"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "collector_zhao",
+      "password": "Pass@123456",
+      "roles": [
+        "district_reporter"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "collector_sun",
+      "password": "Pass@123456",
+      "roles": [
+        "district_reporter"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "expert_zhou",
+      "password": "Pass@123456",
+      "roles": [
+        "expert"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "expert_wu",
+      "password": "Pass@123456",
+      "roles": [
+        "expert"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
+    },
+    {
+      "username": "expert_zheng",
+      "password": "Pass@123456",
+      "roles": [
+        "expert"
+      ],
+      "status": "active",
+      "scopes": [],
+      "createdAt": "2025-12-24",
+      "updatedAt": "2025-12-24"
     }
   ]
 }
