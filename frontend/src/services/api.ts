@@ -81,8 +81,17 @@ async function request<T>(
 export async function get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
   let url = endpoint;
   if (params) {
-    const searchParams = new URLSearchParams(params);
-    url = `${endpoint}?${searchParams.toString()}`;
+    // 过滤掉值为 undefined、null 或字符串 "undefined" 的参数
+    const filteredParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== 'undefined') {
+        filteredParams[key] = value;
+      }
+    }
+    if (Object.keys(filteredParams).length > 0) {
+      const searchParams = new URLSearchParams(filteredParams);
+      url = `${endpoint}?${searchParams.toString()}`;
+    }
   }
   const response = await request<T>(url);
   return response.data as T;

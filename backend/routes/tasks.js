@@ -782,6 +782,35 @@ router.get('/my/projects', verifyToken, roles.collector, async (req, res) => {
     const districtIds = districtScopes.map(s => s.id).filter(Boolean);
     const districtNames = districtScopes.map(s => s.name).filter(Boolean);
 
+    // 先查找当前用户对应的 project_personnel 记录
+    let phone = req.auth?.phone || username;
+    let name = req.auth?.name;
+    let personnelIds = [];
+
+    if (phone || name || username) {
+      try {
+        const personnelQuery = `
+          SELECT pp.id
+          FROM project_personnel pp
+          WHERE pp.status = 'active' AND (pp.phone = $1 OR pp.name = $2 OR pp.name ILIKE $3)
+        `;
+        const personnelParams = [phone, name || username, `%${username || ''}%`];
+        const personnelResult = await db.query(personnelQuery, personnelParams);
+        personnelIds = personnelResult.rows.map(r => r.id);
+      } catch (err) {
+        console.error('查询 project_personnel 失败:', err);
+      }
+    }
+
+    // 如果没有匹配的 personnel 记录，返回空结果
+    if (personnelIds.length === 0) {
+      return res.json({ code: 200, data: [] });
+    }
+
+    // 将 personnelIds 作为第一个参数传入，用于统计当前用户的任务数
+    const params = [personnelIds];
+    let paramIndex = 2;
+
     let sql = `
       SELECT DISTINCT
         p.id,
@@ -792,18 +821,16 @@ router.get('/my/projects', verifyToken, roles.collector, async (req, res) => {
         p.end_date as "endDate",
         p.indicator_system_id as "indicatorSystemId",
         isys.name as "indicatorSystemName",
-        (SELECT COUNT(*) FROM tasks t2 WHERE t2.project_id = p.id) as "totalTasks",
-        (SELECT COUNT(*) FROM tasks t3 WHERE t3.project_id = p.id AND t3.status = 'completed') as "completedTasks",
+        (SELECT COUNT(*) FROM tasks t2 WHERE t2.project_id = p.id AND t2.assignee_id = ANY($1)) as "totalTasks",
+        (SELECT COUNT(*) FROM tasks t3 WHERE t3.project_id = p.id AND t3.status = 'completed' AND t3.assignee_id = ANY($1)) as "completedTasks",
         p.created_at as "createdAt"
       FROM tasks t
       LEFT JOIN projects p ON t.project_id = p.id
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
       LEFT JOIN indicator_systems isys ON p.indicator_system_id = isys.id
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
-      WHERE p.is_published = true
+      WHERE p.is_published = true AND t.assignee_id = ANY($1)
     `;
-    const params = [];
-    let paramIndex = 1;
 
     // 可选：按范围过滤
     if (scopeType && scopeId) {
