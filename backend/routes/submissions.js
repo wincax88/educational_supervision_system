@@ -1344,6 +1344,21 @@ router.post('/submissions/:id/submit', async (req, res) => {
 
     if (error) throw error;
 
+    // 如果是从被驳回状态重新提交，且需要审核，则重置评审分配状态
+    if (wasRejected && requireReview) {
+      await db
+        .from('review_assignments')
+        .update({
+          status: 'pending',
+          review_result: null,
+          review_comment: null,
+          reviewed_at: null,
+          updated_at: timestamp
+        })
+        .eq('submission_id', req.params.id)
+        .eq('status', 'completed');
+    }
+
     // 同步更新关联任务的状态和 submission_id
     // - 首次提交（需要审核）：更新任务状态为 in_progress，并关联 submission_id
     // - 从被驳回状态重新提交：更新任务状态为 in_progress

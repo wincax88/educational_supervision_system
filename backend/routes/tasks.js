@@ -688,6 +688,22 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
     sql += ` AND t.assignee_id = ANY($${paramIndex++})`;
     params.push(personnelIds);
 
+    // 如果指定了当前 scope（例如用户选择了某个学校），还需要过滤任务的目标范围
+    if (scopeType && scopeId) {
+      const st = String(scopeType);
+      const sid = String(scopeId);
+
+      if (st === 'school') {
+        // 学校任务：只显示 target_type='school' 且 target_id 匹配的任务
+        sql += ` AND (t.target_type = 'school' AND t.target_id = $${paramIndex++})`;
+        params.push(sid);
+      } else if (st === 'district') {
+        // 区县任务：只显示 target_type='district' 且 target_id 匹配的任务
+        sql += ` AND (t.target_type = 'district' AND t.target_id = $${paramIndex++})`;
+        params.push(sid);
+      }
+    }
+
     // DISTINCT ON 要求 ORDER BY 以 distinct key 作为前缀（并优先返回"更紧急"的那条）
     // 如果不使用 DISTINCT ON（查看下属学校任务），则按学校名称分组排序
     if (needDistinct) {
