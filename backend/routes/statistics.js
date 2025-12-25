@@ -3335,18 +3335,31 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
     }
 
     // 获取所有义务教育学校的填报数据（用于统计佐证材料上传情况）
-    // 只包含义务教育阶段学校：小学、初中、九年一贯制、完全中学，排除幼儿园
+    // 使用 submitter_org 匹配区县，支持学校信息只在 submissions 表中的情况
+    const districtName = district.name;
     const allSchoolSubmissionsResult = await db.query(`
       SELECT s.id, s.school_id, s.data as form_data, s.status,
-             sc.name as school_name, sc.school_type
+             COALESCE(sc.name, s.submitter_org) as school_name,
+             COALESCE(sc.school_type,
+               CASE
+                 WHEN s.submitter_org LIKE '%小学%' AND s.submitter_org NOT LIKE '%九年一贯制%' THEN '小学'
+                 WHEN s.submitter_org LIKE '%初中%' AND s.submitter_org NOT LIKE '%九年一贯制%' THEN '初中'
+                 WHEN s.submitter_org LIKE '%九年一贯制%' THEN '九年一贯制'
+                 ELSE '未知'
+               END
+             ) as school_type
       FROM submissions s
-      JOIN schools sc ON s.school_id = sc.id
+      LEFT JOIN schools sc ON s.school_id = sc.id
       WHERE s.project_id = $1
-        AND sc.district_id = $2
-        AND s.status IN ('approved', 'submitted')
-        AND sc.school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')
+        AND s.submitter_org LIKE $2
+        AND s.submitter_org != $3
+        AND s.status IN ('approved', 'submitted', 'rejected')
+        AND (
+          sc.school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')
+          OR (sc.school_type IS NULL AND s.submitter_org LIKE ANY(ARRAY['%小学%', '%初中%', '%九年一贯制%']))
+        )
       ORDER BY s.submitted_at DESC
-    `, [projectId, districtId]);
+    `, [projectId, `%${districtName}%`, districtName]);
 
     // 统计每个佐证材料字段的上传情况
     const schoolMaterialStats = {};
@@ -3409,14 +3422,9 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       }
     }
 
-    // 获取区县下义务教育学校总数（排除幼儿园）
-    const totalSchoolsResult = await db.query(
-      `SELECT COUNT(*) as count FROM schools
-       WHERE district_id = $1
-       AND school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')`,
-      [districtId]
-    );
-    const totalSchools = parseInt(totalSchoolsResult.rows[0].count) || 0;
+    // 使用实际有提交记录的学校数作为总数
+    // 这样可以正确处理学校信息只在 submissions 表中而不在 schools 表中的情况
+    const totalSchools = totalSchoolsWithSubmission;
 
     // 学业水平级别映射（罗马数字到数字）
     const levelMapping = {
