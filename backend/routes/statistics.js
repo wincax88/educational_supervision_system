@@ -3681,7 +3681,7 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
             name: subject.name,
             level: {
               value: levelVal || null,
-              displayValue: hasLevelVal ? `${levelVal}级` : '待填报',
+              displayValue: hasLevelVal ? `${levelVal}` : '待填报',
               isCompliant: levelCompliant
             },
             diffRate: {
@@ -3760,18 +3760,27 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
   }
 });
 
-// 社会认可度指标定义（1项指标）
+// 社会认可度指标定义（2项指标）
 const SOCIAL_RECOGNITION_INDICATORS = [
   {
     code: 'S1',
-    name: '社会认可度达到85％以上',
-    shortName: '社会认可度',
-    type: 'boolean',
-    dataSource: 'district',
-    dataField: 'social_recognition_over_85',
-    expectedValue: 'yes',
+    name: '问卷调查综合满意度',
+    shortName: '问卷满意度',
+    type: 'percentage',
+    dataSource: 'survey_statistics',
+    surveySource: 'questionnaire',
     threshold: '≥85%',
-    description: '社会认可度调查结果达到85％以上'
+    description: '问卷调查综合满意度达到85％以上'
+  },
+  {
+    code: 'S2',
+    name: '实地走访满意度',
+    shortName: '走访满意度',
+    type: 'percentage',
+    dataSource: 'survey_statistics',
+    surveySource: 'visit',
+    threshold: '≥85%',
+    description: '实地走访满意度达到85％以上'
   }
 ];
 
@@ -3820,6 +3829,23 @@ router.get('/districts/:districtId/social-recognition-summary', async (req, res)
       districtFormData = typeof rawData === 'string' ? JSON.parse(rawData) : (rawData || {});
     }
 
+    // 查询满意度调查统计数据
+    const surveyStatsResult = await db.query(`
+      SELECT
+        source,
+        total_sent,
+        total_valid,
+        total_satisfied
+      FROM survey_statistics
+      WHERE project_id = $1
+        AND district_id = $2
+    `, [projectId, districtId]);
+
+    const surveyStatsMap = new Map();
+    surveyStatsResult.rows.forEach(stat => {
+      surveyStatsMap.set(stat.source, stat);
+    });
+
     // 计算每个指标的达标情况
     const indicators = [];
     let compliantCount = 0;
@@ -3840,32 +3866,50 @@ router.get('/districts/:districtId/social-recognition-summary', async (req, res)
         details: []
       };
 
-      if (!hasDistrictSubmission) {
-        indicator.isCompliant = null;
-        indicator.displayValue = '区县未填报';
-        pendingCount++;
-      } else {
-        const fieldValue = districtFormData[config.dataField];
+      if (config.type === 'percentage' && config.dataSource === 'survey_statistics') {
+        // 从满意度调查统计数据中获取
+        const stats = surveyStatsMap.get(config.surveySource);
 
-        if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
-          indicator.isCompliant = null;
-          indicator.displayValue = '待填报';
-          pendingCount++;
-        } else {
-          indicator.value = fieldValue;
+        if (stats && stats.total_valid > 0) {
+          // 计算满意度百分比
+          const satisfactionRate = (stats.total_satisfied / stats.total_valid) * 100;
+          indicator.value = satisfactionRate;
+          indicator.displayValue = `${satisfactionRate.toFixed(1)}%`;
+          indicator.isCompliant = satisfactionRate >= 85;
 
-          if (config.type === 'boolean') {
-            // 正向指标：需要选"是"才达标
-            indicator.isCompliant = fieldValue === config.expectedValue;
-            indicator.displayValue = fieldValue === 'yes' ? '是' : '否';
-          } else if (config.type === 'boolean_negative') {
-            // 否定指标：需要选"否"才达标（即不存在问题）
-            indicator.isCompliant = fieldValue === config.expectedValue;
-            indicator.displayValue = fieldValue === 'yes' ? '存在' : '不存在';
-          }
+          indicator.details = [{
+            name: '调查统计',
+            value: `${stats.total_satisfied}/${stats.total_valid}`,
+            displayValue: `满意人数: ${stats.total_satisfied}, 有效人数: ${stats.total_valid}`,
+            isCompliant: indicator.isCompliant
+          }];
 
           if (indicator.isCompliant) compliantCount++;
           else nonCompliantCount++;
+        } else {
+          // 没有调查数据，回退到使用布尔字段（仅针对S1）
+          if (config.code === 'S1' && hasDistrictSubmission) {
+            const boolValue = districtFormData['social_recognition_over_85'];
+            if (boolValue === 'yes') {
+              indicator.value = 85; // 假设至少达到85%
+              indicator.displayValue = '≥85%';
+              indicator.isCompliant = true;
+              compliantCount++;
+            } else if (boolValue === 'no') {
+              indicator.value = 0;
+              indicator.displayValue = '<85%';
+              indicator.isCompliant = false;
+              nonCompliantCount++;
+            } else {
+              indicator.isCompliant = null;
+              indicator.displayValue = '待填报';
+              pendingCount++;
+            }
+          } else {
+            indicator.isCompliant = null;
+            indicator.displayValue = '待填报';
+            pendingCount++;
+          }
         }
       }
 

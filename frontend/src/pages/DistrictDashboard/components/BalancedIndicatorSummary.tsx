@@ -621,6 +621,10 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
           // 处理数据指标
           l2Indicator.dataIndicators.forEach((dataInd) => {
             let apiIndicator;
+            let displayValue: string | undefined;
+            let value: number | string | null = null;
+            let isCompliant: boolean | null = null;
+
             if (dimension.code === '2') {
               // 政府保障 - 根据apiCode查找
               const gCode = `G${l2Indicator.code.split('.')[1]}`;
@@ -629,6 +633,57 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
               // 教育质量 - 根据apiCode查找
               const qCode = `Q${l2Indicator.code.split('.')[1]}`;
               apiIndicator = eduIndicatorMap.get(qCode);
+
+              // 特殊处理 Q9（国家义务教育质量监测）的12个子指标
+              if (qCode === 'Q9' && apiIndicator && apiIndicator.details && apiIndicator.details.length > 0) {
+                // 从 dataInd.code 中提取指标编号，例如 "3.9-D1" -> 1
+                const match = dataInd.code.match(/D(\d+)$/);
+                if (match) {
+                  const indicatorNum = parseInt(match[1], 10);
+                  // 计算科目索引：D1/D2->0(语文), D3/D4->1(数学), D5/D6->2(科学), D7/D8->3(体育), D9/D10->4(艺术), D11/D12->5(德育)
+                  const subjectIndex = Math.floor((indicatorNum - 1) / 2);
+                  // 判断是学业水平等级（奇数）还是校际差异率（偶数）
+                  const isLevel = indicatorNum % 2 === 1;
+
+                  if (subjectIndex < apiIndicator.details.length) {
+                    const detail = apiIndicator.details[subjectIndex];
+                    // detail.value 格式为 "III级/12.35" 或 "待填报/待填报"
+                    const parts = detail.value?.toString().split('/') || [];
+
+                    if (isLevel) {
+                      // 奇数：学业水平等级
+                      displayValue = parts[0] || '待填报';
+                      value = parts[0] || null;
+                      // 从 detail.displayValue 中提取学业水平的达标状态
+                      // displayValue 格式: "学业水平: III级, 差异率: 12.35"
+                      if (displayValue !== '待填报') {
+                        // 判断是否达标：需要 >= III级
+                        const levelMatch = displayValue.match(/([IVX]+)级?/);
+                        if (levelMatch) {
+                          const levelStr = levelMatch[1];
+                          const levelMapping: { [key: string]: number } = {
+                            'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5
+                          };
+                          const levelNum = levelMapping[levelStr];
+                          isCompliant = levelNum !== undefined && levelNum >= 3; // III级及以上达标
+                        }
+                      } else {
+                        isCompliant = null;
+                      }
+                    } else {
+                      // 偶数：校际差异率
+                      displayValue = parts[1] || '待填报';
+                      value = parts[1] ? parseFloat(parts[1]) : null;
+                      // 判断是否达标：需要 < 0.15
+                      if (displayValue !== '待填报' && value !== null) {
+                        isCompliant = value < 0.15;
+                      } else {
+                        isCompliant = null;
+                      }
+                    }
+                  }
+                }
+              }
             } else if (dimension.code === '4') {
               // 社会认可 - 根据apiCode查找
               const sCode = dataInd.apiCode || `S${l2Indicator.code.split('.')[1]}`;
@@ -636,16 +691,21 @@ const BalancedIndicatorSummary: React.FC<BalancedIndicatorSummaryProps> = ({
             }
 
             if (apiIndicator) {
+              // 如果是Q9的子指标，使用解析后的值；否则使用原始值
+              const finalDisplayValue = displayValue !== undefined ? displayValue : (apiIndicator.displayValue ?? undefined);
+              const finalValue = value !== null ? value : apiIndicator.value;
+              const finalIsCompliant = isCompliant !== null ? isCompliant : apiIndicator.isCompliant;
+
               l2Children.push(renderDataIndicatorNode(
                 dataInd,
-                apiIndicator.value,
-                apiIndicator.isCompliant,
-                apiIndicator.displayValue ?? undefined,
+                finalValue,
+                finalIsCompliant,
+                finalDisplayValue,
                 apiIndicator
               ));
               dimensionTotal++;
-              if (apiIndicator.isCompliant === true) dimensionCompliant++;
-              else if (apiIndicator.isCompliant === null) dimensionPending++;
+              if (finalIsCompliant === true) dimensionCompliant++;
+              else if (finalIsCompliant === null) dimensionPending++;
             } else {
               // API未返回数据，显示待填报状态
               l2Children.push(renderDataIndicatorNode(dataInd, null, null, undefined, undefined));
