@@ -218,15 +218,20 @@ const ProjectConfig: React.FC = () => {
   };
 
   // 批量添加人员（从多选账号）
-  const handleBatchAddPerson = (users: Array<{ phone: string; name?: string; roles: string[] }>, role: string) => {
+  const handleBatchAddPerson = (users: Array<{ phone: string; name?: string; roles: string[] }>, role: string, districtId?: string) => {
+    // 根据区县ID查找区县名称
+    const districtName = districtId
+      ? availableDistricts.find(d => d.id === districtId)?.name || ''
+      : '';
     // 逐个添加选中的用户
     users.forEach(user => {
       addPerson({
         role,
         name: user.name || user.phone,
-        organization: '',
+        organization: districtName,  // 存储区县名称用于显示
         phone: user.phone,
         idCard: '',
+        districtId,  // 传递区县ID用于后端关联
       });
     });
     setAddPersonModalVisible(false);
@@ -316,6 +321,14 @@ const ProjectConfig: React.FC = () => {
     }));
     return [...districts, ...schools];
   }, [getAllDistricts, getAllSchools]);
+
+  // 可选区县列表（用于数据采集员选择负责区县）
+  const availableDistricts = useMemo(() => {
+    return getAllDistricts().map(d => ({
+      id: d.id,
+      name: d.name,
+    }));
+  }, [getAllDistricts]);
 
   // ==================== 项目状态流转处理 ====================
 
@@ -760,6 +773,7 @@ const ProjectConfig: React.FC = () => {
         loadingUsers={loadingUsers}
         presetRole={addPersonPresetRole}
         availableOrganizations={availableOrganizations}
+        availableDistricts={availableDistricts}
       />
 
       <ImportModal

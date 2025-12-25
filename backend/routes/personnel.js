@@ -148,19 +148,30 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
     // 数据采集员必须关联区县
     let finalDistrictId = districtId;
     if (role === 'data_collector' && !finalDistrictId) {
-      // 尝试从 organization 字段自动匹配区县
+      // 尝试从 organization 字段匹配区县
       if (organization) {
-        const districtMatch = await db.query(`
+        // 先尝试用ID精确匹配
+        let districtMatch = await db.query(`
           SELECT id, name
           FROM project_samples
-          WHERE project_id = $1 AND type = 'district'
-          AND ($2 LIKE '%' || name || '%' OR name LIKE '%' || $2 || '%')
+          WHERE project_id = $1 AND type = 'district' AND id = $2
           LIMIT 1
         `, [projectId, organization]);
 
+        // 如果ID匹配失败，再尝试用名称模糊匹配
+        if (districtMatch.rows.length === 0) {
+          districtMatch = await db.query(`
+            SELECT id, name
+            FROM project_samples
+            WHERE project_id = $1 AND type = 'district'
+            AND ($2 LIKE '%' || name || '%' OR name LIKE '%' || $2 || '%')
+            LIMIT 1
+          `, [projectId, organization]);
+        }
+
         if (districtMatch.rows.length > 0) {
           finalDistrictId = districtMatch.rows[0].id;
-          console.log(`自动匹配区县：${name} (${organization}) -> ${districtMatch.rows[0].name} (${finalDistrictId})`);
+          console.log(`匹配区县：${name} (${organization}) -> ${districtMatch.rows[0].name} (${finalDistrictId})`);
         }
       }
 
@@ -173,6 +184,20 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
             : '数据采集员必须选择负责的区县'
         });
       }
+    }
+
+    // 检查该项目中是否已存在相同手机号的人员
+    const existingPerson = await db.query(`
+      SELECT id, name, role FROM project_personnel
+      WHERE project_id = $1 AND phone = $2 AND status = 'active'
+      LIMIT 1
+    `, [projectId, phone.trim()]);
+
+    if (existingPerson.rows.length > 0) {
+      return res.status(400).json({
+        code: 400,
+        message: `该手机号已存在人员：${existingPerson.rows[0].name}`,
+      });
     }
 
     const id = generateId();
@@ -382,20 +407,30 @@ router.post('/projects/:projectId/personnel/import', async (req, res) => {
         // 数据采集员必须关联区县
         let finalDistrictId = person.districtId;
         if (person.role === 'data_collector' && !finalDistrictId) {
-          // 尝试从 organization 字段自动匹配区县
+          // 尝试从 organization 字段匹配区县
           if (person.organization) {
-            // 从 project_samples 中查找匹配的区县
-            const districtMatch = await db.query(`
+            // 先尝试用ID精确匹配
+            let districtMatch = await db.query(`
               SELECT id, name
               FROM project_samples
-              WHERE project_id = $1 AND type = 'district'
-              AND ($2 LIKE '%' || name || '%' OR name LIKE '%' || $2 || '%')
+              WHERE project_id = $1 AND type = 'district' AND id = $2
               LIMIT 1
             `, [projectId, person.organization]);
 
+            // 如果ID匹配失败，再尝试用名称模糊匹配
+            if (districtMatch.rows.length === 0) {
+              districtMatch = await db.query(`
+                SELECT id, name
+                FROM project_samples
+                WHERE project_id = $1 AND type = 'district'
+                AND ($2 LIKE '%' || name || '%' OR name LIKE '%' || $2 || '%')
+                LIMIT 1
+              `, [projectId, person.organization]);
+            }
+
             if (districtMatch.rows.length > 0) {
               finalDistrictId = districtMatch.rows[0].id;
-              console.log(`自动匹配区县：${person.name} (${person.organization}) -> ${districtMatch.rows[0].name} (${finalDistrictId})`);
+              console.log(`匹配区县：${person.name} (${person.organization}) -> ${districtMatch.rows[0].name} (${finalDistrictId})`);
             }
           }
 

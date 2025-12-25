@@ -100,13 +100,14 @@ export function usePersonnel(projectId?: string) {
         phone: values.phone,
         idCard: values.idCard || '',
         role: backendRole as any,
+        districtId: values.districtId,  // 传递区县ID
       });
 
       message.success('添加成功');
       loadPersonnel();
-    } catch (error) {
+    } catch (error: any) {
       console.error('添加人员失败:', error);
-      message.error('添加人员失败');
+      message.error(error?.message || '添加人员失败');
     }
   }, [projectId, loadPersonnel]);
 
