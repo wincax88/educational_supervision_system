@@ -173,28 +173,39 @@ async function calculateIndicatorValueFromElements(code, projectId, districtId, 
 
           // 如果区县表单没有，尝试从学校汇总获取
           if (refValue === null || isNaN(refValue)) {
-            // 查询学校填报数据汇总
-            // 注意: s.data 是 text 类型，需要先转换为 jsonb
-            const schoolSumResult = await db.query(`
-              SELECT SUM(
-                CASE
-                  WHEN s.data IS NOT NULL AND s.data != ''
-                  THEN CAST((s.data::jsonb)->>$1 AS NUMERIC)
-                  ELSE NULL
-                END
-              ) as total
-              FROM submissions s
-              JOIN schools sc ON s.school_id = sc.id
-              JOIN data_tools dt ON COALESCE(s.form_id, s.tool_id) = dt.id
-              WHERE s.project_id = $2
-                AND sc.district_id = $3
-                AND sc.status = 'active'
-                AND dt.target = '学校'
-                AND s.status IN ('approved', 'submitted')
-            `, [fieldId, projectId, districtId]);
+            // 先获取区县名称用于匹配学校提交记录
+            const districtResult = await db.query('SELECT name FROM districts WHERE id = $1', [districtId]);
+            const districtName = districtResult.rows[0]?.name;
 
-            if (schoolSumResult.rows[0]?.total !== null) {
-              refValue = parseFloat(schoolSumResult.rows[0].total);
+            if (districtName) {
+              // 查询学校填报数据汇总
+              // 使用 submitter_org 匹配区县，支持学校信息只在 submissions 表中的情况
+              // 注意: s.data 是 text 类型，需要先转换为 jsonb
+              const schoolSumResult = await db.query(`
+                SELECT SUM(
+                  CASE
+                    WHEN s.data IS NOT NULL AND s.data != ''
+                    THEN CAST((s.data::jsonb)->>$1 AS NUMERIC)
+                    ELSE NULL
+                  END
+                ) as total
+                FROM submissions s
+                LEFT JOIN schools sc ON s.school_id = sc.id
+                JOIN data_tools dt ON COALESCE(s.form_id, s.tool_id) = dt.id
+                WHERE s.project_id = $2
+                  AND s.submitter_org LIKE $3
+                  AND s.submitter_org != $4
+                  AND dt.target = '学校'
+                  AND s.status IN ('approved', 'submitted', 'rejected')
+                  AND (
+                    sc.school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')
+                    OR (sc.school_type IS NULL AND s.submitter_org LIKE ANY(ARRAY['%小学%', '%初中%', '%九年一贯制%']))
+                  )
+              `, [fieldId, projectId, `%${districtName}%`, districtName]);
+
+              if (schoolSumResult.rows[0]?.total !== null) {
+                refValue = parseFloat(schoolSumResult.rows[0].total);
+              }
             }
           }
         } else if (refElement.element_type === '派生要素') {
@@ -2518,21 +2529,35 @@ router.get('/districts/:districtId/government-guarantee-summary', async (req, re
     }
 
     // 获取区县下所有学校的填报数据（用于计算G3、G4、G5等汇总指标）
+    // 使用 submitter_org 匹配区县，支持学校信息只在 submissions 表中的情况
+    const districtName = district.name;
     const schoolSubmissionsResult = await db.query(`
       SELECT s.id, s.school_id, s.data as form_data, s.status,
-             sc.name as school_name, sc.school_type
+             COALESCE(sc.name, s.submitter_org) as school_name,
+             COALESCE(sc.school_type,
+               CASE
+                 WHEN s.submitter_org LIKE '%小学%' AND s.submitter_org NOT LIKE '%九年一贯制%' THEN '小学'
+                 WHEN s.submitter_org LIKE '%初中%' AND s.submitter_org NOT LIKE '%九年一贯制%' THEN '初中'
+                 WHEN s.submitter_org LIKE '%九年一贯制%' THEN '九年一贯制'
+                 ELSE '未知'
+               END
+             ) as school_type
       FROM submissions s
-      JOIN schools sc ON s.school_id = sc.id
+      LEFT JOIN schools sc ON s.school_id = sc.id
       JOIN data_tools dt ON COALESCE(s.form_id, s.tool_id) = dt.id
       WHERE s.project_id = $1
-        AND sc.district_id = $2
-        AND sc.status = 'active'
+        AND s.submitter_org LIKE $2
+        AND s.submitter_org != $3
         AND dt.target = '学校'
         AND s.status IN ('approved', 'submitted', 'rejected')
-      ORDER BY sc.id,
+        AND (
+          sc.school_type IN ('小学', '初中', '九年一贯制', '完全中学', 'primary', 'junior', 'nine_year', 'complete_secondary')
+          OR (sc.school_type IS NULL AND s.submitter_org LIKE ANY(ARRAY['%小学%', '%初中%', '%九年一贯制%']))
+        )
+      ORDER BY s.school_id,
         CASE WHEN s.status = 'approved' THEN 0 ELSE 1 END,
         s.submitted_at DESC
-    `, [projectId, districtId]);
+    `, [projectId, `%${districtName}%`, districtName]);
 
     // 按学校去重，只保留每个学校最新的一条有效提交
     const schoolDataMap = new Map();
@@ -3272,17 +3297,30 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
 
     // 获取区县下所有初中学校的填报数据（用于计算Q1初中巩固率）
     // 包含初中、九年一贯制、十二年一贯制、完全中学（都有初中部）
+    // 使用 submitter_org 匹配区县，支持学校信息只在 submissions 表中的情况
+    const districtName = district.name;
     const schoolSubmissionsResult = await db.query(`
       SELECT s.id, s.school_id, s.data as form_data, s.status,
-             sc.name as school_name, sc.school_type
+             COALESCE(sc.name, s.submitter_org) as school_name,
+             COALESCE(sc.school_type,
+               CASE
+                 WHEN s.submitter_org LIKE '%初中%' AND s.submitter_org NOT LIKE '%九年一贯制%' THEN '初中'
+                 WHEN s.submitter_org LIKE '%九年一贯制%' THEN '九年一贯制'
+                 ELSE '未知'
+               END
+             ) as school_type
       FROM submissions s
-      JOIN schools sc ON s.school_id = sc.id
+      LEFT JOIN schools sc ON s.school_id = sc.id
       WHERE s.project_id = $1
-        AND sc.district_id = $2
-        AND s.status IN ('approved', 'submitted')
-        AND sc.school_type IN ('初中', '九年一贯制', '十二年一贯制', '完全中学', 'junior', 'nine_year', 'twelve_year', 'complete_secondary')
+        AND s.submitter_org LIKE $2
+        AND s.submitter_org != $3
+        AND s.status IN ('approved', 'submitted', 'rejected')
+        AND (
+          sc.school_type IN ('初中', '九年一贯制', '十二年一贯制', '完全中学', 'junior', 'nine_year', 'twelve_year', 'complete_secondary')
+          OR (sc.school_type IS NULL AND s.submitter_org LIKE ANY(ARRAY['%初中%', '%九年一贯制%']))
+        )
       ORDER BY s.submitted_at DESC
-    `, [projectId, districtId]);
+    `, [projectId, `%${districtName}%`, districtName]);
 
     // 汇总初中相关数据用于Q1计算
     let juniorGraduationTotal = 0;
@@ -3336,7 +3374,6 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
 
     // 获取所有义务教育学校的填报数据（用于统计佐证材料上传情况）
     // 使用 submitter_org 匹配区县，支持学校信息只在 submissions 表中的情况
-    const districtName = district.name;
     const allSchoolSubmissionsResult = await db.query(`
       SELECT s.id, s.school_id, s.data as form_data, s.status,
              COALESCE(sc.name, s.submitter_org) as school_name,
