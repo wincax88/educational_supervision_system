@@ -18,29 +18,45 @@ const setDb = (database) => {
  */
 router.get('/expert/projects', async (req, res) => {
   try {
-    // 从请求头获取当前用户名（通过token解析）
+    // 从请求头获取当前用户手机号（通过token解析）
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '');
-    let currentUsername = '';
+    let currentUserPhone = '';
+    let currentUserName = '';
 
-    // 解析 token 获取用户名
+    // 解析 token 获取用户信息
+    // Token 格式: token-{timestamp}-{role}-{base64EncodedPhone}
     if (token) {
-      const sessionStore = require('../services/sessionStore');
       const parts = token.split('-');
-      if (parts.length >= 2) {
-        const ts = parseInt(parts[1], 10);
-        const session = sessionStore.getSession(ts);
-        if (session) {
-          currentUsername = session.username;
+      if (parts.length >= 4) {
+        // 从 token 中解析 phone（Base64 解码）
+        try {
+          const encodedPhone = parts[3];
+          currentUserPhone = Buffer.from(encodedPhone, 'base64').toString('utf-8');
+        } catch (e) {
+          console.error('[expert/projects] 解析 token 失败:', e);
+        }
+
+        // 尝试从 session 获取 name（可选，不强制）
+        try {
+          const sessionStore = require('../services/sessionStore');
+          const ts = parseInt(parts[1], 10);
+          const session = sessionStore.getSession(ts);
+          if (session) {
+            currentUserName = session.name || '';
+          }
+        } catch (e) {
+          // Session 不存在也没关系，我们有 phone 就够了
         }
       }
     }
 
-    if (!currentUsername) {
+    if (!currentUserPhone && !currentUserName) {
       return res.status(401).json({ code: 401, message: '未登录或登录已过期' });
     }
 
     // 查询专家参与的项目列表（基于 project_personnel 表）
+    // 通过 phone 或 name 匹配
     const projectsResult = await db.query(`
       SELECT DISTINCT
         p.id, p.name, p.description, p.status,
@@ -49,9 +65,11 @@ router.get('/expert/projects', async (req, res) => {
         p.created_at as "createdAt"
       FROM projects p
       INNER JOIN project_personnel pp ON p.id = pp.project_id
-      WHERE pp.name = $1 AND pp.role = 'project_expert' AND pp.status = 'active'
+      WHERE (pp.phone = $1 OR pp.name = $2)
+        AND pp.role = 'project_expert'
+        AND pp.status = 'active'
       ORDER BY p.created_at DESC
-    `, [currentUsername]);
+    `, [currentUserPhone, currentUserName]);
 
     const projects = projectsResult.rows;
 
