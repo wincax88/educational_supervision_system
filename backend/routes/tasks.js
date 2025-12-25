@@ -560,13 +560,81 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
       params.push(status);
     }
 
-    // 可选：仅在显式指定 scopeType/scopeId 时尝试按范围过滤
-    if (scopeType && scopeId) {
+    // 根据用户 scopes 或 assignee 进行过滤
+    // 1. 如果前端指定了 scopeType/scopeId，则按指定的单个 scope 过滤
+    // 2. 如果前端没有指定，但用户有 scopes，则按用户的所有 scopes 过滤
+    // 3. 如果用户没有 scopes，则通过 username 匹配 project_personnel.name 和 district_id 过滤
+    // 4. 只有在以上都不满足时（如管理员）才返回所有任务
+    const hasUserScopes = Array.isArray(scopes) && scopes.length > 0;
+    const hasExplicitScope = scopeType && scopeId;
+
+    // 如果用户没有 scopes，尝试通过 username 查找用户对应的 project_personnel 记录
+    // 这样可以根据 assignee_id 和 district_id 过滤任务
+    let personnelIds = [];
+    let personnelDistrictIds = [];
+    if (!hasUserScopes && !hasExplicitScope && username) {
+      try {
+        // 查找当前用户对应的 project_personnel 记录
+        // 匹配条件优先级：
+        // 1. name = username（用户名与人员名称相同）
+        // 2. organization 包含 username（兼容用户名在组织名称中的情况）
+        let personnelQuery = `
+          SELECT pp.id, pp.district_id, pp.role, pp.name, psd.name as district_name
+          FROM project_personnel pp
+          LEFT JOIN project_samples psd ON pp.district_id = psd.id AND psd.type = 'district'
+          WHERE pp.status = 'active' AND (pp.name = $1 OR pp.name ILIKE $2)
+        `;
+        const personnelParams = [username, `%${username}%`];
+
+        // 如果有 projectId，限制到特定项目
+        if (projectId) {
+          personnelQuery += ` AND pp.project_id = $3`;
+          personnelParams.push(projectId);
+        }
+
+        const personnelResult = await db.query(personnelQuery, personnelParams);
+        personnelIds = personnelResult.rows.map(r => r.id);
+        personnelDistrictIds = personnelResult.rows.map(r => r.district_id).filter(Boolean);
+
+        console.log(`[/my/tasks] username=${username}, personnelIds=`, personnelIds, ', personnelDistrictIds=', personnelDistrictIds);
+
+        // 如果找到了 personnel 记录的 district_id，将其添加到 districtIds 用于过滤
+        if (personnelDistrictIds.length > 0 && !hasUserScopes) {
+          // 查询区县名称
+          const districtResult = await db.query(
+            'SELECT id, name FROM project_samples WHERE id = ANY($1) AND type = $2',
+            [personnelDistrictIds, 'district']
+          );
+          districtResult.rows.forEach(d => {
+            if (!districtIds.includes(d.id)) {
+              districtIds.push(d.id);
+            }
+            if (d.name && !districtNames.includes(d.name)) {
+              districtNames.push(d.name);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('查询 project_personnel 失败:', err);
+      }
+    }
+
+    // 如果用户没有任何权限范围（scopes 为空、没有匹配的 personnel 记录），
+    // 则返回空结果，避免返回所有任务
+    if (!hasUserScopes && !hasExplicitScope && personnelIds.length === 0 && personnelDistrictIds.length === 0) {
+      console.warn(`[/my/tasks] 用户 ${username} 没有匹配的权限范围，返回空结果`);
+      return res.json({ code: 200, data: [] });
+    }
+
+    // 是否有任何过滤条件
+    const hasPersonnelFilter = personnelIds.length > 0 || personnelDistrictIds.length > 0;
+
+    if (hasExplicitScope || hasUserScopes || hasPersonnelFilter) {
       // 优先使用 target_type/target_id（若任务创建时带上），否则回退到 assignee 的 organization 匹配 scope.name
       const scopeConds = [];
-      const st = String(scopeType);
-      const sid = String(scopeId);
-      
+      const st = hasExplicitScope ? String(scopeType) : null;
+      const sid = hasExplicitScope ? String(scopeId) : null;
+
       if (schoolIds.length > 0) {
         scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
         params.push(schoolIds);
@@ -583,16 +651,22 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
         scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
         params.push(districtNames);
       }
-      
+
+      // 如果用户没有 scopes 但找到了 personnelIds，通过 assignee_id 过滤
+      if (personnelIds.length > 0) {
+        scopeConds.push(`(t.assignee_id = ANY($${paramIndex++}))`);
+        params.push(personnelIds);
+      }
+
       // 如果没有匹配的 scope，但用户明确指定了 scopeType 和 scopeId，则尝试查询对应的名称
       // 这样可以兼容服务重启后旧 token 的情况，同时支持通过 organization 匹配
-      if (scopeConds.length === 0) {
+      if (scopeConds.length === 0 && hasExplicitScope) {
         try {
           if (st === 'school') {
             // 查询学校名称
             const schoolResult = await db.query('SELECT name FROM schools WHERE id = $1', [sid]);
             const schoolName = schoolResult?.rows?.[0]?.name;
-            
+
             // 同时通过 target_id 和 organization 匹配
             if (schoolName) {
               scopeConds.push(`(t.target_type = 'school' AND t.target_id = $${paramIndex++})`);
@@ -608,7 +682,7 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
             // 查询区县名称
             const districtResult = await db.query('SELECT name FROM districts WHERE id = $1', [sid]);
             const districtName = districtResult?.rows?.[0]?.name;
-            
+
             // 同时通过 target_id 和 organization 匹配
             if (districtName) {
               scopeConds.push(`(t.target_type = 'district' AND t.target_id = $${paramIndex++})`);
@@ -636,38 +710,48 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
 
       // 添加兜底条件：如果任务没有关联到具体学校/区县（target_type 为空且 organization 为空），
       // 也返回这些任务，但需要根据 scopeType 过滤对应的工具类型（dt.target）
-      if (st === 'school') {
+      // 判断用户主要的 scope 类型（用于兜底条件）
+      // 如果用户通过 personnelIds 匹配且有 district_id，则视为区县类型
+      const primaryScopeType = st || (districtScopes.length > 0 ? 'district' : (schoolScopes.length > 0 ? 'school' : (personnelDistrictIds.length > 0 ? 'district' : null)));
+
+      if (primaryScopeType === 'school') {
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '学校')`);
-      } else if (st === 'district') {
+      } else if (primaryScopeType === 'district') {
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '区县')`);
 
         // 如果是区县 scope 且需要包含下属学校任务
         if (includeSubSchools === 'true') {
           try {
-            // 查询该区县下所有学校（从项目样本表获取，sid 是区县样本 ID）
-            const schoolsResult = await db.query(
-              'SELECT id, name FROM project_samples WHERE parent_id = $1 AND type = $2',
-              [sid, 'school']
-            );
-            const subSchoolIds = schoolsResult.rows.map(s => s.id);
-            const subSchoolNames = schoolsResult.rows.map(s => s.name);
+            // 获取所有区县 ID（从 scopes 中提取、personnelDistrictIds、或使用指定的 sid）
+            const allDistrictIds = hasExplicitScope ? [sid] : (districtIds.length > 0 ? districtIds : personnelDistrictIds);
 
-            // 扩展过滤条件，包含下属学校的任务
-            if (subSchoolIds.length > 0) {
-              scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
-              params.push(subSchoolIds);
+            if (allDistrictIds.length > 0) {
+              // 查询所有区县下的学校（从项目样本表获取）
+              const schoolsResult = await db.query(
+                'SELECT id, name FROM project_samples WHERE parent_id = ANY($1) AND type = $2',
+                [allDistrictIds, 'school']
+              );
+              const subSchoolIds = schoolsResult.rows.map(s => s.id);
+              const subSchoolNames = schoolsResult.rows.map(s => s.name);
+
+              // 扩展过滤条件，包含下属学校的任务
+              if (subSchoolIds.length > 0) {
+                scopeConds.push(`(t.target_type = 'school' AND t.target_id = ANY($${paramIndex++}))`);
+                params.push(subSchoolIds);
+              }
+              if (subSchoolNames.length > 0) {
+                scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
+                params.push(subSchoolNames);
+              }
+              // 也包含学校级别的通用任务
+              scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '学校')`);
             }
-            if (subSchoolNames.length > 0) {
-              scopeConds.push(`(pp.organization = ANY($${paramIndex++}))`);
-              params.push(subSchoolNames);
-            }
-            // 也包含学校级别的通用任务
-            scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = '') AND dt.target = '学校')`);
           } catch (err) {
             console.warn('查询下属学校失败:', err);
           }
         }
-      } else {
+      } else if (hasUserScopes || hasPersonnelFilter) {
+        // 用户有 scopes 或 personnelFilter 但类型未知，只返回匹配的任务
         scopeConds.push(`(t.target_type IS NULL AND (pp.organization IS NULL OR pp.organization = ''))`);
       }
 

@@ -676,6 +676,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
                 treeNodeFilterProp="title"
                 maxTagCount={3}
                 style={{ width: '100%' }}
+                allowClear
               />
             </Form.Item>
           )}
