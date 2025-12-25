@@ -525,6 +525,26 @@ const CollectorDashboard: React.FC = () => {
     [districtSchoolTasksGrouped]
   );
 
+  // 统计：有任务的区县数、学校数和任务数（用于显示）
+  const actualStats = useMemo(() => {
+    const districtsWithTasks = districtSchoolTasksGrouped.filter(d =>
+      d.schools.some(s => s.tasks.length > 0)
+    );
+    const schoolsWithTasks = districtsWithTasks.reduce(
+      (sum, d) => sum + d.schools.filter(s => s.tasks.length > 0).length,
+      0
+    );
+    const tasksCount = districtsWithTasks.reduce(
+      (sum, d) => sum + d.stats.totalTasks,
+      0
+    );
+    return {
+      districtCount: districtsWithTasks.length,
+      schoolCount: schoolsWithTasks,
+      taskCount: tasksCount,
+    };
+  }, [districtSchoolTasksGrouped]);
+
   // 开始填报（可选传入区县名称，用于学校任务场景）
   const handleStartTask = async (task: Task, districtName?: string) => {
     try {
@@ -1107,9 +1127,9 @@ const CollectorDashboard: React.FC = () => {
             <Space>
               <BankOutlined style={{ color: '#52c41a' }} />
               学校任务
-              <Tag color="blue">{districtSchoolTasksGrouped.length} 个区县</Tag>
-              <Tag color="green">{totalSchoolsCount} 所学校</Tag>
-              <Tag>{totalSchoolTasksCount} 个任务</Tag>
+              <Tag color="blue">{actualStats.districtCount} 个区县</Tag>
+              <Tag color="green">{actualStats.schoolCount} 所学校</Tag>
+              <Tag>{actualStats.taskCount} 个任务</Tag>
             </Space>
           }
           className={styles.taskCard}
@@ -1117,11 +1137,17 @@ const CollectorDashboard: React.FC = () => {
         >
           <Spin spinning={loading}>
             <Collapse
-              defaultActiveKey={districtSchoolTasksGrouped.map(d => d.district.id)}
-              items={districtSchoolTasksGrouped.map(districtGroup => {
+              defaultActiveKey={districtSchoolTasksGrouped
+                .filter(districtGroup => districtGroup.schools.some(schoolData => schoolData.tasks.length > 0))
+                .map(d => d.district.id)}
+              items={districtSchoolTasksGrouped
+                .filter(districtGroup => districtGroup.schools.some(schoolData => schoolData.tasks.length > 0)) // 过滤掉没有任务的区县
+                .map(districtGroup => {
                 const districtCompletionRate = districtGroup.stats.totalTasks > 0
                   ? Math.round((districtGroup.stats.completedTasks / districtGroup.stats.totalTasks) * 100)
                   : 0;
+                // 计算有任务的学校数量
+                const schoolsWithTasksCount = districtGroup.schools.filter(s => s.tasks.length > 0).length;
                 return {
                   key: districtGroup.district.id,
                   label: (
@@ -1129,7 +1155,7 @@ const CollectorDashboard: React.FC = () => {
                       <Space>
                         <ApartmentOutlined style={{ color: '#1890ff' }} />
                         <span style={{ fontWeight: 600, fontSize: 15 }}>{districtGroup.district.name}</span>
-                        <Tag color="blue">{districtGroup.stats.totalSchools} 所学校</Tag>
+                        <Tag color="blue">{schoolsWithTasksCount} 所学校</Tag>
                         {districtGroup.stats.totalTasks > 0 && (
                           <Tag color={districtCompletionRate === 100 ? 'success' : 'processing'}>
                             {districtGroup.stats.completedTasks}/{districtGroup.stats.totalTasks} 任务已完成
@@ -1148,7 +1174,9 @@ const CollectorDashboard: React.FC = () => {
                   ),
                   children: (
                     <div style={{ paddingLeft: 16 }}>
-                      {districtGroup.schools.map(schoolData => {
+                      {districtGroup.schools
+                        .filter(schoolData => schoolData.tasks.length > 0) // 过滤掉暂无任务的学校
+                        .map(schoolData => {
                         const schoolCompletionRate = schoolData.stats.total > 0
                           ? Math.round((schoolData.stats.completed / schoolData.stats.total) * 100)
                           : 0;
