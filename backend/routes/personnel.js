@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const userSyncService = require('../src/services/userSyncService').default;
+const userSyncService = require('../dist/services/userSyncService').default;
 
 let db = null;
 

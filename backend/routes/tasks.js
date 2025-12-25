@@ -568,7 +568,7 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
     const hasUserScopes = Array.isArray(scopes) && scopes.length > 0;
     const hasExplicitScope = scopeType && scopeId;
 
-    // 如果用户没有 scopes，尝试通过 username 查找用户对应的 project_personnel 记录
+    // 如果用户没有 scopes，尝试通过 phone/name 查找用户对应的 project_personnel 记录
     // 这样可以根据 assignee_id 和 district_id 过滤任务
     let personnelIds = [];
     let personnelDistrictIds = [];
@@ -576,19 +576,22 @@ router.get('/my/tasks', verifyToken, roles.collector, async (req, res) => {
       try {
         // 查找当前用户对应的 project_personnel 记录
         // 匹配条件优先级：
-        // 1. name = username（用户名与人员名称相同）
-        // 2. organization 包含 username（兼容用户名在组织名称中的情况）
+        // 1. phone = req.auth.phone（优先通过手机号匹配）
+        // 2. name = req.auth.name（通过姓名匹配）
+        // 3. name = username（兼容旧逻辑）
+        const phone = req.auth?.phone || username;
+        const name = req.auth?.name;
         let personnelQuery = `
           SELECT pp.id, pp.district_id, pp.role, pp.name, psd.name as district_name
           FROM project_personnel pp
           LEFT JOIN project_samples psd ON pp.district_id = psd.id AND psd.type = 'district'
-          WHERE pp.status = 'active' AND (pp.name = $1 OR pp.name ILIKE $2)
+          WHERE pp.status = 'active' AND (pp.phone = $1 OR pp.name = $2 OR pp.name ILIKE $3)
         `;
-        const personnelParams = [username, `%${username}%`];
+        const personnelParams = [phone, name || username, `%${username}%`];
 
         // 如果有 projectId，限制到特定项目
         if (projectId) {
-          personnelQuery += ` AND pp.project_id = $3`;
+          personnelQuery += ` AND pp.project_id = $4`;
           personnelParams.push(projectId);
         }
 
