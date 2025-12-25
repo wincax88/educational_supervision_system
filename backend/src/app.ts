@@ -86,42 +86,61 @@ export function createApp(db?: Database): Express {
     app.use('/api', uploadsRouteFactory(db));
   }
 
-  // 登录接口
-  app.post('/api/login', loginRules as express.RequestHandler[], (req: Request, res: Response): void => {
-    const { username, password } = req.body;
-    const user = userStore.verifyCredentials(username, password);
-    if (user) {
-      const roles = Array.isArray(user.roles) ? user.roles : [];
-      const role = roles[0] || null;
-      const roleNameMap: RoleNameMap = {
-        admin: '系统管理员',
-        city_admin: '市级管理员',
-        district_admin: '区县管理员',
-        school_reporter: '学校填报员',
-        expert: '评估专家',
-      };
-      const ts = Date.now();
-      sessionStore.setSession(ts, {
-        username,
-        roles,
-        scopes: Array.isArray(user.scopes) ? user.scopes : [],
-      });
+  // 登录接口（支持手机号登录）
+  app.post('/api/login', loginRules as express.RequestHandler[], async (req: Request, res: Response): Promise<void> => {
+    try {
+      // 支持 phone 或 username 字段（向后兼容）
+      const phone = req.body.phone || req.body.username;
+      const password = req.body.password;
 
-      res.json({
-        code: 200,
-        data: {
-          username,
-          role,
+      if (!phone || !password) {
+        res.status(400).json({
+          code: 400,
+          message: '请输入手机号和密码',
+        });
+        return;
+      }
+
+      const user = await userStore.verifyCredentials(phone, password);
+      if (user) {
+        const roles = Array.isArray(user.roles) ? user.roles : [];
+        const role = roles[0] || null;
+        const roleNameMap: RoleNameMap = {
+          admin: '系统管理员',
+          project_admin: '项目管理员',
+          data_collector: '数据采集员',
+          project_expert: '项目评估专家',
+          decision_maker: '报告决策者',
+        };
+        const ts = Date.now();
+        sessionStore.setSession(ts, {
+          phone: user.phone,
+          name: user.name,
           roles,
-          scopes: Array.isArray(user.scopes) ? user.scopes : [],
-          roleName: (role && roleNameMap[role]) || '',
-          token: 'token-' + ts + '-' + (role || 'anonymous'),
-        },
-      });
-    } else {
-      res.status(401).json({
-        code: 401,
-        message: '用户名或密码错误',
+        });
+
+        res.json({
+          code: 200,
+          data: {
+            phone: user.phone,
+            name: user.name,
+            role,
+            roles,
+            roleName: (role && roleNameMap[role]) || '',
+            token: 'token-' + ts + '-' + (role || 'anonymous'),
+          },
+        });
+      } else {
+        res.status(401).json({
+          code: 401,
+          message: '手机号或密码错误',
+        });
+      }
+    } catch (error) {
+      console.error('登录失败:', error);
+      res.status(500).json({
+        code: 500,
+        message: '登录失败，请稍后重试',
       });
     }
   });

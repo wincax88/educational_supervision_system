@@ -1,35 +1,35 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Form, Input, Modal, Select, Space, Table, Tag, message, Upload, Alert } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { UploadFile } from 'antd/es/upload';
 import styles from './index.module.css';
-import { createUser, deleteUser, getUsers, roleOptions, allRoleOptions, roleDisplayNames, SystemUser, updateUser, ScopeItem, UserRole, importUsers, ImportUserData } from '../../../services/userService';
-import { getDistricts, District } from '../../../services/districtService';
-import { getSchools, School } from '../../../services/schoolService';
+import { createUser, deleteUser, getUsers, roleOptions, allRoleOptions, roleDisplayNames, SystemUser, updateUser, UserRole, importUsers, ImportUserData } from '../../../services/userService';
 
 // 角色代码映射（CSV中使用的角色代码 -> 系统角色）
 const roleCodeMap: Record<string, UserRole> = {
   admin: 'admin',
-  city_admin: 'city_admin',
-  district_admin: 'district_admin',
-  district_reporter: 'district_reporter',
-  school_reporter: 'school_reporter',
-  expert: 'expert',
+  project_admin: 'project_admin',
+  data_collector: 'data_collector',
+  project_expert: 'project_expert',
+  decision_maker: 'decision_maker',
   // 中文映射
   '系统管理员': 'admin',
-  '市级管理员': 'city_admin',
-  '区县管理员': 'district_admin',
-  '区县填报员': 'district_reporter',
-  '学校填报员': 'school_reporter',
-  '评估专家': 'expert',
-  // 新角色体系兼容
-  project_admin: 'admin',
-  data_collector: 'district_reporter',
-  project_expert: 'expert',
-  '项目管理员': 'admin',
-  '数据采集员': 'district_reporter',
-  '项目评估专家': 'expert',
+  '项目管理员': 'project_admin',
+  '数据采集员': 'data_collector',
+  '项目专家': 'project_expert',
+  '决策者': 'decision_maker',
+  // 旧角色兼容映射
+  city_admin: 'project_admin',
+  district_admin: 'project_admin',
+  district_reporter: 'data_collector',
+  school_reporter: 'data_collector',
+  expert: 'project_expert',
+  '市级管理员': 'project_admin',
+  '区县管理员': 'project_admin',
+  '区县填报员': 'data_collector',
+  '学校填报员': 'data_collector',
+  '评估专家': 'project_expert',
 };
 
 const { Search } = Input;
@@ -41,21 +41,11 @@ const statusTag = (status: SystemUser['status']) => {
 
 const roleTagColor: Record<UserRole, string> = {
   admin: 'red',
-  city_admin: 'purple',
-  district_admin: 'blue',
-  district_reporter: 'cyan',
-  school_reporter: 'green',
-  expert: 'gold',
+  project_admin: 'purple',
+  data_collector: 'blue',
+  project_expert: 'gold',
+  decision_maker: 'green',
 };
-
-// 构建带分组的选项
-interface ScopeOption {
-  value: string;
-  label: string;
-  type: 'city' | 'district' | 'school';
-  id: string;
-  name: string;
-}
 
 const AccountManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -78,12 +68,8 @@ const AccountManagement: React.FC = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [importData, setImportData] = useState<ImportUserData[]>([]);
-  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importErrors, setImportErrors] = useState<(string | { phone?: string; error: string })[]>([]);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-
-  // 区县和学校数据
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [schools, setSchools] = useState<School[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -103,83 +89,9 @@ const AccountManagement: React.FC = () => {
 
   useEffect(() => {
     load();
-    loadDistricts();
-    loadSchools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.role, filters.status]);
 
-  const loadDistricts = async () => {
-    try {
-      const list = await getDistricts();
-      setDistricts(list);
-    } catch (e) {
-      console.error('加载区县列表失败', e);
-    }
-  };
-
-  const loadSchools = async () => {
-    try {
-      const response = await getSchools({ pageSize: 1000 });
-      setSchools(response.list);
-    } catch (e) {
-      console.error('加载学校列表失败', e);
-    }
-  };
-
-
-  // 构建数据范围多选选项（带分组）
-  const scopeOptions = useMemo(() => {
-    const options: { label: string; options: ScopeOption[] }[] = [
-      {
-        label: '市级',
-        options: [
-          { value: 'city:shenyang', label: '沈阳市', type: 'city', id: 'shenyang', name: '沈阳市' },
-        ],
-      },
-      {
-        label: '区县',
-        options: districts.map(d => ({
-          value: `district:${d.id}`,
-          label: d.name,
-          type: 'district' as const,
-          id: d.id,
-          name: d.name,
-        })),
-      },
-      {
-        label: '学校',
-        options: schools.map(s => ({
-          value: `school:${s.id}`,
-          label: s.name,
-          type: 'school' as const,
-          id: s.id,
-          name: s.name,
-        })),
-      },
-    ];
-    return options;
-  }, [districts, schools]);
-
-  // 将选中的值转换为 ScopeItem 数组
-  const valuesToScopes = (values: string[]): ScopeItem[] => {
-    return values.map(v => {
-      const [type, id] = v.split(':');
-      let name = '';
-      if (type === 'city') {
-        name = '沈阳市';
-      } else if (type === 'district') {
-        name = districts.find(d => d.id === id)?.name || '';
-      } else if (type === 'school') {
-        name = schools.find(s => s.id === id)?.name || '';
-      }
-      return { type: type as ScopeItem['type'], id, name };
-    });
-  };
-
-  // 将 ScopeItem 数组转换为选中的值
-  const scopesToValues = (scopes: ScopeItem[]): string[] => {
-    return scopes?.map(s => `${s.type}:${s.id}`) || [];
-  };
 
   const handleSearch = (value: string) => {
     setFilters(prev => ({ ...prev, keyword: value }));
@@ -189,9 +101,11 @@ const AccountManagement: React.FC = () => {
   const openEdit = (u: SystemUser) => {
     setCurrent(u);
     editForm.setFieldsValue({
+      name: u.name,
+      organization: u.organization,
+      idCard: u.idCard,
       roles: u.roles,
       status: u.status,
-      scopes: scopesToValues(u.scopes),
     });
     setEditOpen(true);
   };
@@ -203,16 +117,16 @@ const AccountManagement: React.FC = () => {
   };
 
   const onCreate = async (values: {
-    username: string;
+    phone: string;
     password: string;
+    name?: string;
+    organization?: string;
+    idCard?: string;
     roles: UserRole[];
     status?: SystemUser['status'];
-    scopes?: string[];
   }) => {
     try {
-      const { scopes: scopeValues, ...rest } = values;
-      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
-      await createUser({ ...rest, scopes });
+      await createUser(values);
       message.success('创建成功');
       setCreateOpen(false);
       createForm.resetFields();
@@ -223,15 +137,15 @@ const AccountManagement: React.FC = () => {
   };
 
   const onSaveEdit = async (values: {
+    name?: string;
+    organization?: string;
+    idCard?: string;
     roles: UserRole[];
     status: SystemUser['status'];
-    scopes?: string[];
   }) => {
     if (!current) return;
     try {
-      const { scopes: scopeValues, ...rest } = values;
-      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
-      await updateUser(current.username, { ...rest, scopes });
+      await updateUser(current.phone, values);
       message.success('保存成功');
       setEditOpen(false);
       editForm.resetFields();
@@ -245,7 +159,7 @@ const AccountManagement: React.FC = () => {
   const onResetPassword = async (values: { password: string }) => {
     if (!current) return;
     try {
-      await updateUser(current.username, { password: values.password });
+      await updateUser(current.phone, { password: values.password });
       message.success('密码已重置');
       setPwdOpen(false);
       pwdForm.resetFields();
@@ -258,12 +172,12 @@ const AccountManagement: React.FC = () => {
   const onDelete = (u: SystemUser) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除用户 "${u.username}" 吗？`,
+      content: `确定要删除用户 "${u.name || u.phone}" 吗？`,
       okText: '确认',
       cancelText: '取消',
       onOk: async () => {
         try {
-          await deleteUser(u.username);
+          await deleteUser(u.phone);
           message.success('删除成功');
           load();
         } catch (e: unknown) {
@@ -279,22 +193,25 @@ const AccountManagement: React.FC = () => {
     if (lines.length < 2) return [];
 
     const headers = lines[0].split(',').map(h => h.trim());
-    const usernameIdx = headers.findIndex(h => h === '用户名' || h === 'username');
+    const phoneIdx = headers.findIndex(h => h === '手机号' || h === 'phone');
     const passwordIdx = headers.findIndex(h => h === '密码' || h === 'password');
+    const nameIdx = headers.findIndex(h => h === '姓名' || h === 'name');
+    const organizationIdx = headers.findIndex(h => h === '单位' || h === '所属单位' || h === 'organization');
+    const idCardIdx = headers.findIndex(h => h === '身份证号' || h === 'idCard' || h === 'id_card');
     const rolesIdx = headers.findIndex(h => h === '角色' || h === 'roles' || h === 'role');
     const statusIdx = headers.findIndex(h => h === '状态' || h === 'status');
 
-    if (usernameIdx === -1 || passwordIdx === -1) {
-      throw new Error('CSV文件必须包含"用户名"和"密码"列');
+    if (phoneIdx === -1 || passwordIdx === -1) {
+      throw new Error('CSV文件必须包含"手机号"和"密码"列');
     }
 
     const result: ImportUserData[] = [];
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim());
-      if (!values[usernameIdx] || !values[passwordIdx]) continue;
+      if (!values[phoneIdx] || !values[passwordIdx]) continue;
 
       // 解析角色
-      let roles: UserRole[] = ['school_reporter'];
+      let roles: UserRole[] = ['data_collector'];
       if (rolesIdx !== -1 && values[rolesIdx]) {
         const roleStr = values[rolesIdx];
         const mappedRole = roleCodeMap[roleStr];
@@ -313,8 +230,11 @@ const AccountManagement: React.FC = () => {
       }
 
       result.push({
-        username: values[usernameIdx],
+        phone: values[phoneIdx],
         password: values[passwordIdx],
+        name: nameIdx !== -1 ? values[nameIdx] : undefined,
+        organization: organizationIdx !== -1 ? values[organizationIdx] : undefined,
+        idCard: idCardIdx !== -1 ? values[idCardIdx] : undefined,
         roles,
         status,
       });
@@ -377,10 +297,12 @@ const AccountManagement: React.FC = () => {
 
   // 下载模板
   const downloadTemplate = () => {
-    const template = `用户名,密码,角色,状态
-admin_zhang,Pass@123456,admin,active
-collector_wang,Pass@123456,school_reporter,active
-expert_zhou,Pass@123456,expert,active`;
+    const template = `手机号,密码,姓名,单位,角色,状态
+13800000001,Pass@123456,张管理员,教育局,admin,active
+13800000002,Pass@123456,李项目经理,实验中学,project_admin,active
+13800000003,Pass@123456,王采集员,第一小学,data_collector,active
+13800000004,Pass@123456,赵专家,教科院,project_expert,active
+13800000005,Pass@123456,周局长,教育局,decision_maker,active`;
     const blob = new Blob(['\ufeff' + template], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -388,32 +310,11 @@ expert_zhou,Pass@123456,expert,active`;
     link.click();
   };
 
-  // 渲染数据范围标签
-  const renderScopes = (scopes: ScopeItem[]) => {
-    if (!scopes || scopes.length === 0) return '-';
-
-    const typeColors: Record<string, string> = {
-      city: 'purple',
-      district: 'blue',
-      school: 'green',
-    };
-
-    // 最多显示3个，超出显示 +N
-    const displayScopes = scopes.slice(0, 3);
-    const remaining = scopes.length - 3;
-
-    return (
-      <Space size={[0, 4]} wrap>
-        {displayScopes.map((s, i) => (
-          <Tag key={i} color={typeColors[s.type] || 'default'}>{s.name}</Tag>
-        ))}
-        {remaining > 0 && <Tag>+{remaining}</Tag>}
-      </Space>
-    );
-  };
 
   const columns: ColumnsType<SystemUser> = [
-    { title: '用户名', dataIndex: 'username', key: 'username', width: 120 },
+    { title: '手机号', dataIndex: 'phone', key: 'phone', width: 130 },
+    { title: '姓名', dataIndex: 'name', key: 'name', width: 100 },
+    { title: '所属单位', dataIndex: 'organization', key: 'organization', width: 150 },
     {
       title: '角色',
       dataIndex: 'roles',
@@ -430,20 +331,13 @@ expert_zhou,Pass@123456,expert,active`;
       ),
     },
     {
-      title: '数据范围',
-      dataIndex: 'scopes',
-      key: 'scopes',
-      width: 280,
-      render: (scopes: ScopeItem[]) => renderScopes(scopes),
-    },
-    {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 80,
       render: (s: SystemUser['status']) => statusTag(s),
     },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 120 },
+    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 150 },
     {
       title: '操作',
       key: 'actions',
@@ -490,7 +384,7 @@ expert_zhou,Pass@123456,expert,active`;
               onChange={(v) => setFilters(prev => ({ ...prev, status: v || '' }))}
             />
             <Search
-              placeholder="搜索用户名/角色名称"
+              placeholder="搜索手机号/姓名/单位"
               allowClear
               onSearch={handleSearch}
               style={{ width: 260 }}
@@ -510,7 +404,7 @@ expert_zhou,Pass@123456,expert,active`;
         <Table
           columns={columns}
           dataSource={users}
-          rowKey="username"
+          rowKey="phone"
           loading={loading}
           pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true }}
           scroll={{ x: 980 }}
@@ -532,17 +426,33 @@ expert_zhou,Pass@123456,expert,active`;
           form={createForm}
           layout="vertical"
           onFinish={onCreate}
-          initialValues={{ status: 'active', roles: ['school_reporter'] }}
+          initialValues={{ status: 'active', roles: ['data_collector'] }}
         >
-          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input placeholder="请输入用户名" />
+          <Form.Item
+            name="phone"
+            label="手机号"
+            rules={[
+              { required: true, message: '请输入手机号' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
+            ]}
+          >
+            <Input placeholder="请输入11位手机号" maxLength={11} />
           </Form.Item>
           <Form.Item
             name="password"
             label="密码"
-            rules={[{ required: true, message: '请输入密码' }, { min: 2, message: '密码至少 2 位' }]}
+            rules={[{ required: true, message: '请输入密码' }, { min: 6, message: '密码至少 6 位' }]}
           >
-            <Input.Password placeholder="请输入密码" />
+            <Input.Password placeholder="请输入密码（至少6位）" />
+          </Form.Item>
+          <Form.Item name="name" label="姓名">
+            <Input placeholder="请输入姓名" />
+          </Form.Item>
+          <Form.Item name="organization" label="所属单位">
+            <Input placeholder="请输入所属单位" />
+          </Form.Item>
+          <Form.Item name="idCard" label="身份证号">
+            <Input placeholder="请输入身份证号" maxLength={18} />
           </Form.Item>
           <Form.Item name="roles" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
             <Select
@@ -550,19 +460,6 @@ expert_zhou,Pass@123456,expert,active`;
               placeholder="请选择角色（可多选）"
               options={roleOptions}
               maxTagCount="responsive"
-            />
-          </Form.Item>
-          <Form.Item name="scopes" label="数据范围" rules={[{ required: true, message: '请选择数据范围' }]}>
-            <Select
-              mode="multiple"
-              placeholder="请选择数据范围（可多选）"
-              options={scopeOptions}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-              }
-              maxTagCount="responsive"
-              style={{ width: '100%' }}
             />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
@@ -579,7 +476,7 @@ expert_zhou,Pass@123456,expert,active`;
 
       {/* 编辑账号 */}
       <Modal
-        title={current ? `编辑账号：${current.username}` : '编辑账号'}
+        title={current ? `编辑账号：${current.name || current.phone}` : '编辑账号'}
         open={editOpen}
         onCancel={() => {
           setEditOpen(false);
@@ -590,25 +487,21 @@ expert_zhou,Pass@123456,expert,active`;
         width={560}
       >
         <Form form={editForm} layout="vertical" onFinish={onSaveEdit}>
+          <Form.Item name="name" label="姓名">
+            <Input placeholder="请输入姓名" />
+          </Form.Item>
+          <Form.Item name="organization" label="所属单位">
+            <Input placeholder="请输入所属单位" />
+          </Form.Item>
+          <Form.Item name="idCard" label="身份证号">
+            <Input placeholder="请输入身份证号" maxLength={18} />
+          </Form.Item>
           <Form.Item name="roles" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
             <Select
               mode="multiple"
               placeholder="请选择角色（可多选）"
               options={roleOptions}
               maxTagCount="responsive"
-            />
-          </Form.Item>
-          <Form.Item name="scopes" label="数据范围" rules={[{ required: true, message: '请选择数据范围' }]}>
-            <Select
-              mode="multiple"
-              placeholder="请选择数据范围（可多选）"
-              options={scopeOptions}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-              }
-              maxTagCount="responsive"
-              style={{ width: '100%' }}
             />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
@@ -625,7 +518,7 @@ expert_zhou,Pass@123456,expert,active`;
 
       {/* 重置密码 */}
       <Modal
-        title={current ? `重置密码：${current.username}` : '重置密码'}
+        title={current ? `重置密码：${current.name || current.phone}` : '重置密码'}
         open={pwdOpen}
         onCancel={() => {
           setPwdOpen(false);
@@ -671,8 +564,8 @@ expert_zhou,Pass@123456,expert,active`;
             message="CSV文件格式说明"
             description={
               <div>
-                <p style={{ margin: '4px 0' }}>文件必须包含以下列：<strong>用户名</strong>、<strong>密码</strong></p>
-                <p style={{ margin: '4px 0' }}>可选列：<strong>角色</strong>（admin/school_reporter/expert等）、<strong>状态</strong>（active/inactive）</p>
+                <p style={{ margin: '4px 0' }}>文件必须包含以下列：<strong>手机号</strong>、<strong>密码</strong></p>
+                <p style={{ margin: '4px 0' }}>可选列：<strong>姓名</strong>、<strong>单位</strong>、<strong>身份证号</strong>、<strong>角色</strong>（admin/project_admin/data_collector/project_expert/decision_maker）、<strong>状态</strong>（active/inactive）</p>
                 <Button
                   type="link"
                   size="small"
@@ -719,10 +612,12 @@ expert_zhou,Pass@123456,expert,active`;
                 <Table
                   size="small"
                   dataSource={importData.slice(0, 5)}
-                  rowKey="username"
+                  rowKey="phone"
                   pagination={false}
                   columns={[
-                    { title: '用户名', dataIndex: 'username', width: 120 },
+                    { title: '手机号', dataIndex: 'phone', width: 120 },
+                    { title: '姓名', dataIndex: 'name', width: 80 },
+                    { title: '单位', dataIndex: 'organization', width: 100 },
                     {
                       title: '角色',
                       dataIndex: 'roles',
@@ -737,7 +632,7 @@ expert_zhou,Pass@123456,expert,active`;
                     {
                       title: '状态',
                       dataIndex: 'status',
-                      width: 80,
+                      width: 60,
                       render: (s: string) => statusTag(s as SystemUser['status']),
                     },
                   ]}
@@ -760,9 +655,15 @@ expert_zhou,Pass@123456,expert,active`;
               message="导入错误"
               description={
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  {importErrors.slice(0, 5).map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
+                  {importErrors.slice(0, 5).map((err, i) => {
+                    // 处理错误对象或字符串
+                    const errorText = typeof err === 'string' 
+                      ? err 
+                      : err.phone 
+                        ? `${err.phone}: ${err.error}` 
+                        : err.error;
+                    return <li key={i}>{errorText}</li>;
+                  })}
                   {importErrors.length > 5 && <li>... 还有 {importErrors.length - 5} 条错误</li>}
                 </ul>
               }

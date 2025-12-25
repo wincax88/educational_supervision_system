@@ -1,81 +1,22 @@
 {
-  "updatedAt": "2025-12-24T05:30:00.149Z",
+  "updatedAt": "2025-12-25T05:27:47.175Z",
   "users": [
     {
       "username": "AAA",
       "password": "BBB",
       "roles": [
-        "admin",
-        "city_admin",
-        "school_reporter",
-        "district_admin",
-        "district_reporter"
+        "admin"
       ],
       "scopes": [
         {
           "type": "city",
           "id": "shenyang",
           "name": "沈阳市"
-        },
-        {
-          "type": "district",
-          "id": "d-001",
-          "name": "和平区"
-        },
-        {
-          "type": "school",
-          "id": "s-001",
-          "name": "沈阳市和平区南京街第一小学"
-        },
-        {
-          "type": "school",
-          "id": "s-002",
-          "name": "沈阳市和平区望湖路小学"
-        },
-        {
-          "type": "district",
-          "id": "d-012",
-          "name": "法库县"
-        },
-        {
-          "type": "school",
-          "id": "s-010",
-          "name": "沈阳市辽中区城郊九年一贯制学校"
-        },
-        {
-          "type": "district",
-          "id": "d-010",
-          "name": "辽中区"
-        },
-        {
-          "type": "school",
-          "id": "s-011",
-          "name": "沈阳市辽中区茨榆坨中心小学"
-        },
-        {
-          "type": "school",
-          "id": "s-009",
-          "name": "沈阳市辽中区第一初级中学"
-        },
-        {
-          "type": "school",
-          "id": "s-014",
-          "name": "法库县秀水河子中心小学"
-        },
-        {
-          "type": "school",
-          "id": "s-mjh9a8efvmddt9h7w",
-          "name": "沈阳市和平区小太阳幼儿园"
-        },
-        {
-          "type": "school",
-          "id": "s-mjh9ad8ocu6xjahb2",
-          "name": "沈阳市和平区金色摇篮幼儿园"
         }
       ],
       "status": "active",
-      "createdAt": "2025-12-17",
-      "updatedAt": "2025-12-22"
+      "createdAt": "2025-12-25",
+      "updatedAt": "2025-12-25"
     },
     {
       "username": "111",
@@ -91,8 +32,8 @@
         }
       ],
       "status": "active",
-      "createdAt": "2025-12-17",
-      "updatedAt": "2025-12-17"
+      "createdAt": "2025-12-25",
+      "updatedAt": "2025-12-25"
     },
     {
       "username": "333",
@@ -108,8 +49,8 @@
         }
       ],
       "status": "active",
-      "createdAt": "2025-12-17",
-      "updatedAt": "2025-12-17"
+      "createdAt": "2025-12-25",
+      "updatedAt": "2025-12-25"
     },
     {
       "username": "555",
@@ -121,153 +62,12 @@
         {
           "type": "school",
           "id": "school1",
-          "name": ""
-        },
-        {
-          "type": "school",
-          "id": "s-002",
-          "name": "沈阳市和平区望湖路小学"
-        },
-        {
-          "type": "school",
-          "id": "s-010",
-          "name": "沈阳市辽中区城郊九年一贯制学校"
-        },
-        {
-          "type": "school",
-          "id": "s-009",
-          "name": "沈阳市辽中区第一初级中学"
-        },
-        {
-          "type": "school",
-          "id": "s-005",
-          "name": "沈阳市第七中学"
+          "name": "第一小学"
         }
       ],
       "status": "active",
-      "createdAt": "2025-12-17",
-      "updatedAt": "2025-12-17"
-    },
-    {
-      "username": "test_user",
-      "password": "Pass@123456",
-      "roles": [
-        "admin"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "admin_zhang",
-      "password": "Pass@123456",
-      "roles": [
-        "admin"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "admin_li",
-      "password": "Pass@123456",
-      "roles": [
-        "admin"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "collector_wang",
-      "password": "Pass@123456",
-      "roles": [
-        "district_reporter"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "collector_liu",
-      "password": "Pass@123456",
-      "roles": [
-        "district_reporter"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "collector_chen",
-      "password": "Pass@123456",
-      "roles": [
-        "district_reporter"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "collector_zhao",
-      "password": "Pass@123456",
-      "roles": [
-        "district_reporter"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "collector_sun",
-      "password": "Pass@123456",
-      "roles": [
-        "district_reporter"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "expert_zhou",
-      "password": "Pass@123456",
-      "roles": [
-        "expert"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "expert_wu",
-      "password": "Pass@123456",
-      "roles": [
-        "expert"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
-    },
-    {
-      "username": "expert_zheng",
-      "password": "Pass@123456",
-      "roles": [
-        "expert"
-      ],
-      "status": "active",
-      "scopes": [],
-      "createdAt": "2025-12-24",
-      "updatedAt": "2025-12-24"
+      "createdAt": "2025-12-25",
+      "updatedAt": "2025-12-25"
     }
   ]
 }

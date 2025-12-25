@@ -3,9 +3,7 @@ import { Button, Form, Input, Modal, Select, Space, Table, Tag, message, Card } 
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
-import { createUser, deleteUser, getUsers, SystemUser, updateUser, ScopeItem } from '../../services/userService';
-import { getDistricts, District } from '../../services/districtService';
-import { getSchools, School } from '../../services/schoolService';
+import { createUser, deleteUser, getUsers, SystemUser, updateUser } from '../../services/userService';
 import styles from './index.module.css';
 
 const { Search } = Input;
@@ -25,15 +23,6 @@ const expertiseOptions = [
   { label: '教育评估', value: '教育评估' },
 ];
 
-// 构建带分组的选项
-interface ScopeOption {
-  value: string;
-  label: string;
-  type: 'city' | 'district' | 'school';
-  id: string;
-  name: string;
-}
-
 const ExpertAccountManagement: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -48,15 +37,11 @@ const ExpertAccountManagement: React.FC = () => {
   const [editForm] = Form.useForm();
   const [pwdForm] = Form.useForm();
 
-  // 区县和学校数据
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [schools, setSchools] = useState<School[]>([]);
-
   const load = async () => {
     setLoading(true);
     try {
       // 只获取专家角色的用户
-      const list = await getUsers({ role: 'expert', keyword });
+      const list = await getUsers({ role: 'project_expert', keyword });
       setExperts(list);
     } catch (e: unknown) {
       message.error((e as Error).message || '加载专家列表失败');
@@ -67,79 +52,9 @@ const ExpertAccountManagement: React.FC = () => {
 
   useEffect(() => {
     load();
-    loadDistricts();
-    loadSchools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadDistricts = async () => {
-    try {
-      const list = await getDistricts();
-      setDistricts(list);
-    } catch (e) {
-      console.error('加载区县列表失败', e);
-    }
-  };
-
-  const loadSchools = async () => {
-    try {
-      const response = await getSchools({ pageSize: 1000 });
-      setSchools(response.list);
-    } catch (e) {
-      console.error('加载学校列表失败', e);
-    }
-  };
-
-  // 构建数据范围多选选项（带分组）
-  const scopeOptions: { label: string; options: ScopeOption[] }[] = [
-    {
-      label: '市级',
-      options: [
-        { value: 'city:shenyang', label: '沈阳市', type: 'city', id: 'shenyang', name: '沈阳市' },
-      ],
-    },
-    {
-      label: '区县',
-      options: districts.map(d => ({
-        value: `district:${d.id}`,
-        label: d.name,
-        type: 'district' as const,
-        id: d.id,
-        name: d.name,
-      })),
-    },
-    {
-      label: '学校',
-      options: schools.map(s => ({
-        value: `school:${s.id}`,
-        label: s.name,
-        type: 'school' as const,
-        id: s.id,
-        name: s.name,
-      })),
-    },
-  ];
-
-  // 将选中的值转换为 ScopeItem 数组
-  const valuesToScopes = (values: string[]): ScopeItem[] => {
-    return values.map(v => {
-      const [type, id] = v.split(':');
-      let name = '';
-      if (type === 'city') {
-        name = '沈阳市';
-      } else if (type === 'district') {
-        name = districts.find(d => d.id === id)?.name || '';
-      } else if (type === 'school') {
-        name = schools.find(s => s.id === id)?.name || '';
-      }
-      return { type: type as ScopeItem['type'], id, name };
-    });
-  };
-
-  // 将 ScopeItem 数组转换为选中的值
-  const scopesToValues = (scopes: ScopeItem[]): string[] => {
-    return scopes?.map(s => `${s.type}:${s.id}`) || [];
-  };
 
   const handleSearch = (value: string) => {
     setKeyword(value);
@@ -149,8 +64,9 @@ const ExpertAccountManagement: React.FC = () => {
   const openEdit = (u: SystemUser) => {
     setCurrent(u);
     editForm.setFieldsValue({
+      name: u.name,
+      organization: u.organization,
       status: u.status,
-      scopes: scopesToValues(u.scopes),
     });
     setEditOpen(true);
   };
@@ -162,16 +78,15 @@ const ExpertAccountManagement: React.FC = () => {
   };
 
   const onCreate = async (values: {
-    username: string;
+    phone: string;
     password: string;
+    name?: string;
+    organization?: string;
     status?: SystemUser['status'];
-    scopes?: string[];
   }) => {
     try {
-      const { scopes: scopeValues, ...rest } = values;
-      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
-      // 专家角色固定为 expert
-      await createUser({ ...rest, roles: ['expert'], scopes });
+      // 专家角色固定为 project_expert
+      await createUser({ ...values, roles: ['project_expert'] });
       message.success('创建成功');
       setCreateOpen(false);
       createForm.resetFields();
@@ -182,14 +97,13 @@ const ExpertAccountManagement: React.FC = () => {
   };
 
   const onSaveEdit = async (values: {
+    name?: string;
+    organization?: string;
     status: SystemUser['status'];
-    scopes?: string[];
   }) => {
     if (!current) return;
     try {
-      const { scopes: scopeValues, ...rest } = values;
-      const scopes = scopeValues ? valuesToScopes(scopeValues) : [];
-      await updateUser(current.username, { ...rest, scopes });
+      await updateUser(current.phone, values);
       message.success('保存成功');
       setEditOpen(false);
       editForm.resetFields();
@@ -203,7 +117,7 @@ const ExpertAccountManagement: React.FC = () => {
   const onResetPassword = async (values: { password: string }) => {
     if (!current) return;
     try {
-      await updateUser(current.username, { password: values.password });
+      await updateUser(current.phone, { password: values.password });
       message.success('密码已重置');
       setPwdOpen(false);
       pwdForm.resetFields();
@@ -216,12 +130,12 @@ const ExpertAccountManagement: React.FC = () => {
   const onDelete = (u: SystemUser) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除专家账号 "${u.username}" 吗？`,
+      content: `确定要删除专家账号 "${u.name || u.phone}" 吗？`,
       okText: '确认',
       cancelText: '取消',
       onOk: async () => {
         try {
-          await deleteUser(u.username);
+          await deleteUser(u.phone);
           message.success('删除成功');
           load();
         } catch (e: unknown) {
@@ -231,44 +145,17 @@ const ExpertAccountManagement: React.FC = () => {
     });
   };
 
-  // 渲染数据范围标签
-  const renderScopes = (scopes: ScopeItem[]) => {
-    if (!scopes || scopes.length === 0) return '-';
-
-    const typeColors: Record<string, string> = {
-      city: 'purple',
-      district: 'blue',
-      school: 'green',
-    };
-
-    const displayScopes = scopes.slice(0, 3);
-    const remaining = scopes.length - 3;
-
-    return (
-      <Space size={[0, 4]} wrap>
-        {displayScopes.map((s, i) => (
-          <Tag key={i} color={typeColors[s.type] || 'default'}>{s.name}</Tag>
-        ))}
-        {remaining > 0 && <Tag>+{remaining}</Tag>}
-      </Space>
-    );
-  };
 
   const columns: ColumnsType<SystemUser> = [
+    { title: '手机号', dataIndex: 'phone', key: 'phone', width: 130 },
     {
-      title: '用户名/专家名称',
-      dataIndex: 'username',
-      key: 'username',
-      width: 150,
-      render: (name: string) => <span style={{ fontWeight: 500 }}>{name}</span>,
+      title: '专家名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 120,
+      render: (name: string) => <span style={{ fontWeight: 500 }}>{name || '-'}</span>,
     },
-    {
-      title: '评审范围',
-      dataIndex: 'scopes',
-      key: 'scopes',
-      width: 280,
-      render: (scopes: ScopeItem[]) => renderScopes(scopes),
-    },
+    { title: '所属单位', dataIndex: 'organization', key: 'organization', width: 150 },
     {
       title: '状态',
       dataIndex: 'status',
@@ -276,7 +163,7 @@ const ExpertAccountManagement: React.FC = () => {
       width: 80,
       render: (s: SystemUser['status']) => statusTag(s),
     },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 120 },
+    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 150 },
     {
       title: '操作',
       key: 'actions',
@@ -308,7 +195,7 @@ const ExpertAccountManagement: React.FC = () => {
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <Search
-              placeholder="搜索专家用户名/名称"
+              placeholder="搜索手机号/专家名称/单位"
               allowClear
               onSearch={handleSearch}
               style={{ width: 280 }}
@@ -325,7 +212,7 @@ const ExpertAccountManagement: React.FC = () => {
         <Table
           columns={columns}
           dataSource={experts}
-          rowKey="username"
+          rowKey="phone"
           loading={loading}
           pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true }}
           scroll={{ x: 950 }}
@@ -349,36 +236,28 @@ const ExpertAccountManagement: React.FC = () => {
           onFinish={onCreate}
           initialValues={{ status: 'active' }}
         >
-          <Form.Item name="username" label="用户名/专家名称" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input placeholder="请输入用户名（用于登录和显示）" />
+          <Form.Item
+            name="phone"
+            label="手机号"
+            rules={[
+              { required: true, message: '请输入手机号' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
+            ]}
+          >
+            <Input placeholder="请输入11位手机号" maxLength={11} />
           </Form.Item>
           <Form.Item
             name="password"
             label="密码"
-            rules={[{ required: true, message: '请输入密码' }, { min: 2, message: '密码至少 2 位' }]}
+            rules={[{ required: true, message: '请输入密码' }, { min: 6, message: '密码至少 6 位' }]}
           >
-            <Input.Password placeholder="请输入密码" />
+            <Input.Password placeholder="请输入密码（至少6位）" />
           </Form.Item>
-          <Form.Item name="expertise" label="专业领域">
-            <Select
-              mode="multiple"
-              placeholder="请选择专业领域（可多选）"
-              options={expertiseOptions}
-              maxTagCount="responsive"
-            />
+          <Form.Item name="name" label="专家名称" rules={[{ required: true, message: '请输入专家名称' }]}>
+            <Input placeholder="请输入专家名称" />
           </Form.Item>
-          <Form.Item name="scopes" label="评审范围" rules={[{ required: true, message: '请选择评审范围' }]}>
-            <Select
-              mode="multiple"
-              placeholder="请选择评审范围（可多选）"
-              options={scopeOptions}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-              }
-              maxTagCount="responsive"
-              style={{ width: '100%' }}
-            />
+          <Form.Item name="organization" label="所属单位">
+            <Input placeholder="请输入所属单位" />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
             <Select options={[{ label: '启用', value: 'active' }, { label: '停用', value: 'inactive' }]} />
@@ -394,7 +273,7 @@ const ExpertAccountManagement: React.FC = () => {
 
       {/* 编辑专家 */}
       <Modal
-        title={current ? `编辑专家：${current.username}` : '编辑专家'}
+        title={current ? `编辑专家：${current.name || current.phone}` : '编辑专家'}
         open={editOpen}
         onCancel={() => {
           setEditOpen(false);
@@ -405,26 +284,11 @@ const ExpertAccountManagement: React.FC = () => {
         width={560}
       >
         <Form form={editForm} layout="vertical" onFinish={onSaveEdit}>
-          <Form.Item name="expertise" label="专业领域">
-            <Select
-              mode="multiple"
-              placeholder="请选择专业领域（可多选）"
-              options={expertiseOptions}
-              maxTagCount="responsive"
-            />
+          <Form.Item name="name" label="专家名称">
+            <Input placeholder="请输入专家名称" />
           </Form.Item>
-          <Form.Item name="scopes" label="评审范围" rules={[{ required: true, message: '请选择评审范围' }]}>
-            <Select
-              mode="multiple"
-              placeholder="请选择评审范围（可多选）"
-              options={scopeOptions}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-              }
-              maxTagCount="responsive"
-              style={{ width: '100%' }}
-            />
+          <Form.Item name="organization" label="所属单位">
+            <Input placeholder="请输入所属单位" />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
             <Select options={[{ label: '启用', value: 'active' }, { label: '停用', value: 'inactive' }]} />
@@ -440,7 +304,7 @@ const ExpertAccountManagement: React.FC = () => {
 
       {/* 重置密码 */}
       <Modal
-        title={current ? `重置密码：${current.username}` : '重置密码'}
+        title={current ? `重置密码：${current.name || current.phone}` : '重置密码'}
         open={pwdOpen}
         onCancel={() => {
           setPwdOpen(false);

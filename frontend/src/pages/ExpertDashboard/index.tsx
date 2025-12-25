@@ -91,7 +91,7 @@ const ExpertDashboard: React.FC = () => {
       {/* 欢迎区域 */}
       <div className={styles.welcomeSection}>
         <h1 className={styles.welcomeTitle}>
-          欢迎，{user?.username || '专家'}
+          欢迎，{user?.name || '专家'}
         </h1>
         <p className={styles.welcomeSubtitle}>
           您共负责 <strong>{summary?.totalProjects || 0}</strong> 个项目的评审工作

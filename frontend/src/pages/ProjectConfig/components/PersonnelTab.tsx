@@ -51,22 +51,22 @@ const TARGET_TYPES = [
 // | 数据采集员 | data_collector | 数据填报和采集 | 填报所属区县内所有学校的数据 |
 // | 项目评估专家 | project_expert | 项目评审和评估 | 审核提交的数据、评审评估结果 |
 
-// 获取角色显示名和描述
+// 获取角色显示名和描述（新角色体系）
 const getRoleInfo = (role: string): RoleInfo => {
   const roleMap: Record<string, RoleInfo> = {
-    // 新角色体系
     'project_admin': { name: '项目管理员', desc: '项目配置和管理，配置项目、管理人员、查看进度' },
     'data_collector': { name: '数据采集员', desc: '数据填报和采集，填报所属区县内所有学校的数据' },
     'project_expert': { name: '项目评估专家', desc: '数据审核和评估，审核提交的数据、评审评估结果' },
-    // 保留旧角色兼容
-    'system_admin': { name: '系统管理员', desc: '省级/国家级，创建/维护工具模板、项目全局配置' },
-    'city_admin': { name: '市级管理员', desc: '市级，查看区县进度，不可编辑数据' },
-    'district_admin': { name: '区县管理员', desc: '区县，审核本区县所有学校数据、退回修改' },
-    'district_reporter': { name: '区县填报员', desc: '区县，填报区县级采集工具数据' },
-    'school_reporter': { name: '学校填报员', desc: '学校，仅编辑本校原始要素' },
   };
   return roleMap[role] || { name: role, desc: '' };
 };
+
+// 项目人员角色选项
+export const PERSONNEL_ROLE_OPTIONS = [
+  { value: 'project_admin', label: '项目管理员' },
+  { value: 'data_collector', label: '数据采集员' },
+  { value: 'project_expert', label: '项目评估专家' },
+];
 
 const PersonnelTab: React.FC<PersonnelTabProps> = ({
   projectId,
@@ -237,7 +237,19 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
       )
     },
     { title: '单位', dataIndex: 'organization', key: 'organization', width: 180 },
-    { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
+    {
+      title: '电话号码',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 140,
+      render: (phone: any) => {
+        // 如果 phone 是对象，提取 phone 属性或显示错误
+        if (phone && typeof phone === 'object') {
+          return phone.phone || phone.error || '-';
+        }
+        return phone || '-';
+      },
+    },
     ...(!disabled ? [{
       title: '操作',
       key: 'action',
@@ -277,7 +289,19 @@ const PersonnelTab: React.FC<PersonnelTabProps> = ({
         <Tag color="blue">{districtName}</Tag>
       ) : <span style={{ color: '#999' }}>未分配</span>
     },
-    { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
+    {
+      title: '电话号码',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 140,
+      render: (phone: any) => {
+        // 如果 phone 是对象，提取 phone 属性或显示错误
+        if (phone && typeof phone === 'object') {
+          return phone.phone || phone.error || '-';
+        }
+        return phone || '-';
+      },
+    },
     ...(!disabled ? [{
       title: '操作',
       key: 'action',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Radio, message, Spin } from 'antd';
+import { PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores';
 import styles from './index.module.css';
@@ -8,16 +9,17 @@ interface RoleOption {
   key: string;
   name: string;
   description: string;
-  username: string;
+  phone: string;
   password: string;
 }
 
+// 快速登录测试账号
 const roles: RoleOption[] = [
-  { key: 'admin', name: '系统管理员', description: '创建和管理项目，配置项目人员', username: 'AAA', password: 'BBB' },
-  { key: 'project_manager', name: '项目管理员', description: '负责项目配置和管理', username: '111', password: '222' },
-  { key: 'collector', name: '数据采集员', description: '负责数据填报和采集', username: '333', password: '444' },
-  { key: 'expert', name: '项目评估专家', description: '负责项目评审和评估', username: '555', password: '666' },
-  { key: 'decision_maker', name: '报告决策者', description: '查看评估报告和决策', username: '777', password: '888' },
+  { key: 'admin', name: '系统管理员', description: '系统全局配置、用户管理', phone: '13800000000', password: '000000' },
+  { key: 'project_admin', name: '项目管理员', description: '项目配置和管理', phone: '13800000001', password: '000001' },
+  { key: 'data_collector', name: '数据采集员', description: '数据填报和采集', phone: '13800000002', password: '000002' },
+  { key: 'project_expert', name: '项目评估专家', description: '数据审核和评估', phone: '13800000003', password: '000003' },
+  { key: 'decision_maker', name: '报告决策者', description: '查看评估报告和决策', phone: '13800000004', password: '000004' },
 ];
 
 const Login: React.FC = () => {
@@ -29,10 +31,9 @@ const Login: React.FC = () => {
   const { login, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
 
   const getDefaultRouteByRole = (role?: string) => {
-    if (role === 'admin' || role === 'project_manager') return '/home';
-    if (role === 'city_admin' || role === 'district_admin') return '/home';
-    if (role === 'collector' || role === 'school_reporter') return '/collector';
-    if (role === 'expert') return '/expert';
+    if (role === 'admin' || role === 'project_admin') return '/home';
+    if (role === 'data_collector') return '/collector';
+    if (role === 'project_expert') return '/expert';
     if (role === 'decision_maker') return '/reports';
     return '/home';
   };
@@ -55,12 +56,12 @@ const Login: React.FC = () => {
   const handleRoleSelect = (role: RoleOption) => {
     setSelectedRole(role.key);
     form.setFieldsValue({
-      username: role.username,
+      phone: role.phone,
       password: role.password,
     });
   };
 
-  const handleLogin = async (values: { username: string; password: string }) => {
+  const handleLogin = async (values: { phone: string; password: string }) => {
     const success = await login(values);
     if (success) {
       message.success('登录成功');
@@ -85,7 +86,7 @@ const Login: React.FC = () => {
         <Spin spinning={isLoading} tip="登录中...">
           <div className={styles.loginFormCard}>
             <h2 className={styles.formTitle}>用户登录</h2>
-            <p className={styles.formDesc}>请输入用户名和密码登录系统</p>
+            <p className={styles.formDesc}>请输入手机号和密码登录系统</p>
 
             <Form
               form={form}
@@ -93,11 +94,20 @@ const Login: React.FC = () => {
               layout="vertical"
             >
               <Form.Item
-                label="用户名"
-                name="username"
-                rules={[{ required: true, message: '请输入用户名' }]}
+                label="手机号"
+                name="phone"
+                rules={[
+                  { required: true, message: '请输入手机号' },
+                  { pattern: /^1\d{10}$/, message: '请输入正确的手机号' }
+                ]}
               >
-                <Input placeholder="请输入用户名" size="large" disabled={isLoading} />
+                <Input
+                  prefix={<PhoneOutlined />}
+                  placeholder="请输入手机号"
+                  size="large"
+                  disabled={isLoading}
+                  maxLength={11}
+                />
               </Form.Item>
 
               <Form.Item
@@ -105,7 +115,12 @@ const Login: React.FC = () => {
                 name="password"
                 rules={[{ required: true, message: '请输入密码' }]}
               >
-                <Input.Password placeholder="请输入密码" size="large" disabled={isLoading} />
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="请输入密码"
+                  size="large"
+                  disabled={isLoading}
+                />
               </Form.Item>
 
               <Form.Item>
@@ -119,7 +134,7 @@ const Login: React.FC = () => {
 
         <div className={styles.quickLoginCard}>
           <h2 className={styles.formTitle}>快速登录</h2>
-          <p className={styles.formDesc}>点击测试账号直接登录，或选择角色后手动输入用户名密码</p>
+          <p className={styles.formDesc}>点击测试账号直接填充登录信息</p>
 
           <Radio.Group
             value={selectedRole}
@@ -143,12 +158,15 @@ const Login: React.FC = () => {
                   </div>
                 </Radio>
                 <div className={styles.roleCredentials}>
-                  <span className={styles.credentialTag}>{role.username}</span>
-                  <span className={styles.credentialTag}>{role.password}</span>
+                  <span className={styles.credentialTag}>{role.phone}</span>
                 </div>
               </div>
             ))}
           </Radio.Group>
+
+          <p className={styles.passwordTip}>
+            默认密码为手机号后6位
+          </p>
         </div>
       </div>
     </div>

@@ -1,133 +1,75 @@
 /**
- * 用户存储（简化实现：内存存储）
- * - 供 /api/login 与 /api/users 共用
- * - 生产环境应改为数据库表或 Supabase Auth
+ * 用户存储服务（数据库版本）
+ * - 使用 PostgreSQL 数据库存储用户信息
+ * - 手机号作为主键和登录账号
+ * - 支持角色：admin, project_admin, data_collector, project_expert, decision_maker
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as bcrypt from 'bcrypt';
 
-const nowDate = (): string => new Date().toISOString().split('T')[0];
+// 使用 require 兼容 CommonJS 模块
+const db = require('../../database/db');
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'data');
-const DATA_FILE = path.join(DATA_DIR, 'userStore.json');
+const SALT_ROUNDS = 10;
 
 /**
  * 角色定义：
- * - admin: 系统管理员（省级/国家级）- 创建/维护工具模板、项目全局配置
- * - city_admin: 市级管理员 - 查看区县进度，不可编辑数据
- * - district_admin: 区县管理员 - 审核本区县所有学校数据、退回修改
- * - school_reporter: 学校填报员 - 仅编辑本校原始要素
- * - expert: 评估专家 - 参与评审/评估相关工作（用于专家账号管理）
+ * - admin: 系统管理员 - 系统全局配置、用户管理
+ * - project_admin: 项目管理员 - 项目配置、人员管理、进度查看
+ * - data_collector: 数据采集员 - 数据填报（需关联区县）
+ * - project_expert: 项目评估专家 - 数据审核和评估
+ * - decision_maker: 报告决策者 - 查看评估报告和决策结果
  */
-export type UserRole = 'admin' | 'city_admin' | 'district_admin' | 'district_reporter' | 'school_reporter' | 'expert';
-
-export interface ScopeItem {
-  type: 'city' | 'district' | 'school';
-  id: string;
-  name: string;
-}
+export type UserRole = 'admin' | 'project_admin' | 'data_collector' | 'project_expert' | 'decision_maker';
 
 export interface SysUser {
-  username: string;
+  phone: string;
   password: string;
+  name: string | null;
+  organization: string | null;
+  id_card: string | null;
   roles: UserRole[];
   status: 'active' | 'inactive';
-  scopes: ScopeItem[];
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface UserStoreData {
-  updatedAt: string;
-  users: SysUser[];
-}
-
-const userMap = new Map<string, SysUser>();
-
-function ensureDataDir(): void {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  } catch {
-    // ignore
-  }
-}
-
-function loadFromDisk(): UserStoreData | null {
-  try {
-    if (!fs.existsSync(DATA_FILE)) return null;
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-    const parsed = JSON.parse(raw) as UserStoreData;
-    if (!parsed || !Array.isArray(parsed.users)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveToDisk(): void {
-  try {
-    ensureDataDir();
-    const payload: UserStoreData = {
-      updatedAt: new Date().toISOString(),
-      users: Array.from(userMap.values()),
-    };
-    const tmp = `${DATA_FILE}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), 'utf-8');
-    fs.renameSync(tmp, DATA_FILE);
-  } catch {
-    // ignore: 不阻断主流程
-  }
-}
-
-const validRoles = new Set<UserRole>(['admin', 'city_admin', 'district_admin', 'district_reporter', 'school_reporter', 'expert']);
+// 有效角色集合
+const validRoles = new Set<UserRole>(['admin', 'project_admin', 'data_collector', 'project_expert', 'decision_maker']);
 
 // 角色显示名称映射
-const roleDisplayNames: Record<UserRole, string> = {
+export const roleDisplayNames: Record<UserRole, string> = {
   admin: '系统管理员',
-  city_admin: '市级管理员',
-  district_admin: '区县管理员',
-  district_reporter: '区县填报员',
-  school_reporter: '学校填报员',
-  expert: '评估专家',
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目评估专家',
+  decision_maker: '报告决策者',
 };
 
-function normalizeRole(role: unknown): string {
-  return String(role ?? '').trim();
+/**
+ * 密码加密
+ */
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
-function seedIfEmpty(): void {
-  // 优先从磁盘加载，避免开发环境重启导致用户/角色丢失
-  const disk = loadFromDisk();
-  if (disk && Array.isArray(disk.users) && disk.users.length > 0) {
-    disk.users.forEach((u) => {
-      if (u && u.username) userMap.set(u.username, u);
-    });
-    return;
+/**
+ * 密码验证
+ */
+async function comparePassword(password: string, hash: string): Promise<boolean> {
+  // 支持明文密码（兼容迁移期间未加密的密码）
+  if (!hash.startsWith('$2')) {
+    return password === hash;
   }
-
-  if (userMap.size > 0) return;
-  const ts = nowDate();
-  const defaults: Array<Omit<SysUser, 'status' | 'createdAt' | 'updatedAt'> & { status?: 'active' | 'inactive' }> = [
-    { username: 'AAA', password: 'BBB', roles: ['admin'], scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
-    { username: '111', password: '222', roles: ['city_admin'], scopes: [{ type: 'city', id: 'shenyang', name: '沈阳市' }] },
-    { username: '333', password: '444', roles: ['district_admin'], scopes: [{ type: 'district', id: 'd-001', name: '和平区' }] },
-    { username: '555', password: '666', roles: ['school_reporter'], scopes: [{ type: 'school', id: 'school1', name: '第一小学' }] },
-  ];
-  defaults.forEach(u => {
-    userMap.set(u.username, {
-      ...u,
-      status: 'active',
-      createdAt: ts,
-      updatedAt: ts,
-    } as SysUser);
-  });
-
-  // 初始化落盘，方便后续更新持久化
-  saveToDisk();
+  return bcrypt.compare(password, hash);
 }
 
-seedIfEmpty();
+/**
+ * 生成默认密码（手机号后6位）
+ */
+export function generateDefaultPassword(phone: string): string {
+  return phone.slice(-6);
+}
 
 export interface ListUsersOptions {
   keyword?: string;
@@ -135,124 +77,353 @@ export interface ListUsersOptions {
   status?: 'active' | 'inactive';
 }
 
-export function listUsers(options: ListUsersOptions = {}): SysUser[] {
+/**
+ * 获取用户列表
+ */
+export async function listUsers(options: ListUsersOptions = {}): Promise<SysUser[]> {
   const { keyword, role, status } = options;
-  const kw = (keyword || '').trim().toLowerCase();
-  let arr = Array.from(userMap.values()).map(u => ({ ...u }));
-  if (kw) {
-    arr = arr.filter(u =>
-      u.username.toLowerCase().includes(kw) ||
-      (u.roles || []).some(r => (roleDisplayNames[r] || '').toLowerCase().includes(kw))
+
+  let query = db.from('sys_users').select('*');
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  if (role) {
+    query = query.contains('roles', [role]);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('获取用户列表失败:', error);
+    throw new Error(error.message);
+  }
+
+  let users: SysUser[] = data || [];
+
+  // 关键词搜索
+  if (keyword) {
+    const kw = keyword.toLowerCase();
+    users = users.filter(u =>
+      u.phone.toLowerCase().includes(kw) ||
+      (u.name && u.name.toLowerCase().includes(kw)) ||
+      (u.organization && u.organization.toLowerCase().includes(kw))
     );
   }
-  // 支持按单个角色筛选
-  if (role) arr = arr.filter(u => (u.roles || []).includes(role));
-  if (status) arr = arr.filter(u => u.status === status);
-  // admin 放在最前
-  arr.sort((a, b) => ((a.roles || []).includes('admin') ? -1 : 0) - ((b.roles || []).includes('admin') ? -1 : 0));
-  return arr;
+
+  return users;
 }
 
-export function getUser(username: string): SysUser | null {
-  return userMap.get(username) || null;
+/**
+ * 获取单个用户
+ */
+export async function getUser(phone: string): Promise<SysUser | null> {
+  const { data, error } = await db.from('sys_users')
+    .select('*')
+    .eq('phone', phone)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null; // 未找到
+    }
+    console.error('获取用户失败:', error);
+    return null;
+  }
+
+  return data;
 }
 
 export interface CreateUserOptions {
-  username: string;
+  phone: string;
   password: string;
+  name?: string;
+  organization?: string;
+  id_card?: string;
   roles: UserRole[];
   status?: 'active' | 'inactive';
-  scopes?: ScopeItem[];
 }
 
-export function createUser(options: CreateUserOptions): SysUser {
-  const { username, password, roles, status, scopes } = options;
-  const ts = nowDate();
-  const u = (username || '').trim();
-  if (!u) throw new Error('用户名为必填项');
-  if (userMap.has(u)) throw new Error('用户名已存在');
-  if (!password || String(password).length < 2) throw new Error('密码长度至少 2 位');
+/**
+ * 创建用户
+ */
+export async function createUser(options: CreateUserOptions): Promise<SysUser> {
+  const { phone, password, name, organization, id_card, roles, status } = options;
 
-  // 验证角色数组
-  const rolesArr = (Array.isArray(roles) ? roles : []).map(normalizeRole).filter(Boolean) as UserRole[];
-  if (rolesArr.length === 0) throw new Error('请至少选择一个角色');
-  for (const r of rolesArr) {
-    if (!validRoles.has(r)) throw new Error(`无效的角色类型: ${r}`);
+  if (!phone || phone.trim() === '') {
+    throw new Error('手机号为必填项');
   }
 
-  const user: SysUser = {
-    username: u,
-    password: String(password),
-    roles: rolesArr,
-    status: status === 'inactive' ? 'inactive' : 'active',
-    scopes: Array.isArray(scopes) ? scopes : [],
-    createdAt: ts,
-    updatedAt: ts,
-  };
-  userMap.set(u, user);
-  saveToDisk();
-  return { ...user };
+  if (!password || password.length < 6) {
+    throw new Error('密码长度至少6位');
+  }
+
+  // 检查用户是否已存在
+  const existing = await getUser(phone);
+  if (existing) {
+    throw new Error('该手机号已注册');
+  }
+
+  // 验证角色
+  const rolesArr = Array.isArray(roles) ? roles : [];
+  if (rolesArr.length === 0) {
+    throw new Error('请至少选择一个角色');
+  }
+
+  for (const r of rolesArr) {
+    if (!validRoles.has(r as UserRole)) {
+      throw new Error(`无效的角色类型: ${r}`);
+    }
+  }
+
+  // 加密密码
+  const hashedPassword = await hashPassword(password);
+
+  const { data, error } = await db.from('sys_users')
+    .insert({
+      phone: phone.trim(),
+      password: hashedPassword,
+      name: name || null,
+      organization: organization || null,
+      id_card: id_card || null,
+      roles: rolesArr,
+      status: status || 'active',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('创建用户失败:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 }
 
 export interface UpdateUserOptions {
+  password?: string;
+  name?: string;
+  organization?: string;
+  id_card?: string;
   roles?: UserRole[];
   status?: 'active' | 'inactive';
-  password?: string;
-  scopes?: ScopeItem[];
 }
 
-export function updateUser(username: string, updates: UpdateUserOptions = {}): SysUser {
-  const existing = userMap.get(username);
-  if (!existing) throw new Error('用户不存在');
-
-  // 验证角色数组
-  if (updates.roles !== undefined) {
-    const rolesArr = (Array.isArray(updates.roles) ? updates.roles : []).map(normalizeRole).filter(Boolean) as UserRole[];
-    // 内置管理员账号必须保留 admin 角色
-    if (existing.username === 'AAA' && !rolesArr.includes('admin')) {
-      throw new Error('内置管理员账号必须保留管理员角色');
-    }
-    if (rolesArr.length === 0) throw new Error('请至少选择一个角色');
-    for (const r of rolesArr) {
-      if (!validRoles.has(r)) throw new Error(`无效的角色类型: ${r}`);
-    }
+/**
+ * 更新用户
+ */
+export async function updateUser(phone: string, updates: UpdateUserOptions): Promise<SysUser> {
+  const existing = await getUser(phone);
+  if (!existing) {
+    throw new Error('用户不存在');
   }
 
-  if (updates.status && !['active', 'inactive'].includes(updates.status)) throw new Error('无效的状态');
-  if (updates.password !== undefined && String(updates.password).length < 2) throw new Error('密码长度至少 2 位');
+  const updateData: any = {};
 
-  const next: SysUser = {
-    ...existing,
-    ...(updates.roles !== undefined
-      ? { roles: (Array.isArray(updates.roles) ? updates.roles : []).map(normalizeRole).filter(Boolean) as UserRole[] }
-      : {}),
-    ...(updates.status !== undefined ? { status: updates.status } : {}),
-    ...(updates.password !== undefined ? { password: String(updates.password) } : {}),
-    ...(updates.scopes !== undefined ? { scopes: Array.isArray(updates.scopes) ? updates.scopes : [] } : {}),
-    updatedAt: nowDate(),
-  };
-  userMap.set(username, next);
-  saveToDisk();
-  return { ...next };
+  // 更新密码
+  if (updates.password !== undefined) {
+    if (updates.password.length < 6) {
+      throw new Error('密码长度至少6位');
+    }
+    updateData.password = await hashPassword(updates.password);
+  }
+
+  // 更新角色
+  if (updates.roles !== undefined) {
+    const rolesArr = Array.isArray(updates.roles) ? updates.roles : [];
+
+    // 内置管理员账号必须保留 admin 角色
+    if (phone === '13800000000' && !rolesArr.includes('admin')) {
+      throw new Error('内置管理员账号必须保留管理员角色');
+    }
+
+    if (rolesArr.length === 0) {
+      throw new Error('请至少选择一个角色');
+    }
+
+    for (const r of rolesArr) {
+      if (!validRoles.has(r as UserRole)) {
+        throw new Error(`无效的角色类型: ${r}`);
+      }
+    }
+
+    updateData.roles = rolesArr;
+  }
+
+  // 更新其他字段
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.organization !== undefined) updateData.organization = updates.organization;
+  if (updates.id_card !== undefined) updateData.id_card = updates.id_card;
+  if (updates.status !== undefined) {
+    if (!['active', 'inactive'].includes(updates.status)) {
+      throw new Error('无效的状态');
+    }
+    updateData.status = updates.status;
+  }
+
+  const { data, error } = await db.from('sys_users')
+    .update(updateData)
+    .eq('phone', phone)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('更新用户失败:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
 }
 
-export function deleteUser(username: string): boolean {
-  if (username === 'AAA') throw new Error('内置管理员账号不允许删除');
-  if (!userMap.has(username)) throw new Error('用户不存在');
-  userMap.delete(username);
-  saveToDisk();
+/**
+ * 删除用户
+ */
+export async function deleteUser(phone: string): Promise<boolean> {
+  if (phone === '13800000000') {
+    throw new Error('内置管理员账号不允许删除');
+  }
+
+  const existing = await getUser(phone);
+  if (!existing) {
+    throw new Error('用户不存在');
+  }
+
+  const { error } = await db.from('sys_users')
+    .delete()
+    .eq('phone', phone);
+
+  if (error) {
+    console.error('删除用户失败:', error);
+    throw new Error(error.message);
+  }
+
   return true;
 }
 
-export function verifyCredentials(username: string, password: string): SysUser | null {
-  const u = userMap.get(username);
-  if (!u) return null;
-  if (u.status !== 'active') return null;
-  if (u.password !== password) return null;
-  return { ...u };
+/**
+ * 验证登录凭据
+ */
+export async function verifyCredentials(phone: string, password: string): Promise<SysUser | null> {
+  const user = await getUser(phone);
+  if (!user) {
+    console.log(`[verifyCredentials] 用户不存在: ${phone}`);
+    return null;
+  }
+
+  if (user.status !== 'active') {
+    console.log(`[verifyCredentials] 用户状态非激活: ${phone}, status: ${user.status}`);
+    return null;
+  }
+
+  const match = await comparePassword(password, user.password);
+  if (!match) {
+    console.log(`[verifyCredentials] 密码不匹配: ${phone}`);
+    return null;
+  }
+
+  // 返回用户信息（不含密码）
+  return {
+    ...user,
+    password: '', // 不返回密码
+  };
 }
 
-export const validRolesList = Array.from(validRoles);
+/**
+ * 累加角色到用户
+ * 如果用户已有该角色则不重复添加
+ */
+export async function addRoleToUser(phone: string, newRole: UserRole): Promise<SysUser> {
+  const user = await getUser(phone);
+  if (!user) {
+    throw new Error('用户不存在');
+  }
+
+  if (!validRoles.has(newRole)) {
+    throw new Error(`无效的角色类型: ${newRole}`);
+  }
+
+  const currentRoles = user.roles || [];
+
+  // 如果角色已存在，直接返回
+  if (currentRoles.includes(newRole)) {
+    return user;
+  }
+
+  const newRoles = [...currentRoles, newRole];
+
+  const { data, error } = await db.from('sys_users')
+    .update({ roles: newRoles })
+    .eq('phone', phone)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('累加角色失败:', error);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+/**
+ * 创建或更新用户（用于人员同步）
+ * 如果用户存在则累加角色，不存在则创建
+ */
+export async function upsertUser(options: {
+  phone: string;
+  name?: string;
+  organization?: string;
+  id_card?: string;
+  role: UserRole;
+}): Promise<{ user: SysUser; created: boolean }> {
+  const { phone, name, organization, id_card, role } = options;
+
+  if (!phone || phone.trim() === '') {
+    throw new Error('手机号为必填项');
+  }
+
+  if (!validRoles.has(role)) {
+    throw new Error(`无效的角色类型: ${role}`);
+  }
+
+  const existing = await getUser(phone);
+
+  if (existing) {
+    // 用户已存在，累加角色
+    const updatedUser = await addRoleToUser(phone, role);
+
+    // 可选：更新空字段
+    const updateData: any = {};
+    if (!existing.name && name) updateData.name = name;
+    if (!existing.organization && organization) updateData.organization = organization;
+    if (!existing.id_card && id_card) updateData.id_card = id_card;
+
+    if (Object.keys(updateData).length > 0) {
+      await db.from('sys_users')
+        .update(updateData)
+        .eq('phone', phone);
+    }
+
+    return { user: updatedUser, created: false };
+  } else {
+    // 用户不存在，创建新用户
+    const defaultPassword = generateDefaultPassword(phone);
+    const newUser = await createUser({
+      phone,
+      password: defaultPassword,
+      name,
+      organization,
+      id_card,
+      roles: [role],
+      status: 'active',
+    });
+
+    return { user: newUser, created: true };
+  }
+}
+
+export const validRolesList = Array.from(validRoles) as UserRole[];
 
 export default {
   listUsers,
@@ -261,5 +432,9 @@ export default {
   updateUser,
   deleteUser,
   verifyCredentials,
+  addRoleToUser,
+  upsertUser,
+  generateDefaultPassword,
   validRoles: validRolesList,
+  roleDisplayNames,
 };

@@ -64,15 +64,29 @@ const commonRules = {
 
 /**
  * 登录验证规则
+ * 支持 phone 或 username 字段（向后兼容）
  */
 const loginRules = [
-  body('username')
+  body('phone')
+    .optional()
     .trim()
-    .notEmpty().withMessage('用户名不能为空')
+    .isLength({ min: 1, max: 50 }).withMessage('手机号长度必须在1-50之间'),
+  body('username')
+    .optional()
+    .trim()
     .isLength({ min: 1, max: 50 }).withMessage('用户名长度必须在1-50之间'),
   body('password')
     .notEmpty().withMessage('密码不能为空')
     .isLength({ min: 1, max: 100 }).withMessage('密码长度必须在1-100之间'),
+  // 自定义验证：确保 phone 或 username 至少有一个
+  body().custom((value) => {
+    const phone = value.phone?.trim();
+    const username = value.username?.trim();
+    if (!phone && !username) {
+      throw new Error('手机号或用户名至少需要提供一个');
+    }
+    return true;
+  }),
   handleValidationErrors
 ];
 

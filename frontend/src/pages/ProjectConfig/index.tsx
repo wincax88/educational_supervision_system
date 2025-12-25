@@ -218,14 +218,14 @@ const ProjectConfig: React.FC = () => {
   };
 
   // 批量添加人员（从多选账号）
-  const handleBatchAddPerson = (users: Array<{ username: string; roles: string[] }>, role: string) => {
+  const handleBatchAddPerson = (users: Array<{ phone: string; name?: string; roles: string[] }>, role: string) => {
     // 逐个添加选中的用户
     users.forEach(user => {
       addPerson({
         role,
-        name: user.username,
+        name: user.name || user.phone,
         organization: '',
-        phone: '',
+        phone: user.phone,
         idCard: '',
       });
     });

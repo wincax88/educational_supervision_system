@@ -67,7 +67,8 @@ const getImportStatusInfo = (status: ImportStatus): ImportStatusInfo => {
 // ==================== 添加人员弹窗 ====================
 
 interface SystemUserOption {
-  username: string;
+  phone: string;
+  name?: string;
   roles: string[];  // 支持多角色
   status: string;
 }
@@ -230,7 +231,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
       message.warning('请选择负责的区县');
       return;
     }
-    const selectedUserObjects = filteredUsers.filter(u => selectedUsers.includes(u.username));
+    const selectedUserObjects = filteredUsers.filter(u => selectedUsers.includes(u.phone));
     if (onBatchSubmit && presetRole) {
       onBatchSubmit(selectedUserObjects, presetRole, selectedDistrictId || undefined);
     }
@@ -286,11 +287,11 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
               (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
             }
             options={filteredUsers.map(u => ({
-              value: u.username,
+              value: u.phone,
               // 专家直接显示用户名，其他角色显示用户名和角色
               label: presetRole === 'expert'
-                ? u.username
-                : `${u.username}（${getUserRoleDisplay(u.roles)}）`,
+                ? (u.name || u.phone)
+                : `${u.name || u.phone}（${getUserRoleDisplay(u.roles)}）`,
             }))}
             value={selectedUsers}
             onChange={setSelectedUsers}
@@ -365,17 +366,18 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
                     (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
                   }
                   options={filteredUsers.map(u => ({
-                    value: u.username,
-                    label: `${u.username}（${getUserRoleDisplay(u.roles)}）`,
+                    value: u.phone,
+                    label: `${u.name || u.phone}（${getUserRoleDisplay(u.roles)}）`,
                   }))}
-                  onChange={(username: string) => {
-                    const user = userList.find(u => u.username === username);
+                  onChange={(phone: string) => {
+                    const user = userList.find(u => u.phone === phone);
                     if (user) {
                       // 使用用户的第一个角色来映射人员角色
                       const firstRole = (user.roles || [])[0];
-                      const personnelRole = systemRoleToPersonnelRole[firstRole] || 'school_reporter';
+                      const personnelRole = systemRoleToPersonnelRole[firstRole] || 'data_collector';
                       form.setFieldsValue({
-                        name: user.username,
+                        name: user.name || user.phone,
+                        phone: user.phone,
                         role: personnelRole,
                       });
                     }
@@ -527,7 +529,19 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     { title: '角色', dataIndex: 'role', key: 'role', width: 100 },
     { title: '姓名', dataIndex: 'name', key: 'name', width: 80 },
     { title: '单位', dataIndex: 'organization', key: 'organization', width: 150 },
-    { title: '电话', dataIndex: 'phone', key: 'phone', width: 120 },
+    {
+      title: '电话',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 120,
+      render: (phone: any) => {
+        // 如果 phone 是对象，提取 phone 属性或显示错误
+        if (phone && typeof phone === 'object') {
+          return phone.phone || phone.error || '-';
+        }
+        return phone || '-';
+      },
+    },
     { title: '身份证', dataIndex: 'idCard', key: 'idCard', width: 160 },
     {
       title: '操作',
@@ -707,7 +721,19 @@ export const MorePersonModal: React.FC<MorePersonModalProps> = ({
   const personnelColumns: ColumnsType<Personnel> = [
     { title: '姓名', dataIndex: 'name', key: 'name', width: 100 },
     { title: '单位', dataIndex: 'organization', key: 'organization', width: 180 },
-    { title: '电话号码', dataIndex: 'phone', key: 'phone', width: 140 },
+    {
+      title: '电话号码',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 140,
+      render: (phone: any) => {
+        // 如果 phone 是对象，提取 phone 属性或显示错误
+        if (phone && typeof phone === 'object') {
+          return phone.phone || phone.error || '-';
+        }
+        return phone || '-';
+      },
+    },
     { title: '身份证件号码', dataIndex: 'idCard', key: 'idCard', width: 180 },
     {
       title: '操作',

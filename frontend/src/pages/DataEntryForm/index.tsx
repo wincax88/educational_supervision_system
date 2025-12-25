@@ -243,26 +243,31 @@ const DataEntryForm: React.FC = () => {
   const [selectedSampleType, setSelectedSampleType] = useState<string | undefined>();
   const [importFileData, setImportFileData] = useState<Record<string, any> | null>(null);
 
-  // 解析当前范围（支持学校和区县）
+  // 解析当前范围（从 URL 参数获取）
+  // 新角色体系不再使用 user.scopes，改为从任务参数中获取目标信息
   const resolvedSchoolScope = useMemo(() => {
-    if (!user) return null;
-    // 优先使用当前 scope（从右上角"角色/学校范围"菜单选择）
-    if (user.currentScope?.type === 'school') return user.currentScope;
-    // 如果只有一个学校 scope，允许自动选中
-    const schoolScopes = Array.isArray(user.scopes) ? user.scopes.filter((s) => s.type === 'school') : [];
-    if (schoolScopes.length === 1) return schoolScopes[0];
+    // 从 URL 查询参数获取
+    const sp = new URLSearchParams(location.search);
+    const targetType = sp.get('targetType');
+    const targetId = sp.get('targetId');
+    const targetName = sp.get('targetName');
+    if (targetType === 'school' && targetId) {
+      return { type: 'school' as const, id: targetId, name: targetName || '' };
+    }
     return null;
-  }, [user]);
+  }, [location.search]);
 
   const resolvedDistrictScope = useMemo(() => {
-    if (!user) return null;
-    // 优先使用当前 scope（从右上角"角色/区县范围"菜单选择）
-    if (user.currentScope?.type === 'district') return user.currentScope;
-    // 如果只有一个区县 scope，允许自动选中
-    const districtScopes = Array.isArray(user.scopes) ? user.scopes.filter((s) => s.type === 'district') : [];
-    if (districtScopes.length === 1) return districtScopes[0];
+    // 从 URL 查询参数获取
+    const sp = new URLSearchParams(location.search);
+    const targetType = sp.get('targetType');
+    const targetId = sp.get('targetId');
+    const targetName = sp.get('targetName');
+    if (targetType === 'district' && targetId) {
+      return { type: 'district' as const, id: targetId, name: targetName || '' };
+    }
     return null;
-  }, [user]);
+  }, [location.search]);
 
   // 从 URL 查询参数中获取任务目标信息（用于 scope 为空时的备用）
   const taskTargetFromQuery = useMemo(() => {
@@ -416,8 +421,8 @@ const DataEntryForm: React.FC = () => {
         // 2) 否则：按 projectId + formId + 当前 scope 精确匹配最新一条
         // 区县表单：后端区县自身填报记录更多依赖 submitter_org（区县名），因此优先按 submitterOrg 匹配
         // 学校表单：按 schoolId 精确匹配
-        const scopeIdForMatch = user?.currentScope?.id || resolvedScope?.id;
-        const scopeNameForMatch = user?.currentScope?.name || resolvedScope?.name;
+        const scopeIdForMatch = resolvedScope?.id;
+        const scopeNameForMatch = resolvedScope?.name;
 
         // 若用户有多个范围且尚未选择，无法确定匹配对象：此时不自动匹配，避免误回显别人的数据
         if (!scopeIdForMatch && !scopeNameForMatch) return;
@@ -467,8 +472,6 @@ const DataEntryForm: React.FC = () => {
     formFields,
     form,
     submissionIdFromQuery,
-    user?.currentScope?.id,
-    user?.currentScope?.name,
     resolvedScope?.id,
     resolvedScope?.name,
     isDistrictForm,
@@ -501,7 +504,7 @@ const DataEntryForm: React.FC = () => {
           projectId,
           formId,
           schoolId: resolvedScope?.id,
-          submitterName: user?.username || '当前用户',
+          submitterName: user?.name || '当前用户',
           submitterOrg: resolvedScope?.name || '当前单位',
           data: payloadValues,
         });
@@ -595,7 +598,7 @@ const DataEntryForm: React.FC = () => {
           projectId,
           formId,
           schoolId: resolvedScope.id,
-          submitterName: user?.username || '当前用户',
+          submitterName: user?.name || '当前用户',
           submitterOrg: resolvedScope.name,
           data: payloadValues,
         });

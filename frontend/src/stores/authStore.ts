@@ -6,53 +6,34 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// 用户角色类型
+// 用户角色类型（新角色体系）
 export type UserRole =
-  | 'admin'
-  | 'city_admin'
-  | 'district_admin'
-  | 'district_reporter'
-  | 'school_reporter'
-  | 'project_manager'
-  | 'collector'
-  | 'expert'
-  | 'decision_maker';
+  | 'admin'           // 系统管理员
+  | 'project_admin'   // 项目管理员
+  | 'data_collector'  // 数据采集员
+  | 'project_expert'  // 项目评估专家
+  | 'decision_maker'; // 报告决策者
 
 const roleNameMap: Record<UserRole, string> = {
   admin: '系统管理员',
-  city_admin: '市级管理员',
-  district_admin: '区县管理员',
-  district_reporter: '区县填报员',
-  school_reporter: '学校填报员',
-  project_manager: '项目管理员',
-  collector: '数据采集员',
-  expert: '评估专家',
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目评估专家',
   decision_maker: '报告决策者',
 };
 
-export interface ScopeItem {
-  type: 'city' | 'district' | 'school';
-  id: string;
-  name: string;
-}
-
 // 用户信息接口
 export interface User {
-  username: string;
-  role: UserRole;
-  /** 当前选中的角色显示名（兼容后端返回） */
-  roleName?: string;
-  /** 当前用户拥有的角色列表 */
-  roles?: UserRole[];
-  /** 用户的数据范围（区县/学校等） */
-  scopes?: ScopeItem[];
-  /** 当前选中的区县/学校（用于二级子菜单上下文） */
-  currentScope?: ScopeItem | null;
+  phone: string;                    // 手机号（登录账号）
+  name?: string;                    // 用户姓名
+  role: UserRole;                   // 当前角色
+  roleName?: string;                // 当前角色显示名
+  roles?: UserRole[];               // 用户拥有的所有角色
 }
 
 // 登录凭证
 export interface LoginCredentials {
-  username: string;
+  phone: string;      // 手机号
   password: string;
 }
 
@@ -69,7 +50,6 @@ interface AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => void;
   switchRole: (nextRole: UserRole) => void;
-  setCurrentScope: (scope: ScopeItem | null) => void;
   clearError: () => void;
   checkAuth: () => boolean;
 }
@@ -113,7 +93,7 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
 
-          const { username, role, roleName, roles, scopes, token } = data.data || {};
+          const { phone, name, role, roleName, roles, token } = data.data || {};
 
           const rolesArr: UserRole[] = Array.isArray(roles)
             ? roles
@@ -132,12 +112,11 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: currentRole
               ? {
-                  username,
+                  phone,
+                  name,
                   role: currentRole,
                   roleName: roleName || roleNameMap[currentRole],
                   roles: rolesArr.length > 0 ? rolesArr : [currentRole],
-                  scopes: Array.isArray(scopes) ? scopes : [],
-                  currentScope: null,
                 }
               : null,
             token,
@@ -201,22 +180,8 @@ export const useAuthStore = create<AuthState>()(
             role: nextRole,
             roleName: roleNameMap[nextRole],
             roles: availableRoles,
-            // 切换到非区县/学校相关角色时，清掉当前 scope 上下文
-            currentScope: (nextRole === 'district_admin' || nextRole === 'school_reporter') ? user.currentScope || null : null,
           },
           token: nextToken,
-        });
-      },
-
-      setCurrentScope: (scope: ScopeItem | null) => {
-        const state = get();
-        const user = state.user;
-        if (!user) return;
-        set({
-          user: {
-            ...user,
-            currentScope: scope,
-          },
         });
       },
 
@@ -268,9 +233,9 @@ export const useAuthStore = create<AuthState>()(
  *
  * 角色权限说明：
  * - admin: 系统管理员，拥有所有权限
- * - project_manager: 项目管理员，负责项目配置和状态管理
- * - collector: 数据采集员，负责数据填报
- * - expert: 项目评估专家，负责数据审核和评审
+ * - project_admin: 项目管理员，负责项目配置和状态管理
+ * - data_collector: 数据采集员，负责数据填报
+ * - project_expert: 项目评估专家，负责数据审核和评审
  * - decision_maker: 报告决策者，查看最终报告
  *
  * 注意：各角色权限相互独立，不存在继承关系（admin 除外）
@@ -281,38 +246,33 @@ export const useUserPermissions = () => {
 
   // 角色判断（独立，不继承）
   const isAdmin = role === 'admin';
-  const isProjectManager = role === 'project_manager';
-  const isCityAdmin = role === 'city_admin';
-  const isDistrictAdmin = role === 'district_admin';
-  const isDistrictReporter = role === 'district_reporter';
-  // school_reporter（学校填报员）和 district_reporter（区县填报员）在当前前端路由体系中按"数据填报"口径处理
-  const isCollector = role === 'collector' || role === 'school_reporter' || role === 'district_reporter';
-  const isExpert = role === 'expert';
+  const isProjectAdmin = role === 'project_admin';
+  const isDataCollector = role === 'data_collector';
+  const isProjectExpert = role === 'project_expert';
   const isDecisionMaker = role === 'decision_maker';
 
   // 权限判断（admin 拥有所有权限）
   return {
     // 角色标识
     isAdmin,
-    isProjectManager,
-    isCityAdmin,
-    isDistrictAdmin,
-    isDistrictReporter,
-    isCollector,
-    isExpert,
+    isProjectAdmin,
+    isProjectManager: isProjectAdmin,  // 兼容旧代码
+    isDataCollector,
+    isCollector: isDataCollector,      // 兼容旧代码
+    isProjectExpert,
+    isExpert: isProjectExpert,         // 兼容旧代码
     isDecisionMaker,
 
     // 功能权限（admin 拥有所有权限）
-    // city_admin / district_admin 可查看项目与进度（不含系统配置/项目配置）
-    canManageProjects: isAdmin || isProjectManager || isCityAdmin || isDistrictAdmin,  // 项目管理权限
-    canCollectData: isAdmin || isCollector,          // 数据填报权限
-    canReviewData: isAdmin || isExpert,              // 数据审核权限
-    canViewReports: isAdmin || isDecisionMaker,      // 查看报告权限
+    canManageProjects: isAdmin || isProjectAdmin,   // 项目管理权限
+    canCollectData: isAdmin || isDataCollector,     // 数据填报权限
+    canReviewData: isAdmin || isProjectExpert,      // 数据审核权限
+    canViewReports: isAdmin || isDecisionMaker,     // 查看报告权限
 
     // 扩展权限
-    canManageSystem: isAdmin,                        // 系统管理权限
-    canConfigProject: isAdmin || isProjectManager,   // 项目配置权限
-    canChangeProjectStatus: isAdmin || isProjectManager, // 项目状态流转权限
+    canManageSystem: isAdmin,                       // 系统管理权限
+    canConfigProject: isAdmin || isProjectAdmin,    // 项目配置权限
+    canChangeProjectStatus: isAdmin || isProjectAdmin, // 项目状态流转权限
   };
 };
 

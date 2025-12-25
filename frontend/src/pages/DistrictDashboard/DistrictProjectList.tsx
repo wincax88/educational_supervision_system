@@ -13,9 +13,9 @@ const DistrictProjectList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
 
-  // 从 user 的 currentScope 获取区县信息
-  const districtId = user?.currentScope?.type === 'district' ? user.currentScope.id : '';
-  const districtName = user?.currentScope?.name || '未选择区县';
+  // 区县工作台功能已移除（新角色体系不再支持区县管理员）
+  const districtId = '';
+  const districtName = '区县工作台';
 
   // 加载项目列表
   useEffect(() => {

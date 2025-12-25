@@ -1,13 +1,12 @@
 import { get, post, put, del } from './api';
 
-// 角色定义：
-// - admin: 系统管理员（省级/国家级）- 创建/维护工具模板、项目全局配置
-// - city_admin: 市级管理员 - 查看区县进度，不可编辑数据
-// - district_admin: 区县管理员 - 审核本区县所有学校数据、退回修改
-// - district_reporter: 区县填报员 - 填报区县级采集工具数据
-// - school_reporter: 学校填报员 - 仅编辑本校原始要素
-// - expert: 评估专家 - 参与评审/评估相关工作（用于专家账号管理）
-export type UserRole = 'admin' | 'city_admin' | 'district_admin' | 'district_reporter' | 'school_reporter' | 'expert';
+// 角色定义（新系统角色体系）：
+// - admin: 系统管理员 - 系统全局管理，创建/维护工具模板、项目配置
+// - project_admin: 项目管理员 - 项目级管理权限，管理项目人员和配置
+// - data_collector: 数据采集员 - 数据采集和填报工作
+// - project_expert: 项目专家 - 项目评估和审核工作
+// - decision_maker: 决策者 - 查看决策报告和数据分析
+export type UserRole = 'admin' | 'project_admin' | 'data_collector' | 'project_expert' | 'decision_maker';
 export type UserStatus = 'active' | 'inactive';
 
 export interface ScopeItem {
@@ -17,10 +16,13 @@ export interface ScopeItem {
 }
 
 export interface SystemUser {
-  username: string;
-  roles: UserRole[];  // 支持多角色
-  status: UserStatus;
-  scopes: ScopeItem[];
+  phone: string;          // 手机号作为主键和登录账号
+  password?: string;      // 密码（创建时需要，查询时不返回）
+  name?: string;          // 用户姓名
+  organization?: string;  // 所属单位
+  idCard?: string;        // 身份证号
+  roles: UserRole[];      // 角色数组
+  status: UserStatus;     // 状态
   createdAt: string;
   updatedAt: string;
 }
@@ -38,44 +40,55 @@ export async function getUsers(params?: {
 }
 
 export async function createUser(data: {
-  username: string;
+  phone: string;
   password: string;
-  roles: UserRole[];  // 支持多角色
+  name?: string;
+  organization?: string;
+  idCard?: string;
+  roles: UserRole[];
   status?: UserStatus;
-  scopes?: ScopeItem[];
 }): Promise<SystemUser> {
   return post<SystemUser>('/users', data);
 }
 
 export async function updateUser(
-  username: string,
+  phone: string,
   data: Partial<{
     password: string;
-    roles: UserRole[];  // 支持多角色
+    name: string;
+    organization: string;
+    idCard: string;
+    roles: UserRole[];
     status: UserStatus;
-    scopes: ScopeItem[];
   }>
 ): Promise<SystemUser> {
-  return put<SystemUser>(`/users/${encodeURIComponent(username)}`, data);
+  return put<SystemUser>(`/users/${encodeURIComponent(phone)}`, data);
 }
 
-export async function deleteUser(username: string): Promise<void> {
-  return del<void>(`/users/${encodeURIComponent(username)}`);
+export async function deleteUser(phone: string): Promise<void> {
+  return del<void>(`/users/${encodeURIComponent(phone)}`);
 }
 
 // 批量导入用户
 export interface ImportUserData {
-  username: string;
+  phone: string;
   password: string;
+  name?: string;
+  organization?: string;
+  idCard?: string;
   roles?: UserRole[];
   status?: UserStatus;
-  scopes?: ScopeItem[];
+}
+
+export interface ImportError {
+  phone?: string;
+  error: string;
 }
 
 export interface ImportResult {
   success: number;
   failed: number;
-  errors: string[];
+  errors: (string | ImportError)[];
   created: string[];
 }
 
@@ -86,31 +99,28 @@ export async function importUsers(users: ImportUserData[]): Promise<ImportResult
 // 角色显示名称映射
 export const roleDisplayNames: Record<UserRole, string> = {
   admin: '系统管理员',
-  city_admin: '市级管理员',
-  district_admin: '区县管理员',
-  district_reporter: '区县填报员',
-  school_reporter: '学校填报员',
-  expert: '评估专家',
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目专家',
+  decision_maker: '决策者',
 };
 
 // 账号管理页面使用的角色选项
 export const roleOptions: Array<{ label: string; value: UserRole }> = [
-  { label: '系统管理员（省级/国家级）', value: 'admin' },
-  { label: '市级管理员', value: 'city_admin' },
-  { label: '区县管理员', value: 'district_admin' },
-  { label: '区县填报员', value: 'district_reporter' },
-  { label: '学校填报员', value: 'school_reporter' },
-  { label: '评估专家', value: 'expert' },
+  { label: '系统管理员', value: 'admin' },
+  { label: '项目管理员', value: 'project_admin' },
+  { label: '数据采集员', value: 'data_collector' },
+  { label: '项目专家', value: 'project_expert' },
+  { label: '决策者', value: 'decision_maker' },
 ];
 
 // 所有角色选项（用于筛选等场景）
 export const allRoleOptions: Array<{ label: string; value: UserRole }> = [
   { label: '系统管理员', value: 'admin' },
-  { label: '市级管理员', value: 'city_admin' },
-  { label: '区县管理员', value: 'district_admin' },
-  { label: '区县填报员', value: 'district_reporter' },
-  { label: '学校填报员', value: 'school_reporter' },
-  { label: '评估专家', value: 'expert' },
+  { label: '项目管理员', value: 'project_admin' },
+  { label: '数据采集员', value: 'data_collector' },
+  { label: '项目专家', value: 'project_expert' },
+  { label: '决策者', value: 'decision_maker' },
 ];
 
 

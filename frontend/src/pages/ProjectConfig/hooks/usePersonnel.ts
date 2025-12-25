@@ -9,40 +9,24 @@ import type { Personnel, ImportRecord, PersonnelFormValues } from '../types';
 
 export type ImportFilter = 'all' | 'confirmed' | 'new' | 'conflict';
 
-// 角色定义
-// | 角色 | 所属层级 | 可操作的采集工具 | 权限范围 |
-// | 系统管理员 | 省级/国家级 | 所有工具模板 | 创建/维护工具模板、项目全局配置 |
-// | 市级管理员 | 市级 | 查看工具、汇总报表 | 查看区县进度，不可编辑数据 |
-// | 区县管理员 | 区县 | 表单审核工具、Excel汇总模板 | 审核本区县所有学校数据、退回修改 |
-// | 区县填报员 | 区县 | 在线表单、Excel填报模板 | 填报区县级采集工具数据 |
-// | 学校填报员 | 学校 | 在线表单、Excel填报模板 | 仅编辑本校原始要素 |
+// 项目人员角色定义（新角色体系）
+// | 角色 | 代码 | 职责 | 权限范围 |
+// | 项目管理员 | project_admin | 项目配置和管理 | 配置项目、管理人员、查看进度、生成报表 |
+// | 数据采集员 | data_collector | 数据填报和采集 | 填报所属区县内所有学校的数据 |
+// | 项目评估专家 | project_expert | 项目评审和评估 | 审核提交的数据、评审评估结果 |
 
-// 角色映射：后端角色 -> 前端角色key（保持一致）
+// 角色映射：后端角色 -> 前端角色key
 const backendToFrontendRole: Record<string, string> = {
-  // 新角色体系
   project_admin: 'project_admin',
   data_collector: 'data_collector',
   project_expert: 'project_expert',
-  // 旧角色体系（兼容）
-  system_admin: 'system_admin',
-  city_admin: 'city_admin',
-  district_admin: 'district_admin',
-  district_reporter: 'district_reporter',
-  school_reporter: 'school_reporter',
 };
 
-// 角色映射：前端角色key -> 后端角色（保持一致）
+// 角色映射：前端角色key -> 后端角色
 const frontendToBackendRole: Record<string, string> = {
-  // 新角色体系
   project_admin: 'project_admin',
   data_collector: 'data_collector',
   project_expert: 'project_expert',
-  // 旧角色体系（兼容）
-  system_admin: 'system_admin',
-  city_admin: 'city_admin',
-  district_admin: 'district_admin',
-  district_reporter: 'district_reporter',
-  school_reporter: 'school_reporter',
 };
 
 export function usePersonnel(projectId?: string) {
@@ -60,18 +44,11 @@ export function usePersonnel(projectId?: string) {
       setLoading(true);
       const data = await personnelService.getPersonnel(projectId);
 
-      // 按角色分组（支持新旧两套角色体系）
+      // 按角色分组（新角色体系）
       const grouped: Record<string, Personnel[]> = {
-        // 新角色体系
         project_admin: [],
         data_collector: [],
         project_expert: [],
-        // 旧角色体系（兼容）
-        system_admin: [],
-        city_admin: [],
-        district_admin: [],
-        district_reporter: [],
-        school_reporter: [],
       };
 
       data.forEach(person => {

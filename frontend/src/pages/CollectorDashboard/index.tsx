@@ -103,17 +103,11 @@ const CollectorDashboard: React.FC = () => {
     schools: Array<{ id: string; name: string }>;
   }>>([]);
 
-  // 采集员/学校填报员可能绑定多个范围
-  const resolvedScope = useMemo(() => {
-    if (!user) return null;
-    if (user.currentScope) return user.currentScope;
-    const scopes = Array.isArray(user.scopes) ? user.scopes : [];
-    const schoolScopes = scopes.filter((s) => s.type === 'school');
-    if (schoolScopes.length === 1) return schoolScopes[0];
-    const districtScopes = scopes.filter((s) => s.type === 'district');
-    if (districtScopes.length === 1) return districtScopes[0];
+  // 采集员范围（简化版本：暂时返回 null，任务加载将基于用户身份）
+  const resolvedScope = useMemo<{ type: 'school' | 'district'; id: string; name: string } | null>(() => {
+    // 新角色体系不再使用 scope，任务分配通过 project_personnel 关联
     return null;
-  }, [user]);
+  }, []);
 
   // 判断项目是否为学前教育项目
   const isPreschoolProject = useCallback((project: MyProject) => {
@@ -172,31 +166,19 @@ const CollectorDashboard: React.FC = () => {
     if (!selectedProject) return;
     setLoading(true);
     try {
-      // 区县填报员需要加载下属学校的任务（通过 scope 类型或用户角色判断）
-      const isDistrictReporter = resolvedScope?.type === 'district' || user?.role === 'district_reporter';
-      const data = await taskService.getMyTasks(
-        resolvedScope
-          ? {
-              projectId: selectedProject.id,
-              scopeType: resolvedScope.type,
-              scopeId: resolvedScope.id,
-              includeSubSchools: isDistrictReporter,
-            }
-          : { projectId: selectedProject.id, includeSubSchools: isDistrictReporter }
-      );
+      // 数据采集员加载任务
+      const isDataCollector = user?.role === 'data_collector';
+      const data = await taskService.getMyTasks({
+        projectId: selectedProject.id,
+        includeSubSchools: isDataCollector,
+      });
       setTasks(data);
 
-      // 区县填报员：同时加载区县下所有学校列表（从项目样本表获取）
-      if (isDistrictReporter && selectedProject?.id) {
+      // 数据采集员：同时加载区县下所有学校列表（从项目样本表获取）
+      if (isDataCollector && selectedProject?.id) {
         try {
-          // 获取用户所有区县 scope
-          const scopes = (user?.scopes || []) as Array<{ type: string; id: string; name?: string }>;
-          const districtScopes = scopes.filter(s => s?.type === 'district' && s?.id);
-
-          // 获取当前 scope 的区县名称
-          const districtNames = resolvedScope?.name
-            ? [resolvedScope.name]
-            : districtScopes.map(s => s.name).filter(Boolean);
+          // 获取项目样本树形结构（区县 -> 学校）
+          const districtNames: string[] = [];
 
           // 获取项目样本树形结构（区县 -> 学校）
           const sampleTree = await getSamples(selectedProject.id).catch(() => []);
@@ -432,9 +414,8 @@ const CollectorDashboard: React.FC = () => {
     return matchStatus && matchKeyword;
   });
 
-  // 区县填报员：分组任务（区县任务 vs 下属学校任务）
-  // 通过 scope 类型或用户角色判断
-  const isDistrictScope = resolvedScope?.type === 'district' || user?.role === 'district_reporter';
+  // 数据采集员：分组任务（区县任务 vs 下属学校任务）
+  const isDistrictScope = user?.role === 'data_collector';
 
   // 判断任务是否为区县级任务
   const isDistrictTask = (t: Task) => {
@@ -680,7 +661,7 @@ const CollectorDashboard: React.FC = () => {
         {/* 欢迎区域 */}
         <div className={styles.welcomeSection}>
           <h1 className={styles.welcomeTitle}>
-            欢迎，{user?.username || '采集员'}
+            欢迎，{user?.name || '采集员'}
           </h1>
           <p className={styles.welcomeSubtitle}>
             您有 <strong>{filteredProjects.length}</strong> 个待填报的评估项目

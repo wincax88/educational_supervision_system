@@ -9,9 +9,9 @@
  */
 
 export interface SessionInfo {
-  username: string;
+  phone: string;
+  name?: string | null;
   roles?: string[];
-  scopes?: unknown[];
 }
 
 const sessions = new Map<number, SessionInfo>();
@@ -19,11 +19,11 @@ const sessions = new Map<number, SessionInfo>();
 export function setSession(timestamp: number | string, info: Partial<SessionInfo>): void {
   const ts = Number(timestamp);
   if (!Number.isFinite(ts)) return;
-  if (!info || !info.username) return;
+  if (!info || !info.phone) return;
   sessions.set(ts, {
-    username: String(info.username),
+    phone: String(info.phone),
+    name: info.name || null,
     roles: Array.isArray(info.roles) ? info.roles : undefined,
-    scopes: Array.isArray(info.scopes) ? info.scopes : undefined,
   });
 }
 

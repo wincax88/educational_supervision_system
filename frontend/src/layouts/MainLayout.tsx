@@ -2,44 +2,34 @@ import React, { useState, useMemo } from 'react';
 import { Layout, Menu, Dropdown, Space, Tag } from 'antd';
 import {
   HomeOutlined,
-  SettingOutlined,
   LogoutOutlined,
   FormOutlined,
   AuditOutlined,
   FileTextOutlined,
   TeamOutlined,
   DownOutlined,
-  BankOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet, Navigate } from 'react-router-dom';
-import { useAuthStore, useUserPermissions, UserRole, ScopeItem } from '../stores/authStore';
+import { useAuthStore, useUserPermissions, UserRole } from '../stores/authStore';
 import styles from './MainLayout.module.css';
 
 const { Header, Sider, Content } = Layout;
 
-// 角色名称映射
+// 角色名称映射（新角色体系）
 const roleNameMap: Record<string, string> = {
   admin: '系统管理员',
-  city_admin: '市级管理员',
-  district_admin: '区县管理员',
-  district_reporter: '区县填报员',
-  school_reporter: '学校填报员',
-  project_manager: '项目管理员',
-  collector: '数据采集员',
-  expert: '评估专家',
+  project_admin: '项目管理员',
+  data_collector: '数据采集员',
+  project_expert: '项目评估专家',
   decision_maker: '报告决策者',
 };
 
 // 角色标签颜色
 const roleColorMap: Record<string, string> = {
   admin: 'red',
-  city_admin: 'purple',
-  district_admin: 'blue',
-  district_reporter: 'cyan',
-  school_reporter: 'green',
-  project_manager: 'blue',
-  collector: 'green',
-  expert: 'orange',
+  project_admin: 'blue',
+  data_collector: 'green',
+  project_expert: 'orange',
   decision_maker: 'purple',
 };
 
@@ -48,28 +38,19 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const { user, isAuthenticated, logout, switchRole, setCurrentScope } = useAuthStore();
+  const { user, isAuthenticated, logout, switchRole } = useAuthStore();
   const permissions = useUserPermissions();
 
   // 根据角色生成菜单项
   const menuItems = useMemo(() => {
     const items = [];
 
-    // 教育督导 - 管理员和项目管理员可见完整内容（区县管理员除外）
-    if (permissions.canManageProjects && !permissions.isDistrictAdmin) {
+    // 教育督导 - 管理员和项目管理员可见完整内容
+    if (permissions.canManageProjects) {
       items.push({
         key: '/home',
         icon: <HomeOutlined />,
         label: '教育督导',
-      });
-    }
-
-    // 区县工作台 - 区县管理员专用入口
-    if (permissions.isDistrictAdmin && !permissions.isAdmin) {
-      items.push({
-        key: '/district',
-        icon: <BankOutlined />,
-        label: '区县工作台',
       });
     }
 
@@ -99,15 +80,6 @@ const MainLayout: React.FC = () => {
         label: '评估报告',
       });
     }
-
-    // 系统配置 - 仅管理员可见
-    // if (permissions.canManageSystem) {
-    //   items.push({
-    //     key: '/system',
-    //     icon: <SettingOutlined />,
-    //     label: '系统配置',
-    //   });
-    // }
 
     // 用户管理 - 仅管理员可见（含子菜单）
     if (permissions.canManageSystem) {
@@ -142,12 +114,9 @@ const MainLayout: React.FC = () => {
 
   // 获取默认路由（根据角色）
   const getDefaultRouteByRole = (role: UserRole) => {
-    if (role === 'admin' || role === 'project_manager') return '/home';
-    if (role === 'city_admin') return '/home';
-    if (role === 'district_admin') return '/district';
-    if (role === 'district_reporter') return '/collector';
-    if (role === 'collector' || role === 'school_reporter') return '/collector';
-    if (role === 'expert') return '/expert';
+    if (role === 'admin' || role === 'project_admin') return '/home';
+    if (role === 'data_collector') return '/collector';
+    if (role === 'project_expert') return '/expert';
     if (role === 'decision_maker') return '/reports';
     return '/home';
   };
@@ -162,13 +131,6 @@ const MainLayout: React.FC = () => {
     navigate(getDefaultRouteByRole(nextRole));
   };
 
-  const handleSwitchRoleWithScope = (nextRole: UserRole, scope: ScopeItem) => {
-    if (!user) return;
-    switchRole(nextRole);
-    setCurrentScope(scope);
-    navigate(getDefaultRouteByRole(nextRole));
-  };
-
   // 未登录重定向到登录页
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
@@ -176,125 +138,17 @@ const MainLayout: React.FC = () => {
 
   const userMenuItems = (() => {
     const roles = (user?.roles && user.roles.length > 0 ? user.roles : user?.role ? [user.role] : []) as UserRole[];
-    const scopes = Array.isArray(user?.scopes) ? user!.scopes! : [];
-    const districtScopes = scopes.filter(s => s.type === 'district');
-    const schoolScopes = scopes.filter(s => s.type === 'school');
 
-    const roleItems = roles.map((r) => {
-      // 区县管理员：二级子菜单展示区县
-      if (r === 'district_admin') {
-        const children = (districtScopes.length > 0 ? districtScopes : []).map((s) => ({
-          key: `role:${r}:district:${s.id}`,
-          label: (
-            <Space>
-              <span>{s.name}</span>
-              {user?.role === r && user?.currentScope?.type === 'district' && user?.currentScope?.id === s.id
-                ? <Tag color="blue">当前</Tag>
-                : null}
-            </Space>
-          ),
-          onClick: () => handleSwitchRoleWithScope(r, s),
-        }));
-
-        return {
-          key: `role:${r}`,
-          label: (
-            <Space>
-              <span>{roleNameMap[r] || r}</span>
-              {user?.role === r && user?.currentScope?.type === 'district'
-                ? <span style={{ color: '#999' }}>（{user.currentScope.name}）</span>
-                : null}
-            </Space>
-          ),
-          children: children.length > 0 ? children : [{
-            key: `role:${r}:empty`,
-            disabled: true,
-            label: '未配置区县范围',
-          }],
-        };
-      }
-
-      // 学校填报员：二级子菜单展示学校
-      if (r === 'school_reporter') {
-        const children = (schoolScopes.length > 0 ? schoolScopes : []).map((s) => ({
-          key: `role:${r}:school:${s.id}`,
-          label: (
-            <Space>
-              <span>{s.name}</span>
-              {user?.role === r && user?.currentScope?.type === 'school' && user?.currentScope?.id === s.id
-                ? <Tag color="green">当前</Tag>
-                : null}
-            </Space>
-          ),
-          onClick: () => handleSwitchRoleWithScope(r, s),
-        }));
-
-        return {
-          key: `role:${r}`,
-          label: (
-            <Space>
-              <span>{roleNameMap[r] || r}</span>
-              {user?.role === r && user?.currentScope?.type === 'school'
-                ? <span style={{ color: '#999' }}>（{user.currentScope.name}）</span>
-                : null}
-            </Space>
-          ),
-          children: children.length > 0 ? children : [{
-            key: `role:${r}:empty`,
-            disabled: true,
-            label: '未配置学校范围',
-          }],
-        };
-      }
-
-      // 区县填报员：二级子菜单展示区县
-      if (r === 'district_reporter') {
-        const children = (districtScopes.length > 0 ? districtScopes : []).map((s) => ({
-          key: `role:${r}:district:${s.id}`,
-          label: (
-            <Space>
-              <span>{s.name}</span>
-              {user?.role === r && user?.currentScope?.type === 'district' && user?.currentScope?.id === s.id
-                ? <Tag color="cyan">当前</Tag>
-                : null}
-            </Space>
-          ),
-          onClick: () => handleSwitchRoleWithScope(r, s),
-        }));
-
-        return {
-          key: `role:${r}`,
-          label: (
-            <Space>
-              <span>{roleNameMap[r] || r}</span>
-              {user?.role === r && user?.currentScope?.type === 'district'
-                ? <span style={{ color: '#999' }}>（{user.currentScope.name}）</span>
-                : null}
-            </Space>
-          ),
-          children: children.length > 0 ? children : [{
-            key: `role:${r}:empty`,
-            disabled: true,
-            label: '未配置区县范围',
-          }],
-        };
-      }
-
-      // 其他角色：保持一层
-      return {
-        key: `role:${r}`,
-        label: (
-          <Space>
-            <span>{roleNameMap[r] || r}</span>
-            {user?.role === r ? <Tag color={roleColorMap[r] || 'default'}>当前</Tag> : null}
-          </Space>
-        ),
-        onClick: () => {
-          setCurrentScope(null);
-          handleSwitchRole(r);
-        },
-      };
-    });
+    const roleItems = roles.map((r) => ({
+      key: `role:${r}`,
+      label: (
+        <Space>
+          <span>{roleNameMap[r] || r}</span>
+          {user?.role === r ? <Tag color={roleColorMap[r] || 'default'}>当前</Tag> : null}
+        </Space>
+      ),
+      onClick: () => handleSwitchRole(r),
+    }));
 
     return [
       ...roleItems,
@@ -312,11 +166,9 @@ const MainLayout: React.FC = () => {
   const getSelectedKey = () => {
     const path = location.pathname;
     if (path.startsWith('/home')) return '/home';
-    if (path.startsWith('/district')) return '/district';
     if (path.startsWith('/collector')) return '/collector';
     if (path.startsWith('/expert')) return '/expert';
     if (path.startsWith('/reports')) return '/reports';
-    if (path.startsWith('/system')) return '/system';
     if (path.startsWith('/users/school-account')) return '/users/school-account';
     if (path.startsWith('/users/expert-account')) return '/users/expert-account';
     if (path.startsWith('/users')) return '/users/school-account';
@@ -359,11 +211,10 @@ const MainLayout: React.FC = () => {
             <Space className={styles.userInfo}>
               <Tag color={roleColorMap[user.role] || 'default'}>
                 {user.roleName || roleNameMap[user.role] || user.role}
-                {user.currentScope?.name ? `（${user.currentScope.name}）` : ''}
               </Tag>
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
                 <Space style={{ cursor: 'pointer' }}>
-                  <span>{user.username}</span>
+                  <span>{user.name || user.phone}</span>
                   <DownOutlined />
                 </Space>
               </Dropdown>

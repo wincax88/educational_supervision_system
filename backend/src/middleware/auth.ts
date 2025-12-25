@@ -10,8 +10,9 @@ export interface AuthInfo {
   token: string;
   timestamp: number;
   role: string | null;
-  username: string | null;
-  scopes: unknown[] | null;
+  phone: string | null;
+  name: string | null;
+  roles: string[];
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -85,8 +86,9 @@ export const verifyToken: RequestHandler = (req: AuthenticatedRequest, res: Resp
     token,
     timestamp,
     role: parts[2] || null,
-    username: session?.username || null,
-    scopes: session?.scopes || null,
+    phone: session?.phone || null,
+    name: session?.name || null,
+    roles: session?.roles || [],
   };
 
   next();
@@ -121,14 +123,22 @@ export const requireRole = (allowedRoles: string[]): RequestHandler => {
       return;
     }
 
-    // 如果 token 中没有角色信息，暂时允许通过
-    // 生产环境应该从 JWT 中获取角色
-    if (!req.auth.role) {
+    // 如果 token 中没有角色信息，检查 session 中的角色
+    const currentRole = req.auth.role;
+    const userRoles = req.auth.roles || [];
+
+    // 如果没有任何角色信息，暂时允许通过（兼容旧版本）
+    if (!currentRole && userRoles.length === 0) {
       next();
       return;
     }
 
-    if (!allowedRoles.includes(req.auth.role)) {
+    // 检查当前角色或用户拥有的任一角色是否在允许列表中
+    const hasPermission =
+      (currentRole && allowedRoles.includes(currentRole)) ||
+      userRoles.some(r => allowedRoles.includes(r));
+
+    if (!hasPermission) {
       res.status(403).json({
         code: 403,
         message: '没有权限执行此操作'
@@ -142,30 +152,30 @@ export const requireRole = (allowedRoles: string[]): RequestHandler => {
 
 /**
  * 预定义的角色检查中间件
+ * 新角色体系：admin, project_admin, data_collector, project_expert, decision_maker
  */
 export const roles = {
-  // 管理员角色
+  // 系统管理员
   admin: requireRole(['admin']),
 
   // 项目管理员及以上
-  projectManager: requireRole(['admin', 'project_manager', 'city_admin', 'district_admin']),
+  projectManager: requireRole(['admin', 'project_admin']),
 
   // 数据采集员及以上
-  collector: requireRole(['admin', 'project_manager', 'city_admin', 'district_admin', 'district_reporter', 'collector', 'school_reporter']),
+  collector: requireRole(['admin', 'project_admin', 'data_collector']),
 
-  // 专家及以上
-  expert: requireRole(['admin', 'project_manager', 'expert']),
+  // 项目评估专家及以上
+  expert: requireRole(['admin', 'project_admin', 'project_expert']),
+
+  // 报告决策者及以上
+  decisionMaker: requireRole(['admin', 'project_admin', 'decision_maker']),
 
   // 所有登录用户
   authenticated: requireRole([
     'admin',
-    'project_manager',
-    'city_admin',
-    'district_admin',
-    'district_reporter',
-    'collector',
-    'school_reporter',
-    'expert',
+    'project_admin',
+    'data_collector',
+    'project_expert',
     'decision_maker'
   ])
 };

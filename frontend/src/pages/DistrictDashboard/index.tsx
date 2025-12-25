@@ -19,9 +19,10 @@ const DistrictDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('indicator-summary');
   const [indicatorSummaryRefreshKey, setIndicatorSummaryRefreshKey] = useState(0);
 
-  // 从 user 的 currentScope 获取区县信息
-  const districtId = user?.currentScope?.type === 'district' ? user.currentScope.id : '';
-  const districtName = user?.currentScope?.name || '未选择区县';
+  // 区县工作台功能已移除（新角色体系不再支持区县管理员）
+  // 此页面保留仅为向后兼容，实际功能已迁移到项目管理
+  const districtId = '';
+  const districtName = '区县工作台';
 
   // 加载项目信息
   useEffect(() => {
@@ -44,15 +45,18 @@ const DistrictDashboard: React.FC = () => {
 
   // 返回项目列表
   const handleBack = () => {
-    navigate('/district');
+    navigate('/home');
   };
 
-  // 如果没有选择区县，显示提示
-  if (!districtId) {
+  // 新角色体系不再支持区县工作台
+  if (!projectId) {
     return (
       <div className={styles.container}>
         <div className={styles.noData}>
-          <Empty description="请先在右上角选择要管理的区县" />
+          <Empty description="此功能已迁移到项目管理界面" />
+          <Button type="primary" onClick={() => navigate('/home')} style={{ marginTop: 16 }}>
+            前往项目管理
+          </Button>
         </div>
       </div>
     );
