@@ -1887,11 +1887,10 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
     const indicatorConfig = schoolType === '初中' ? RESOURCE_INDICATORS.junior : RESOURCE_INDICATORS.primary;
 
     // 获取该区县的学校列表
-    // 同时包含已提交数据的学校（从 submissions）和注册的学校（从 schools）
-    // 根据区县名称匹配提交数据
+    // 只包含在当前项目中有提交记录的学校
     const districtName = district.name;
 
-    // 先获取所有已提交数据的学校
+    // 获取所有已提交数据的学校
     const submissionSchoolsResult = await db.query(`
       SELECT DISTINCT
         sub.school_id as id,
@@ -1908,31 +1907,32 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
         AND sub.status IN ('approved', 'submitted', 'rejected')
     `, [projectId, `%${districtName}%`]);
 
-    // 获取注册的学校
-    let registeredSchoolsQuery = `
-      SELECT s.id, s.code, s.name, s.school_type as "schoolType",
-             s.student_count as "studentCount", s.teacher_count as "teacherCount"
-      FROM schools s
-      WHERE s.district_id = $1 AND s.status = 'active'
-    `;
-    const registeredSchoolsResult = await db.query(registeredSchoolsQuery, [districtId]);
-
-    // 合并两个列表，去重（优先使用注册学校的信息）
+    // 对于这些学校，尝试从 schools 表中获取更详细的信息
     const schoolsMap = new Map();
+    const submissionSchoolIds = submissionSchoolsResult.rows.map(s => s.id);
 
-    // 先添加注册的学校
-    registeredSchoolsResult.rows.forEach(school => {
-      schoolsMap.set(school.id, {
-        id: school.id,
-        code: school.code,
-        name: school.name,
-        schoolType: school.schoolType,
-        studentCount: school.studentCount,
-        teacherCount: school.teacherCount
+    if (submissionSchoolIds.length > 0) {
+      const registeredSchoolsResult = await db.query(`
+        SELECT s.id, s.code, s.name, s.school_type as "schoolType",
+               s.student_count as "studentCount", s.teacher_count as "teacherCount"
+        FROM schools s
+        WHERE s.id = ANY($1)
+      `, [submissionSchoolIds]);
+
+      // 先添加从 schools 表获取的详细信息
+      registeredSchoolsResult.rows.forEach(school => {
+        schoolsMap.set(school.id, {
+          id: school.id,
+          code: school.code,
+          name: school.name,
+          schoolType: school.schoolType,
+          studentCount: school.studentCount,
+          teacherCount: school.teacherCount
+        });
       });
-    });
+    }
 
-    // 再添加提交数据中的学校（如果不存在）
+    // 再添加提交数据中的学校（如果在 schools 表中不存在）
     submissionSchoolsResult.rows.forEach(school => {
       if (!schoolsMap.has(school.id)) {
         schoolsMap.set(school.id, {
