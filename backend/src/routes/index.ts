@@ -12,6 +12,9 @@ import districtsModule from './districts';
 export const districtRouter = districtsModule.router;
 export const setDistrictDb = districtsModule.setDb;
 export { router as blobRouter } from './blob';
+import reportsModule from './reports';
+export const reportRouter = reportsModule.router;
+export const setReportDb = reportsModule.setDb;
 
 // 导入 JavaScript 路由（临时兼容层，逐步迁移到 TypeScript）
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -96,6 +99,7 @@ export const setExpertDb: (db: Database) => void = expertJs.setDb;
 export function injectDatabase(db: Database): void {
   // TypeScript 路由
   setDistrictDb(db);
+  setReportDb(db);
 
   // JavaScript 路由
   setIndicatorDb(db);

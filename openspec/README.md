@@ -15,7 +15,8 @@ openspec/
 │   └── compliance-rules.md   # 达标判定规则引擎规范
 ├── changes/                  # 变更记录（按功能组织）
 │   ├── 2024-12-element-association/  # 数据指标-要素关联
-│   └── 2024-12-compliance-rules/     # 达标判定规则引擎
+│   ├── 2024-12-compliance-rules/     # 达标判定规则引擎
+│   └── 2024-12-decision-maker-reports/ # 报告决策者功能
 ├── AGENTS.md                 # AI 助手指南
 └── README.md                 # 本文件
 ```

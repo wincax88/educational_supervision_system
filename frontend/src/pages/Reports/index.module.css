@@ -1,0 +1,195 @@
+/* 评估报告页面样式 */
+
+.reportsPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 欢迎区域 */
+.welcomeSection {
+  margin-bottom: 24px;
+}
+
+.welcomeTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.welcomeSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.welcomeSubtitle strong {
+  color: #1890ff;
+  font-size: 18px;
+}
+
+/* 统计卡片 */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 28px;
+}
+
+/* 筛选区域 */
+.filterCard {
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* 报告列表 */
+.reportList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reportCard {
+  border-radius: 8px;
+  border-left: 4px solid #52c41a;
+  transition: all 0.3s ease;
+}
+
+.reportCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.reportHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.reportTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reportName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.reportDesc {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.reportMeta {
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* 数据统计 */
+.reportStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.statsItems {
+  display: flex;
+  gap: 24px;
+}
+
+.statsItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statsValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.statsLabel {
+  font-size: 13px;
+  color: #999;
+}
+
+.progressWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.progressWrapper :global(.ant-progress) {
+  flex: 1;
+}
+
+.progressText {
+  font-size: 13px;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* 空状态 */
+.emptyCard {
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+/* 响应式 */
+@media (max-width: 992px) {
+  .reportStats {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progressWrapper {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .reportsPage {
+    padding: 16px;
+  }
+
+  .statsRow :global(.ant-col) {
+    margin-bottom: 16px;
+  }
+
+  .reportHeader {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .statsItems {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}

@@ -28,6 +28,7 @@ import {
   preschoolStatisticsRouter,
   reviewAssignmentRouter,
   expertRouter,
+  reportRouter,
   uploadsRouteFactory,
   injectDatabase,
 } from './routes';
@@ -81,6 +82,7 @@ export function createApp(db?: Database): Express {
   app.use('/api/preschool-statistics', preschoolStatisticsRouter);
   app.use('/api', reviewAssignmentRouter);
   app.use('/api', expertRouter);
+  app.use('/api', reportRouter);
   app.use('/api', userRouter);
 
   // 文件上传路由

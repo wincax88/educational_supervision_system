@@ -30,6 +30,8 @@ import DistrictProjectList from './pages/DistrictDashboard/DistrictProjectList';
 import ProjectDetail from './pages/ProjectDetail';
 import DistrictListPage from './pages/ProjectDetail/DistrictListPage';
 import SubmissionDetail from './pages/SubmissionDetail';
+import Reports from './pages/Reports';
+import ReportDetail from './pages/Reports/Detail';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/global.css';
 
@@ -256,7 +258,12 @@ const App: React.FC = () => {
             {/* 报告决策者专用路由 */}
             <Route path="reports" element={
               <ProtectedRoute requiredPermission="canViewReports">
-                <div style={{ padding: 24 }}>评估报告页面（开发中）</div>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="reports/:projectId" element={
+              <ProtectedRoute requiredPermission="canViewReports">
+                <ReportDetail />
               </ProtectedRoute>
             } />
 
