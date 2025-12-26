@@ -1,0 +1,105 @@
+/* 预警提醒页面样式 */
+
+.alertsPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 页面头部 */
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+.pageSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.pageSubtitle strong {
+  color: #fa8c16;
+  font-size: 18px;
+}
+
+/* 预警统计卡片 */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.alertCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.alertStat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alertIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alertInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alertLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.alertDesc {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 详情卡片 */
+.detailCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.detailCard :global(.ant-card-head-title) {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .statsRow :global(.ant-col) {
+    flex: 0 0 50%;
+    max-width: 50%;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .alertsPage {
+    padding: 16px;
+  }
+
+  .statsRow :global(.ant-col) {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

@@ -8,6 +8,10 @@ import {
   FileTextOutlined,
   TeamOutlined,
   DownOutlined,
+  BarChartOutlined,
+  OrderedListOutlined,
+  WarningOutlined,
+  LineChartOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { useAuthStore, UserRole } from '../stores/authStore';
@@ -93,6 +97,33 @@ const MainLayout: React.FC = () => {
         key: '/reports',
         icon: <FileTextOutlined />,
         label: '评估报告',
+        children: [
+          {
+            key: '/reports',
+            icon: <FileTextOutlined />,
+            label: '报告列表',
+          },
+          {
+            key: '/reports/statistics',
+            icon: <BarChartOutlined />,
+            label: '统计看板',
+          },
+          {
+            key: '/reports/rankings',
+            icon: <OrderedListOutlined />,
+            label: '区县排名',
+          },
+          {
+            key: '/reports/alerts',
+            icon: <WarningOutlined />,
+            label: '预警提醒',
+          },
+          {
+            key: '/reports/comparison',
+            icon: <LineChartOutlined />,
+            label: '历年对比',
+          },
+        ],
       });
     }
 

@@ -1,0 +1,92 @@
+/* 统计看板页面样式 */
+
+.statisticsPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 页面头部 */
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.pageSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 统计卡片 */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  border-radius: 8px;
+  height: 100%;
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 13px;
+  color: #666;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 24px;
+}
+
+/* 图表卡片 */
+.chartsRow {
+  margin-bottom: 16px;
+}
+
+.chartCard {
+  border-radius: 8px;
+}
+
+.chartCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 加载状态 */
+.loadingWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .statsRow :global(.ant-col) {
+    flex: 0 0 33.33%;
+    max-width: 33.33%;
+    margin-bottom: 16px;
+  }
+
+  .chartsRow :global(.ant-col) {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .statisticsPage {
+    padding: 16px;
+  }
+
+  .statsRow :global(.ant-col) {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}

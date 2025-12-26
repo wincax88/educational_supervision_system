@@ -159,3 +159,80 @@ export async function getDistrictRankings(projectId?: string): Promise<DistrictR
 export async function exportReport(projectId: string, format: 'pdf' | 'excel' = 'excel'): Promise<{ status: string; message: string }> {
   return get<{ status: string; message: string }>(`/reports/${projectId}/export`, { format });
 }
+
+// 预警数据类型
+export interface AlertsData {
+  lowProgressProjects: Array<{
+    id: string;
+    name: string;
+    status: string;
+    endDate?: string;
+    totalSubmissions: number;
+    approvedCount: number;
+    completionRate: number;
+  }>;
+  upcomingDeadlines: Array<{
+    id: string;
+    name: string;
+    status: string;
+    endDate: string;
+    daysRemaining: number;
+  }>;
+  highRejectionDistricts: Array<{
+    id: string;
+    name: string;
+    code: string;
+    totalSubmissions: number;
+    rejectedCount: number;
+    rejectionRate: number;
+  }>;
+  staleSubmissions: Array<{
+    id: string;
+    submitterName: string;
+    submitterOrg: string;
+    status: string;
+    updatedAt: string;
+    projectName: string;
+    daysSinceUpdate: number;
+  }>;
+  summary: {
+    lowProgressCount: number;
+    upcomingDeadlineCount: number;
+    highRejectionCount: number;
+    staleSubmissionCount: number;
+  };
+}
+
+// 历年对比数据类型
+export interface ComparisonData {
+  yearlyComparison: Array<{
+    year: number;
+    assessmentType: string;
+    projectCount: number;
+    submissionCount: number;
+    approvedCount: number;
+    approvalRate: number;
+  }>;
+  districtComparison: Array<{
+    districtId: string;
+    districtName: string;
+    year: number;
+    submissionCount: number;
+    approvedCount: number;
+    approvalRate: number;
+  }>;
+}
+
+/**
+ * 获取预警数据
+ */
+export async function getAlerts(): Promise<AlertsData> {
+  return get<AlertsData>('/reports/alerts');
+}
+
+/**
+ * 获取历年对比数据
+ */
+export async function getComparison(params?: { districtId?: string; assessmentType?: string }): Promise<ComparisonData> {
+  return get<ComparisonData>('/reports/comparison', params as Record<string, string>);
+}

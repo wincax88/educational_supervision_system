@@ -32,6 +32,10 @@ import DistrictListPage from './pages/ProjectDetail/DistrictListPage';
 import SubmissionDetail from './pages/SubmissionDetail';
 import Reports from './pages/Reports';
 import ReportDetail from './pages/Reports/Detail';
+import ReportStatistics from './pages/Reports/Statistics';
+import ReportRankings from './pages/Reports/Rankings';
+import ReportAlerts from './pages/Reports/Alerts';
+import ReportComparison from './pages/Reports/Comparison';
 import ProtectedRoute from './components/ProtectedRoute';
 import './styles/global.css';
 
@@ -259,6 +263,26 @@ const App: React.FC = () => {
             <Route path="reports" element={
               <ProtectedRoute requiredPermission="canViewReports">
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="reports/statistics" element={
+              <ProtectedRoute requiredPermission="canViewReports">
+                <ReportStatistics />
+              </ProtectedRoute>
+            } />
+            <Route path="reports/rankings" element={
+              <ProtectedRoute requiredPermission="canViewReports">
+                <ReportRankings />
+              </ProtectedRoute>
+            } />
+            <Route path="reports/alerts" element={
+              <ProtectedRoute requiredPermission="canViewReports">
+                <ReportAlerts />
+              </ProtectedRoute>
+            } />
+            <Route path="reports/comparison" element={
+              <ProtectedRoute requiredPermission="canViewReports">
+                <ReportComparison />
               </ProtectedRoute>
             } />
             <Route path="reports/:projectId" element={

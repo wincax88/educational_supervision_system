@@ -374,6 +374,225 @@ router.get('/reports/rankings/districts', verifyToken, roles.decisionMaker, asyn
   }
 });
 
+// ==================== 预警提醒 ====================
+
+/**
+ * 获取预警列表
+ * GET /api/reports/alerts
+ * 权限：decision_maker, admin, project_admin
+ */
+router.get('/reports/alerts', verifyToken, roles.decisionMaker, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!db) {
+      res.status(500).json({ code: 500, message: '数据库未连接' });
+      return;
+    }
+
+    // 获取进度落后的项目（评审中但完成率低于50%）
+    const lowProgressProjectsResult = await db.query(`
+      SELECT
+        p.id,
+        p.name,
+        p.status,
+        p.end_date as "endDate",
+        COUNT(sub.id) as "totalSubmissions",
+        SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) as "approvedCount",
+        ROUND(
+          CAST(SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 /
+          NULLIF(COUNT(sub.id), 0),
+          2
+        ) as "completionRate"
+      FROM projects p
+      LEFT JOIN submissions sub ON p.id = sub.project_id
+      WHERE p.status IN ('填报中', '评审中')
+      GROUP BY p.id, p.name, p.status, p.end_date
+      HAVING COUNT(sub.id) > 0
+        AND CAST(SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 / COUNT(sub.id) < 50
+      ORDER BY "completionRate" ASC
+      LIMIT 10
+    `);
+
+    // 获取即将到期的项目（7天内到期）
+    const upcomingDeadlineResult = await db.query(`
+      SELECT
+        id,
+        name,
+        status,
+        end_date as "endDate",
+        EXTRACT(DAY FROM (end_date::date - CURRENT_DATE)) as "daysRemaining"
+      FROM projects
+      WHERE status IN ('配置中', '填报中', '评审中')
+        AND end_date IS NOT NULL
+        AND end_date::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+      ORDER BY end_date ASC
+      LIMIT 10
+    `);
+
+    // 获取驳回率高的区县（驳回率超过20%）
+    const highRejectionDistrictsResult = await db.query(`
+      SELECT
+        d.id,
+        d.name,
+        d.code,
+        COUNT(sub.id) as "totalSubmissions",
+        SUM(CASE WHEN sub.status = 'rejected' THEN 1 ELSE 0 END) as "rejectedCount",
+        ROUND(
+          CAST(SUM(CASE WHEN sub.status = 'rejected' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 /
+          NULLIF(COUNT(sub.id), 0),
+          2
+        ) as "rejectionRate"
+      FROM districts d
+      LEFT JOIN project_samples ps ON ps.district_id = d.id
+      LEFT JOIN submissions sub ON sub.project_id = ps.project_id
+      GROUP BY d.id, d.name, d.code
+      HAVING COUNT(sub.id) >= 5
+        AND CAST(SUM(CASE WHEN sub.status = 'rejected' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 / COUNT(sub.id) > 20
+      ORDER BY "rejectionRate" DESC
+      LIMIT 10
+    `);
+
+    // 获取长时间未更新的填报（超过7天未更新的待审核填报）
+    const staleSubmissionsResult = await db.query(`
+      SELECT
+        sub.id,
+        sub.submitter_name as "submitterName",
+        sub.submitter_org as "submitterOrg",
+        sub.status,
+        sub.updated_at as "updatedAt",
+        p.name as "projectName",
+        EXTRACT(DAY FROM (CURRENT_TIMESTAMP - sub.updated_at::timestamp)) as "daysSinceUpdate"
+      FROM submissions sub
+      JOIN projects p ON sub.project_id = p.id
+      WHERE sub.status = 'submitted'
+        AND sub.updated_at IS NOT NULL
+        AND sub.updated_at::timestamp < CURRENT_TIMESTAMP - INTERVAL '7 days'
+      ORDER BY sub.updated_at ASC
+      LIMIT 10
+    `);
+
+    res.json({
+      code: 200,
+      data: {
+        lowProgressProjects: lowProgressProjectsResult.rows,
+        upcomingDeadlines: upcomingDeadlineResult.rows,
+        highRejectionDistricts: highRejectionDistrictsResult.rows,
+        staleSubmissions: staleSubmissionsResult.rows,
+        summary: {
+          lowProgressCount: lowProgressProjectsResult.rows.length,
+          upcomingDeadlineCount: upcomingDeadlineResult.rows.length,
+          highRejectionCount: highRejectionDistrictsResult.rows.length,
+          staleSubmissionCount: staleSubmissionsResult.rows.length,
+        },
+      },
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('获取预警数据失败:', message);
+    res.status(500).json({ code: 500, message });
+  }
+});
+
+// ==================== 历年对比 ====================
+
+/**
+ * 获取项目历年对比数据
+ * GET /api/reports/comparison
+ * 权限：decision_maker, admin, project_admin
+ */
+router.get('/reports/comparison', verifyToken, roles.decisionMaker, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!db) {
+      res.status(500).json({ code: 500, message: '数据库未连接' });
+      return;
+    }
+
+    const { districtId, assessmentType } = req.query as { districtId?: string; assessmentType?: string };
+
+    // 按年度统计项目完成情况
+    let yearlyComparisonSql = `
+      SELECT
+        EXTRACT(YEAR FROM p.start_date::date) as year,
+        p.assessment_type as "assessmentType",
+        COUNT(DISTINCT p.id) as "projectCount",
+        COUNT(sub.id) as "submissionCount",
+        SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) as "approvedCount",
+        ROUND(
+          CAST(SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 /
+          NULLIF(COUNT(sub.id), 0),
+          2
+        ) as "approvalRate"
+      FROM projects p
+      LEFT JOIN submissions sub ON p.id = sub.project_id
+      WHERE p.start_date IS NOT NULL
+    `;
+
+    const params: unknown[] = [];
+    let paramIndex = 1;
+
+    if (assessmentType) {
+      yearlyComparisonSql += ` AND p.assessment_type = $${paramIndex++}`;
+      params.push(assessmentType);
+    }
+
+    yearlyComparisonSql += `
+      GROUP BY EXTRACT(YEAR FROM p.start_date::date), p.assessment_type
+      ORDER BY year DESC, "assessmentType"
+      LIMIT 20
+    `;
+
+    const yearlyComparisonResult = await db.query(yearlyComparisonSql, params);
+
+    // 按区县统计历年数据
+    let districtComparisonSql = `
+      SELECT
+        d.id as "districtId",
+        d.name as "districtName",
+        EXTRACT(YEAR FROM p.start_date::date) as year,
+        COUNT(sub.id) as "submissionCount",
+        SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) as "approvedCount",
+        ROUND(
+          CAST(SUM(CASE WHEN sub.status = 'approved' THEN 1 ELSE 0 END) AS NUMERIC) * 100.0 /
+          NULLIF(COUNT(sub.id), 0),
+          2
+        ) as "approvalRate"
+      FROM districts d
+      LEFT JOIN project_samples ps ON ps.district_id = d.id
+      LEFT JOIN projects p ON ps.project_id = p.id
+      LEFT JOIN submissions sub ON p.id = sub.project_id
+      WHERE p.start_date IS NOT NULL
+    `;
+
+    const districtParams: unknown[] = [];
+    let districtParamIndex = 1;
+
+    if (districtId) {
+      districtComparisonSql += ` AND d.id = $${districtParamIndex++}`;
+      districtParams.push(districtId);
+    }
+
+    districtComparisonSql += `
+      GROUP BY d.id, d.name, EXTRACT(YEAR FROM p.start_date::date)
+      HAVING COUNT(sub.id) > 0
+      ORDER BY d.name, year DESC
+      LIMIT 50
+    `;
+
+    const districtComparisonResult = await db.query(districtComparisonSql, districtParams);
+
+    res.json({
+      code: 200,
+      data: {
+        yearlyComparison: yearlyComparisonResult.rows,
+        districtComparison: districtComparisonResult.rows,
+      },
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('获取对比数据失败:', message);
+    res.status(500).json({ code: 500, message });
+  }
+});
+
 // ==================== 导出报告 ====================
 
 /**

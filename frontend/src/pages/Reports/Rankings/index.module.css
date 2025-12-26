@@ -1,0 +1,88 @@
+/* 区县排名页面样式 */
+
+.rankingsPage {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 页面头部 */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.pageSubtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 图表卡片 */
+.chartCard {
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.chartCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 表格卡片 */
+.tableCard {
+  border-radius: 8px;
+}
+
+.tableCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 排名数字 */
+.rankNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 排名行样式 */
+.rankFirst {
+  background-color: rgba(250, 173, 20, 0.1) !important;
+}
+
+.rankSecond {
+  background-color: rgba(191, 191, 191, 0.1) !important;
+}
+
+.rankThird {
+  background-color: rgba(212, 136, 6, 0.1) !important;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .rankingsPage {
+    padding: 16px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
