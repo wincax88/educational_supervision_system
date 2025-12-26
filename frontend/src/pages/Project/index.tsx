@@ -587,7 +587,7 @@ const ProjectPage: React.FC = () => {
             style={{ width: 200 }}
             allowClear
           />
-          {permissions.canConfigProject && (
+          {permissions.canManageSystem && (
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
               创建项目
             </Button>
@@ -871,7 +871,7 @@ const ProjectPage: React.FC = () => {
 
             <div className={styles.infoModalFooter}>
               <Button onClick={() => setInfoModalVisible(false)}>关闭</Button>
-              {permissions.canConfigProject && (
+              {permissions.canManageSystem && (
                 <Button type="primary" icon={<EditOutlined />} onClick={handleEditInfo}>编辑</Button>
               )}
             </div>

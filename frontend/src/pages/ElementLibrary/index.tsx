@@ -14,6 +14,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as toolService from '../../services/toolService';
 import type { ElementLibrary as ElementLibraryType, Element } from '../../services/toolService';
+import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
 const { Search } = Input;
@@ -29,6 +30,7 @@ interface ElementLibraryStats {
 const ElementLibrary: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const permissions = useUserPermissions();
   const [loading, setLoading] = useState(true);
   const [libraries, setLibraries] = useState<ElementLibraryType[]>([]);
   const [filteredLibraries, setFilteredLibraries] = useState<ElementLibraryType[]>([]);
@@ -230,9 +232,11 @@ const ElementLibrary: React.FC = () => {
             style={{ width: 200 }}
             allowClear
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-            新建要素库
-          </Button>
+          {permissions.canManageSystem && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+              新建要素库
+            </Button>
+          )}
         </div>
       </div>
 
@@ -265,47 +269,49 @@ const ElementLibrary: React.FC = () => {
                   <span className={styles.actionBtn} onClick={() => handleShowInfo(library)}>
                     <EyeOutlined /> 基础信息
                   </span>
-                  {library.status === 'published' ? (
-                    <Popconfirm
-                      title="取消发布"
-                      description="确定要取消发布该要素库吗？取消后将无法在项目中使用。"
-                      onConfirm={() => handleUnpublish(library.id)}
-                      okText="确定"
-                      cancelText="取消"
-                    >
-                      <span className={styles.actionBtn}>
-                        <CloseOutlined /> 取消发布
-                      </span>
-                    </Popconfirm>
-                  ) : (
-                    <>
-                      <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/elements/${library.id}/edit`)}>
-                        编辑要素
-                      </span>
+                  {permissions.canManageSystem && (
+                    library.status === 'published' ? (
                       <Popconfirm
-                        title="发布要素库"
-                        description="确定要发布该要素库吗？发布后可在项目中使用。"
-                        onConfirm={() => handlePublish(library.id)}
+                        title="取消发布"
+                        description="确定要取消发布该要素库吗？取消后将无法在项目中使用。"
+                        onConfirm={() => handleUnpublish(library.id)}
                         okText="确定"
                         cancelText="取消"
                       >
                         <span className={styles.actionBtn}>
-                          <CheckCircleOutlined /> 发布
+                          <CloseOutlined /> 取消发布
                         </span>
                       </Popconfirm>
-                      <Popconfirm
-                        title="删除要素库"
-                        description="确定要删除该要素库吗？此操作不可恢复。"
-                        onConfirm={() => handleDelete(library.id)}
-                        okText="确定"
-                        cancelText="取消"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <span className={`${styles.actionBtn} ${styles.danger}`}>
-                          <DeleteOutlined /> 删除
+                    ) : (
+                      <>
+                        <span className={styles.actionBtn} onClick={() => navigate(`/home/balanced/elements/${library.id}/edit`)}>
+                          编辑要素
                         </span>
-                      </Popconfirm>
-                    </>
+                        <Popconfirm
+                          title="发布要素库"
+                          description="确定要发布该要素库吗？发布后可在项目中使用。"
+                          onConfirm={() => handlePublish(library.id)}
+                          okText="确定"
+                          cancelText="取消"
+                        >
+                          <span className={styles.actionBtn}>
+                            <CheckCircleOutlined /> 发布
+                          </span>
+                        </Popconfirm>
+                        <Popconfirm
+                          title="删除要素库"
+                          description="确定要删除该要素库吗？此操作不可恢复。"
+                          onConfirm={() => handleDelete(library.id)}
+                          okText="确定"
+                          cancelText="取消"
+                          okButtonProps={{ danger: true }}
+                        >
+                          <span className={`${styles.actionBtn} ${styles.danger}`}>
+                            <DeleteOutlined /> 删除
+                          </span>
+                        </Popconfirm>
+                      </>
+                    )
                   )}
                 </div>
               </div>

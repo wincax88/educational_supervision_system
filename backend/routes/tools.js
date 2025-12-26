@@ -3,6 +3,7 @@ const router = express.Router();
 const { toolRules, elementLibraryRules, elementRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteDataTool, deleteElementLibrary } = require('../services/cascadeService');
+const { verifyToken, roles } = require('../src/middleware/auth');
 
 let db = null;
 
@@ -105,8 +106,8 @@ router.get('/tools/:id', async (req, res) => {
   }
 });
 
-// 创建采集工具
-router.post('/tools', async (req, res) => {
+// 创建采集工具（仅 admin）
+router.post('/tools', verifyToken, roles.admin, async (req, res) => {
   try {
     const { name, type, target, description } = req.body;
 
@@ -147,8 +148,8 @@ router.post('/tools', async (req, res) => {
   }
 });
 
-// 更新采集工具基础信息
-router.put('/tools/:id', async (req, res) => {
+// 更新采集工具基础信息（仅 admin）
+router.put('/tools/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const { name, type, target, description, status } = req.body;
 
@@ -190,8 +191,8 @@ router.put('/tools/:id', async (req, res) => {
   }
 });
 
-// 保存表单schema
-router.put('/tools/:id/schema', async (req, res) => {
+// 保存表单schema（仅 admin）
+router.put('/tools/:id/schema', verifyToken, roles.admin, async (req, res) => {
   try {
     const { schema } = req.body;
     const timestamp = now();
@@ -245,8 +246,8 @@ router.get('/tools/:id/schema', async (req, res) => {
   }
 });
 
-// 发布工具
-router.post('/tools/:id/publish', async (req, res) => {
+// 发布工具（仅 admin）
+router.post('/tools/:id/publish', verifyToken, roles.admin, async (req, res) => {
   try {
     const timestamp = now();
     const { data, error } = await db
@@ -270,8 +271,8 @@ router.post('/tools/:id/publish', async (req, res) => {
   }
 });
 
-// 取消发布
-router.post('/tools/:id/unpublish', async (req, res) => {
+// 取消发布（仅 admin）
+router.post('/tools/:id/unpublish', verifyToken, roles.admin, async (req, res) => {
   try {
     const timestamp = now();
     const { data, error } = await db
@@ -295,8 +296,8 @@ router.post('/tools/:id/unpublish', async (req, res) => {
   }
 });
 
-// 删除工具（使用级联删除服务）
-router.delete('/tools/:id', async (req, res) => {
+// 删除工具（使用级联删除服务，仅 admin）
+router.delete('/tools/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const toolId = req.params.id;
 
@@ -458,8 +459,8 @@ router.get('/element-libraries/:id', async (req, res) => {
   }
 });
 
-// 创建要素库
-router.post('/element-libraries', async (req, res) => {
+// 创建要素库（仅 admin）
+router.post('/element-libraries', verifyToken, roles.admin, async (req, res) => {
   try {
     const { name, description } = req.body;
     const id = generateId();
@@ -487,8 +488,8 @@ router.post('/element-libraries', async (req, res) => {
   }
 });
 
-// 更新要素库
-router.put('/element-libraries/:id', async (req, res) => {
+// 更新要素库（仅 admin）
+router.put('/element-libraries/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const { name, description, status, elements } = req.body;
 
@@ -781,8 +782,8 @@ router.put('/element-libraries/:id', async (req, res) => {
   }
 });
 
-// 删除要素库（使用级联删除服务）
-router.delete('/element-libraries/:id', async (req, res) => {
+// 删除要素库（使用级联删除服务，仅 admin）
+router.delete('/element-libraries/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const libraryId = req.params.id;
     const timestamp = now();
@@ -859,8 +860,8 @@ router.delete('/element-libraries/:id', async (req, res) => {
   }
 });
 
-// 添加要素
-router.post('/element-libraries/:id/elements', async (req, res) => {
+// 添加要素（仅 admin）
+router.post('/element-libraries/:id/elements', verifyToken, roles.admin, async (req, res) => {
   try {
     const { 
       code, name, elementType, dataType, formula, toolId, fieldId, fieldLabel,
@@ -947,8 +948,8 @@ router.post('/element-libraries/:id/elements', async (req, res) => {
   }
 });
 
-// 批量导入要素
-router.post('/element-libraries/:id/elements/import', async (req, res) => {
+// 批量导入要素（仅 admin）
+router.post('/element-libraries/:id/elements/import', verifyToken, roles.admin, async (req, res) => {
   try {
     const { elements, mode = 'append' } = req.body; // mode: 'append' | 'replace'
     const libraryId = req.params.id;
@@ -1105,8 +1106,8 @@ router.post('/element-libraries/:id/elements/import', async (req, res) => {
   }
 });
 
-// 更新要素
-router.put('/elements/:id', async (req, res) => {
+// 更新要素（仅 admin）
+router.put('/elements/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const { 
       code, name, elementType, dataType, formula, toolId, fieldId, fieldLabel, 
@@ -1174,8 +1175,8 @@ router.put('/elements/:id', async (req, res) => {
   }
 });
 
-// 删除要素
-router.delete('/elements/:id', async (req, res) => {
+// 删除要素（仅 admin）
+router.delete('/elements/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const elementId = req.params.id;
     const { data: element, error: elErr } = await db
@@ -1299,8 +1300,8 @@ router.get('/tools/:id/field-mappings', async (req, res) => {
   }
 });
 
-// 保存工具的字段映射（全量更新）
-router.put('/tools/:id/field-mappings', async (req, res) => {
+// 保存工具的字段映射（全量更新，仅 admin）
+router.put('/tools/:id/field-mappings', verifyToken, roles.admin, async (req, res) => {
   try {
     const toolId = req.params.id;
     const { mappings } = req.body;
@@ -1338,8 +1339,8 @@ router.put('/tools/:id/field-mappings', async (req, res) => {
   }
 });
 
-// 添加单个字段映射
-router.post('/tools/:id/field-mappings', async (req, res) => {
+// 添加单个字段映射（仅 admin）
+router.post('/tools/:id/field-mappings', verifyToken, roles.admin, async (req, res) => {
   try {
     const toolId = req.params.id;
     const { fieldId, mappingType, targetId } = req.body;
@@ -1427,8 +1428,8 @@ router.post('/tools/:id/field-mappings', async (req, res) => {
   }
 });
 
-// 删除单个字段映射
-router.delete('/tools/:toolId/field-mappings/:fieldId', async (req, res) => {
+// 删除单个字段映射（仅 admin）
+router.delete('/tools/:toolId/field-mappings/:fieldId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { toolId, fieldId } = req.params;
 

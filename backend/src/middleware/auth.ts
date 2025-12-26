@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import * as sessionStore from '../services/sessionStore';
+import { query } from '../database/db';
 
 export interface AuthInfo {
   token: string;
@@ -201,9 +202,74 @@ export const roles = {
   ])
 };
 
+/**
+ * 项目级权限检查中间件工厂
+ * 检查用户是否是指定项目的指定角色
+ * @param allowedRoles - 允许的项目角色列表，默认只允许项目管理员
+ */
+export const checkProjectPermission = (allowedRoles: string[] = ['project_admin']): RequestHandler => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // 从路由参数中获取项目ID（支持 :projectId 和 :id 两种命名）
+      const projectId = req.params.projectId || req.params.id;
+      const userPhone = req.auth?.phone;
+
+      if (!projectId) {
+        res.status(400).json({
+          code: 400,
+          message: '缺少项目ID'
+        });
+        return;
+      }
+
+      // 系统管理员拥有所有项目的权限
+      if (req.auth?.role === 'admin' || req.auth?.roles?.includes('admin')) {
+        next();
+        return;
+      }
+
+      if (!userPhone) {
+        res.status(401).json({
+          code: 401,
+          message: '无法获取用户信息'
+        });
+        return;
+      }
+
+      // 检查用户是否是该项目的指定角色
+      const result = await query<{ id: string }>(
+        `SELECT id FROM project_personnel
+         WHERE project_id = $1
+           AND user_phone = $2
+           AND role = ANY($3)
+           AND status = 'active'
+         LIMIT 1`,
+        [projectId, userPhone, allowedRoles]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(403).json({
+          code: 403,
+          message: '您没有该项目的操作权限'
+        });
+        return;
+      }
+
+      next();
+    } catch (error) {
+      console.error('项目权限检查失败:', error);
+      res.status(500).json({
+        code: 500,
+        message: '权限检查失败'
+      });
+    }
+  };
+};
+
 export default {
   verifyToken,
   optionalAuth,
   requireRole,
-  roles
+  roles,
+  checkProjectPermission
 };

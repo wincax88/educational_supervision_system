@@ -3,6 +3,7 @@ const router = express.Router();
 const { projectRules, submissionRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteProject } = require('../services/cascadeService');
+const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
 const { checkCompliance } = require('../services/statisticsService');
 const {
   EXTENDED_FUNCTION_KEYWORDS,
@@ -342,26 +343,56 @@ async function syncSubmissionIndicators(submissionId) {
 
 // ==================== 项目 CRUD ====================
 
-// 获取项目列表
-router.get('/projects', async (req, res) => {
+// 获取项目列表（按权限过滤）
+router.get('/projects', verifyToken, async (req, res) => {
   try {
     const { status, year, assessmentType } = req.query;
-    let sql = `
-      SELECT p.id, p.name, (to_jsonb(p)->>'keywords') as keywords, p.description, p.indicator_system_id as "indicatorSystemId",
-             p.element_library_id as "elementLibraryId",
-             p.start_date as "startDate", p.end_date as "endDate", p.status,
-             COALESCE(p.assessment_type, '优质均衡') as "assessmentType",
-             COALESCE((to_jsonb(p)->>'is_published')::boolean, false) as "isPublished",
-             p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
-             i.name as "indicatorSystemName",
-             el.name as "elementLibraryName"
-      FROM projects p
-      LEFT JOIN indicator_systems i ON p.indicator_system_id = i.id
-      LEFT JOIN element_libraries el ON p.element_library_id = el.id
-      WHERE 1=1
-    `;
+    const userPhone = req.auth?.phone;
+    const userRole = req.auth?.role;
+    const userRoles = req.auth?.roles || [];
+
+    // 判断是否是系统管理员
+    const isAdmin = userRole === 'admin' || userRoles.includes('admin');
+
+    let sql;
     const params = [];
     let paramIndex = 1;
+
+    if (isAdmin) {
+      // 系统管理员看到所有项目
+      sql = `
+        SELECT p.id, p.name, (to_jsonb(p)->>'keywords') as keywords, p.description, p.indicator_system_id as "indicatorSystemId",
+               p.element_library_id as "elementLibraryId",
+               p.start_date as "startDate", p.end_date as "endDate", p.status,
+               COALESCE(p.assessment_type, '优质均衡') as "assessmentType",
+               COALESCE((to_jsonb(p)->>'is_published')::boolean, false) as "isPublished",
+               p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
+               i.name as "indicatorSystemName",
+               el.name as "elementLibraryName"
+        FROM projects p
+        LEFT JOIN indicator_systems i ON p.indicator_system_id = i.id
+        LEFT JOIN element_libraries el ON p.element_library_id = el.id
+        WHERE 1=1
+      `;
+    } else {
+      // 项目管理员只看到自己管理的项目
+      sql = `
+        SELECT DISTINCT p.id, p.name, (to_jsonb(p)->>'keywords') as keywords, p.description, p.indicator_system_id as "indicatorSystemId",
+               p.element_library_id as "elementLibraryId",
+               p.start_date as "startDate", p.end_date as "endDate", p.status,
+               COALESCE(p.assessment_type, '优质均衡') as "assessmentType",
+               COALESCE((to_jsonb(p)->>'is_published')::boolean, false) as "isPublished",
+               p.created_by as "createdBy", p.created_at as "createdAt", p.updated_at as "updatedAt",
+               i.name as "indicatorSystemName",
+               el.name as "elementLibraryName"
+        FROM projects p
+        LEFT JOIN indicator_systems i ON p.indicator_system_id = i.id
+        LEFT JOIN element_libraries el ON p.element_library_id = el.id
+        INNER JOIN project_personnel pp ON p.id = pp.project_id
+        WHERE pp.user_phone = $${paramIndex++} AND pp.role = 'project_admin' AND pp.status = 'active'
+      `;
+      params.push(userPhone);
+    }
 
     if (status) {
       sql += ` AND p.status = $${paramIndex++}`;
@@ -423,8 +454,8 @@ router.get('/projects/:id', async (req, res) => {
   }
 });
 
-// 创建项目
-router.post('/projects', projectRules.create, async (req, res) => {
+// 创建项目（仅系统管理员可创建）
+router.post('/projects', verifyToken, roles.admin, projectRules.create, async (req, res) => {
   try {
     const { name, keywords, description, indicatorSystemId, elementLibraryId, startDate, endDate, assessmentType } = req.body;
 
@@ -473,8 +504,8 @@ router.post('/projects', projectRules.create, async (req, res) => {
   }
 });
 
-// 更新项目
-router.put('/projects/:id', async (req, res) => {
+// 更新项目（需要该项目的管理员权限）
+router.put('/projects/:id', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { name, keywords, description, indicatorSystemId, elementLibraryId, startDate, endDate, status, assessmentType } = req.body;
 
@@ -543,8 +574,8 @@ router.put('/projects/:id', async (req, res) => {
   }
 });
 
-// 启动填报
-router.post('/projects/:id/start', async (req, res) => {
+// 启动填报（需要该项目的管理员权限）
+router.post('/projects/:id/start', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     // 检查项目当前状态
     const projectResult = await db.query(
@@ -582,8 +613,8 @@ router.post('/projects/:id/start', async (req, res) => {
   }
 });
 
-// 中止项目
-router.post('/projects/:id/stop', async (req, res) => {
+// 中止项目（需要该项目的管理员权限）
+router.post('/projects/:id/stop', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];
@@ -611,8 +642,8 @@ router.post('/projects/:id/stop', async (req, res) => {
   }
 });
 
-// 进入评审
-router.post('/projects/:id/review', async (req, res) => {
+// 进入评审（需要该项目的管理员权限）
+router.post('/projects/:id/review', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];
@@ -640,8 +671,8 @@ router.post('/projects/:id/review', async (req, res) => {
   }
 });
 
-// 完成项目
-router.post('/projects/:id/complete', async (req, res) => {
+// 完成项目（需要该项目的管理员权限）
+router.post('/projects/:id/complete', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];
@@ -669,8 +700,8 @@ router.post('/projects/:id/complete', async (req, res) => {
   }
 });
 
-// 重新启动项目（从已中止恢复到配置中）
-router.post('/projects/:id/restart', async (req, res) => {
+// 重新启动项目（从已中止恢复到配置中，需要该项目的管理员权限）
+router.post('/projects/:id/restart', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];
@@ -698,8 +729,8 @@ router.post('/projects/:id/restart', async (req, res) => {
   }
 });
 
-// 发布项目
-router.post('/projects/:id/publish', async (req, res) => {
+// 发布项目（需要该项目的管理员权限）
+router.post('/projects/:id/publish', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query(
       `SELECT status,
@@ -743,8 +774,8 @@ router.post('/projects/:id/publish', async (req, res) => {
   }
 });
 
-// 取消发布项目
-router.post('/projects/:id/unpublish', async (req, res) => {
+// 取消发布项目（需要该项目的管理员权限）
+router.post('/projects/:id/unpublish', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query(
       `SELECT status,
@@ -790,8 +821,8 @@ router.post('/projects/:id/unpublish', async (req, res) => {
   }
 });
 
-// 删除项目（使用级联删除服务）
-router.delete('/projects/:id', async (req, res) => {
+// 删除项目（使用级联删除服务，需要该项目的管理员权限）
+router.delete('/projects/:id', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const projectResult = await db.query('SELECT status FROM projects WHERE id = $1', [req.params.id]);
     const project = projectResult.rows[0];

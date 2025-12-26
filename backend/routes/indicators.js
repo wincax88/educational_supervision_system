@@ -3,6 +3,7 @@ const router = express.Router();
 const { indicatorSystemRules, listQueryRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteIndicatorSystem, deleteIndicator } = require('../services/cascadeService');
+const { verifyToken, roles } = require('../src/middleware/auth');
 
 // 数据库连接将在index.js中注入
 let db = null;
@@ -187,8 +188,8 @@ router.get('/indicator-systems/:id', async (req, res) => {
   }
 });
 
-// 创建指标体系
-router.post('/indicator-systems', indicatorSystemRules.create, async (req, res) => {
+// 创建指标体系（仅 admin）
+router.post('/indicator-systems', verifyToken, roles.admin, indicatorSystemRules.create, async (req, res) => {
   try {
     const { name, type, target, tags, description, attachments } = req.body;
 
@@ -227,8 +228,8 @@ router.post('/indicator-systems', indicatorSystemRules.create, async (req, res) 
   }
 });
 
-// 更新指标体系
-router.put('/indicator-systems/:id', indicatorSystemRules.update, async (req, res) => {
+// 更新指标体系（仅 admin）
+router.put('/indicator-systems/:id', verifyToken, roles.admin, indicatorSystemRules.update, async (req, res) => {
   try {
     const { name, type, target, tags, description, attachments, status } = req.body;
 
@@ -269,8 +270,8 @@ router.put('/indicator-systems/:id', indicatorSystemRules.update, async (req, re
   }
 });
 
-// 删除指标体系（使用级联删除服务）
-router.delete('/indicator-systems/:id', async (req, res) => {
+// 删除指标体系（使用级联删除服务，仅 admin）
+router.delete('/indicator-systems/:id', verifyToken, roles.admin, async (req, res) => {
   try {
     const timestamp = now();
     const deleted = await deleteIndicatorSystemCascade(req.params.id, timestamp);
@@ -380,8 +381,8 @@ router.get('/indicator-systems/:id/tree', async (req, res) => {
   }
 });
 
-// 保存整个指标树
-router.put('/indicator-systems/:id/tree', async (req, res) => {
+// 保存整个指标树（仅 admin）
+router.put('/indicator-systems/:id/tree', verifyToken, roles.admin, async (req, res) => {
   const systemId = req.params.id;
   const tree = req.body.tree;
   const timestamp = now();
@@ -511,8 +512,8 @@ router.put('/indicator-systems/:id/tree', async (req, res) => {
   }
 });
 
-// 添加单个指标节点
-router.post('/indicator-systems/:systemId/indicators', async (req, res) => {
+// 添加单个指标节点（仅 admin）
+router.post('/indicator-systems/:systemId/indicators', verifyToken, roles.admin, async (req, res) => {
   try {
     const { parentId, code, name, description, level, isLeaf } = req.body;
     const id = generateId();
@@ -575,8 +576,8 @@ router.post('/indicator-systems/:systemId/indicators', async (req, res) => {
   }
 });
 
-// 更新指标节点
-router.put('/indicator-systems/:systemId/indicators/:indicatorId', async (req, res) => {
+// 更新指标节点（仅 admin）
+router.put('/indicator-systems/:systemId/indicators/:indicatorId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { code, name, description, isLeaf, weight } = req.body;
     const timestamp = now();
@@ -606,8 +607,8 @@ router.put('/indicator-systems/:systemId/indicators/:indicatorId', async (req, r
   }
 });
 
-// 删除指标节点（使用级联删除服务）
-router.delete('/indicator-systems/:systemId/indicators/:indicatorId', async (req, res) => {
+// 删除指标节点（使用级联删除服务，仅 admin）
+router.delete('/indicator-systems/:systemId/indicators/:indicatorId', verifyToken, roles.admin, async (req, res) => {
   try {
     const systemId = req.params.systemId;
     const indicatorId = req.params.indicatorId;
@@ -708,8 +709,8 @@ router.get('/data-indicators/:dataIndicatorId/elements', async (req, res) => {
   }
 });
 
-// 添加数据指标-要素关联
-router.post('/data-indicators/:dataIndicatorId/elements', async (req, res) => {
+// 添加数据指标-要素关联（仅 admin）
+router.post('/data-indicators/:dataIndicatorId/elements', verifyToken, roles.admin, async (req, res) => {
   try {
     const { elementId, mappingType, description } = req.body;
     const dataIndicatorId = req.params.dataIndicatorId;
@@ -754,8 +755,8 @@ router.post('/data-indicators/:dataIndicatorId/elements', async (req, res) => {
   }
 });
 
-// 更新数据指标-要素关联
-router.put('/data-indicators/:dataIndicatorId/elements/:associationId', async (req, res) => {
+// 更新数据指标-要素关联（仅 admin）
+router.put('/data-indicators/:dataIndicatorId/elements/:associationId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { mappingType, description } = req.body;
     const timestamp = now();
@@ -782,8 +783,8 @@ router.put('/data-indicators/:dataIndicatorId/elements/:associationId', async (r
   }
 });
 
-// 删除数据指标-要素关联
-router.delete('/data-indicators/:dataIndicatorId/elements/:associationId', async (req, res) => {
+// 删除数据指标-要素关联（仅 admin）
+router.delete('/data-indicators/:dataIndicatorId/elements/:associationId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { data, error } = await db
       .from('data_indicator_elements')
@@ -803,8 +804,8 @@ router.delete('/data-indicators/:dataIndicatorId/elements/:associationId', async
   }
 });
 
-// 批量保存数据指标-要素关联
-router.put('/data-indicators/:dataIndicatorId/elements', async (req, res) => {
+// 批量保存数据指标-要素关联（仅 admin）
+router.put('/data-indicators/:dataIndicatorId/elements', verifyToken, roles.admin, async (req, res) => {
   const dataIndicatorId = req.params.dataIndicatorId;
   const associations = req.body.associations || [];
   const timestamp = now();
@@ -913,8 +914,8 @@ router.get('/supporting-materials/:supportingMaterialId/elements', async (req, r
   }
 });
 
-// 添加佐证材料-要素关联
-router.post('/supporting-materials/:supportingMaterialId/elements', async (req, res) => {
+// 添加佐证材料-要素关联（仅 admin）
+router.post('/supporting-materials/:supportingMaterialId/elements', verifyToken, roles.admin, async (req, res) => {
   try {
     const { elementId, mappingType, description } = req.body;
     const supportingMaterialId = req.params.supportingMaterialId;
@@ -959,8 +960,8 @@ router.post('/supporting-materials/:supportingMaterialId/elements', async (req, 
   }
 });
 
-// 更新佐证材料-要素关联
-router.put('/supporting-materials/:supportingMaterialId/elements/:associationId', async (req, res) => {
+// 更新佐证材料-要素关联（仅 admin）
+router.put('/supporting-materials/:supportingMaterialId/elements/:associationId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { mappingType, description } = req.body;
     const timestamp = now();
@@ -987,8 +988,8 @@ router.put('/supporting-materials/:supportingMaterialId/elements/:associationId'
   }
 });
 
-// 删除佐证材料-要素关联
-router.delete('/supporting-materials/:supportingMaterialId/elements/:associationId', async (req, res) => {
+// 删除佐证材料-要素关联（仅 admin）
+router.delete('/supporting-materials/:supportingMaterialId/elements/:associationId', verifyToken, roles.admin, async (req, res) => {
   try {
     const { data, error } = await db
       .from('supporting_material_elements')
@@ -1008,8 +1009,8 @@ router.delete('/supporting-materials/:supportingMaterialId/elements/:association
   }
 });
 
-// 批量保存佐证材料-要素关联
-router.put('/supporting-materials/:supportingMaterialId/elements', async (req, res) => {
+// 批量保存佐证材料-要素关联（仅 admin）
+router.put('/supporting-materials/:supportingMaterialId/elements', verifyToken, roles.admin, async (req, res) => {
   const supportingMaterialId = req.params.supportingMaterialId;
   const associations = req.body.associations || [];
   const timestamp = now();

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, roles } = require('../middleware/auth');
+const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
 const userStore = require('../services/userStore');
 
 let db = null;
@@ -14,8 +14,8 @@ const now = () => new Date().toISOString();
 
 // ==================== 项目任务 CRUD ====================
 
-// 获取项目任务列表
-router.get('/projects/:projectId/tasks', async (req, res) => {
+// 获取项目任务列表（需要该项目的管理员权限）
+router.get('/projects/:projectId/tasks', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolId, assigneeId, status } = req.query;
@@ -77,8 +77,8 @@ router.get('/projects/:projectId/tasks', async (req, res) => {
   }
 });
 
-// 获取任务统计
-router.get('/projects/:projectId/tasks/stats', async (req, res) => {
+// 获取任务统计（需要该项目的管理员权限）
+router.get('/projects/:projectId/tasks/stats', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
 
@@ -171,8 +171,8 @@ router.get('/tasks/:id', async (req, res) => {
   }
 });
 
-// 创建单个任务
-router.post('/projects/:projectId/tasks', async (req, res) => {
+// 创建单个任务（需要该项目的管理员权限）
+router.post('/projects/:projectId/tasks', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolId, assigneeId, targetType, targetId, dueDate } = req.body;
@@ -217,8 +217,8 @@ router.post('/projects/:projectId/tasks', async (req, res) => {
   }
 });
 
-// 批量创建任务
-router.post('/projects/:projectId/tasks/batch', async (req, res) => {
+// 批量创建任务（需要该项目的管理员权限）
+router.post('/projects/:projectId/tasks/batch', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolId, assigneeIds, targetType, targetIds, dueDate } = req.body;

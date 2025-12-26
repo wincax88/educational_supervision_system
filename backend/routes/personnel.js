@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userSyncService = require('../dist/services/userSyncService').default;
+const { verifyToken, checkProjectPermission } = require('../src/middleware/auth');
 
 let db = null;
 
@@ -13,8 +14,8 @@ const now = () => new Date().toISOString().split('T')[0];
 
 // ==================== 项目人员 CRUD ====================
 
-// 获取项目人员列表（扩展：关联查询区县名称）
-router.get('/projects/:projectId/personnel', async (req, res) => {
+// 获取项目人员列表（扩展：关联查询区县名称，需要该项目的管理员权限）
+router.get('/projects/:projectId/personnel', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { role, status } = req.query;
@@ -50,8 +51,8 @@ router.get('/projects/:projectId/personnel', async (req, res) => {
   }
 });
 
-// 获取人员统计（必须放在 /:id 路由之前，否则 stats 会被当作 id 处理）
-router.get('/projects/:projectId/personnel/stats', async (req, res) => {
+// 获取人员统计（必须放在 /:id 路由之前，需要该项目的管理员权限）
+router.get('/projects/:projectId/personnel/stats', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
 
@@ -87,8 +88,8 @@ router.get('/projects/:projectId/personnel/stats', async (req, res) => {
   }
 });
 
-// 获取单个人员（扩展：关联查询区县名称）
-router.get('/projects/:projectId/personnel/:id', async (req, res) => {
+// 获取单个人员（扩展：关联查询区县名称，需要该项目的管理员权限）
+router.get('/projects/:projectId/personnel/:id', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId, id } = req.params;
 
@@ -112,8 +113,8 @@ router.get('/projects/:projectId/personnel/:id', async (req, res) => {
   }
 });
 
-// 添加人员（扩展：支持 districtId 字段，同步创建系统用户）
-router.post('/projects/:projectId/personnel', async (req, res) => {
+// 添加人员（扩展：支持 districtId 字段，同步创建系统用户，需要该项目的管理员权限）
+router.post('/projects/:projectId/personnel', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     // 缺表时给出更清晰的提示（Supabase PostgREST 否则会报 schema cache）
     const hasTable = await db.tableExists?.('project_personnel');
@@ -248,8 +249,8 @@ router.post('/projects/:projectId/personnel', async (req, res) => {
   }
 });
 
-// 更新人员（扩展：支持 districtId 字段）
-router.put('/projects/:projectId/personnel/:id', async (req, res) => {
+// 更新人员（扩展：支持 districtId 字段，需要该项目的管理员权限）
+router.put('/projects/:projectId/personnel/:id', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId, id } = req.params;
     const { name, organization, phone, idCard, role, districtId, status } = req.body;
@@ -285,8 +286,8 @@ router.put('/projects/:projectId/personnel/:id', async (req, res) => {
   }
 });
 
-// 删除人员
-router.delete('/projects/:projectId/personnel/:id', async (req, res) => {
+// 删除人员（需要该项目的管理员权限）
+router.delete('/projects/:projectId/personnel/:id', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId, id } = req.params;
 
@@ -308,8 +309,8 @@ router.delete('/projects/:projectId/personnel/:id', async (req, res) => {
   }
 });
 
-// 批量导入人员（扩展：支持新角色和 districtId，同步系统用户）
-router.post('/projects/:projectId/personnel/import', async (req, res) => {
+// 批量导入人员（扩展：支持新角色和 districtId，同步系统用户，需要该项目的管理员权限）
+router.post('/projects/:projectId/personnel/import', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { personnel } = req.body;

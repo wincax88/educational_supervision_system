@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken, checkProjectPermission } = require('../src/middleware/auth');
 
 let db = null;
 
@@ -12,8 +13,8 @@ const now = () => new Date().toISOString().split('T')[0];
 
 // ==================== 项目-采集工具关联 ====================
 
-// 获取项目关联的采集工具列表
-router.get('/projects/:projectId/tools', async (req, res) => {
+// 获取项目关联的采集工具列表（需要该项目的管理员权限）
+router.get('/projects/:projectId/tools', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
 
@@ -79,8 +80,8 @@ router.get('/projects/:projectId/tools', async (req, res) => {
   }
 });
 
-// 关联采集工具到项目
-router.post('/projects/:projectId/tools', async (req, res) => {
+// 关联采集工具到项目（需要该项目的管理员权限）
+router.post('/projects/:projectId/tools', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolId, isRequired = 1, requireReview = true } = req.body;
@@ -160,8 +161,8 @@ router.post('/projects/:projectId/tools', async (req, res) => {
   }
 });
 
-// 批量关联采集工具到项目
-router.post('/projects/:projectId/tools/batch', async (req, res) => {
+// 批量关联采集工具到项目（需要该项目的管理员权限）
+router.post('/projects/:projectId/tools/batch', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolIds } = req.body;
@@ -232,8 +233,8 @@ router.post('/projects/:projectId/tools/batch', async (req, res) => {
   }
 });
 
-// 移除项目与工具的关联
-router.delete('/projects/:projectId/tools/:toolId', async (req, res) => {
+// 移除项目与工具的关联（需要该项目的管理员权限）
+router.delete('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId, toolId } = req.params;
 
@@ -255,8 +256,8 @@ router.delete('/projects/:projectId/tools/:toolId', async (req, res) => {
   }
 });
 
-// 更新关联属性（是否必填、是否需要审核）
-router.put('/projects/:projectId/tools/:toolId', async (req, res) => {
+// 更新关联属性（是否必填、是否需要审核，需要该项目的管理员权限）
+router.put('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId, toolId } = req.params;
     const { isRequired, requireReview } = req.body;
@@ -327,8 +328,8 @@ router.put('/projects/:projectId/tools/:toolId', async (req, res) => {
   }
 });
 
-// 调整工具排序
-router.put('/projects/:projectId/tools/order', async (req, res) => {
+// 调整工具排序（需要该项目的管理员权限）
+router.put('/projects/:projectId/tools/order', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
     const { toolIds } = req.body;
@@ -357,8 +358,8 @@ router.put('/projects/:projectId/tools/order', async (req, res) => {
   }
 });
 
-// 获取项目可用的采集工具（未关联的已发布工具）
-router.get('/projects/:projectId/available-tools', async (req, res) => {
+// 获取项目可用的采集工具（未关联的已发布工具，需要该项目的管理员权限）
+router.get('/projects/:projectId/available-tools', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
 

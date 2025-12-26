@@ -13,6 +13,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as toolService from '../../services/toolService';
 import type { DataTool } from '../../services/toolService';
+import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
 const { Search } = Input;
@@ -20,6 +21,7 @@ const { Search } = Input;
 const ToolLibrary: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const permissions = useUserPermissions();
   const [loading, setLoading] = useState(true);
   const [tools, setTools] = useState<DataTool[]>([]);
   const [filteredTools, setFilteredTools] = useState<DataTool[]>([]);
@@ -239,9 +241,11 @@ const ToolLibrary: React.FC = () => {
               onSearch={handleSearch}
               allowClear
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-              创建数据采集工具
-            </Button>
+            {permissions.canManageSystem && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+                创建数据采集工具
+              </Button>
+            )}
           </div>
         </div>
 
@@ -273,47 +277,51 @@ const ToolLibrary: React.FC = () => {
                     <span className={styles.actionBtn} onClick={() => handleViewTool(tool)}>
                       <EyeOutlined /> 工具信息
                     </span>
-                    <span className={styles.actionBtn} onClick={() => handleEditTool(tool)}>
-                      <EditOutlined /> 编辑工具
-                    </span>
-                    {tool.status === 'published' ? (
-                      <Popconfirm
-                        title="取消发布"
-                        description="确定要取消发布该工具吗？"
-                        onConfirm={() => handleTogglePublish(tool)}
-                        okText="确定"
-                        cancelText="取消"
-                      >
-                        <span className={styles.actionBtn}>
-                          取消发布
-                        </span>
-                      </Popconfirm>
-                    ) : (
-                      <>
+                    {permissions.canManageSystem && (
+                      <span className={styles.actionBtn} onClick={() => handleEditTool(tool)}>
+                        <EditOutlined /> 编辑工具
+                      </span>
+                    )}
+                    {permissions.canManageSystem && (
+                      tool.status === 'published' ? (
                         <Popconfirm
-                          title="删除工具"
-                          description="确定要删除该工具吗？此操作不可恢复。"
-                          onConfirm={() => handleDelete(tool.id)}
-                          okText="确定"
-                          cancelText="取消"
-                          okButtonProps={{ danger: true }}
-                        >
-                          <span className={`${styles.actionBtn} ${styles.danger}`}>
-                            <DeleteOutlined /> 删除
-                          </span>
-                        </Popconfirm>
-                        <Popconfirm
-                          title="发布工具"
-                          description="确定要发布该工具吗？"
+                          title="取消发布"
+                          description="确定要取消发布该工具吗？"
                           onConfirm={() => handleTogglePublish(tool)}
                           okText="确定"
                           cancelText="取消"
                         >
-                          <Button type="primary" size="small">
-                            发布
-                          </Button>
+                          <span className={styles.actionBtn}>
+                            取消发布
+                          </span>
                         </Popconfirm>
-                      </>
+                      ) : (
+                        <>
+                          <Popconfirm
+                            title="删除工具"
+                            description="确定要删除该工具吗？此操作不可恢复。"
+                            onConfirm={() => handleDelete(tool.id)}
+                            okText="确定"
+                            cancelText="取消"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <span className={`${styles.actionBtn} ${styles.danger}`}>
+                              <DeleteOutlined /> 删除
+                            </span>
+                          </Popconfirm>
+                          <Popconfirm
+                            title="发布工具"
+                            description="确定要发布该工具吗？"
+                            onConfirm={() => handleTogglePublish(tool)}
+                            okText="确定"
+                            cancelText="取消"
+                          >
+                            <Button type="primary" size="small">
+                              发布
+                            </Button>
+                          </Popconfirm>
+                        </>
+                      )
                     )}
                   </div>
                 </div>
@@ -419,9 +427,11 @@ const ToolLibrary: React.FC = () => {
             </div>
             <div className={styles.toolViewActions}>
               <Button onClick={() => setViewModalVisible(false)}>关闭</Button>
-              <Button type="primary" icon={<EditOutlined />} onClick={handleEditFromView}>
-                编辑
-              </Button>
+              {permissions.canManageSystem && (
+                <Button type="primary" icon={<EditOutlined />} onClick={handleEditFromView}>
+                  编辑
+                </Button>
+              )}
             </div>
           </div>
         )}

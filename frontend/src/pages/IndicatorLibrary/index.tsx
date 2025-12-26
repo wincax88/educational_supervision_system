@@ -19,6 +19,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as indicatorService from '../../services/indicatorService';
 import type { IndicatorSystem } from '../../services/indicatorService';
+import { useUserPermissions } from '../../stores/authStore';
 import styles from './index.module.css';
 
 const { Search } = Input;
@@ -35,6 +36,7 @@ interface IndicatorSystemStats {
 const IndicatorLibrary: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const permissions = useUserPermissions();
   const [loading, setLoading] = useState(true);
   const [systems, setSystems] = useState<IndicatorSystem[]>([]);
   const [filteredSystems, setFilteredSystems] = useState<IndicatorSystem[]>([]);
@@ -323,9 +325,11 @@ const IndicatorLibrary: React.FC = () => {
             style={{ width: 200 }}
             allowClear
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-            创建评估指标体系
-          </Button>
+          {permissions.canManageSystem && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+              创建评估指标体系
+            </Button>
+          )}
         </div>
       </div>
 
@@ -372,43 +376,47 @@ const IndicatorLibrary: React.FC = () => {
                   <span className={styles.actionBtn} onClick={() => handleViewInfo(system)}>
                     <EyeOutlined /> 基础信息
                   </span>
-                  <span className={styles.actionBtn} onClick={() => handleEditTree(system)}>
-                    <ApartmentOutlined /> 编辑指标
-                  </span>
-                  {system.status === 'published' ? (
-                    <Popconfirm
-                      title="取消发布"
-                      description="确定要取消发布该指标体系吗？"
-                      onConfirm={() => handleUnpublish(system.id)}
-                      okText="确定"
-                      cancelText="取消"
-                    >
-                      <span className={styles.actionBtn}>取消发布</span>
-                    </Popconfirm>
-                  ) : (
-                    <>
+                  {permissions.canManageSystem && (
+                    <span className={styles.actionBtn} onClick={() => handleEditTree(system)}>
+                      <ApartmentOutlined /> 编辑指标
+                    </span>
+                  )}
+                  {permissions.canManageSystem && (
+                    system.status === 'published' ? (
                       <Popconfirm
-                        title="发布指标体系"
-                        description="确定要发布该指标体系吗？"
-                        onConfirm={() => handlePublish(system.id)}
+                        title="取消发布"
+                        description="确定要取消发布该指标体系吗？"
+                        onConfirm={() => handleUnpublish(system.id)}
                         okText="确定"
                         cancelText="取消"
                       >
-                        <span className={styles.actionBtn}>发布</span>
+                        <span className={styles.actionBtn}>取消发布</span>
                       </Popconfirm>
-                      <Popconfirm
-                        title="删除指标体系"
-                        description="确定要删除该指标体系吗？此操作不可恢复。"
-                        onConfirm={() => handleDelete(system.id)}
-                        okText="确定"
-                        cancelText="取消"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <span className={`${styles.actionBtn} ${styles.danger}`}>
-                          <DeleteOutlined /> 删除
-                        </span>
-                      </Popconfirm>
-                    </>
+                    ) : (
+                      <>
+                        <Popconfirm
+                          title="发布指标体系"
+                          description="确定要发布该指标体系吗？"
+                          onConfirm={() => handlePublish(system.id)}
+                          okText="确定"
+                          cancelText="取消"
+                        >
+                          <span className={styles.actionBtn}>发布</span>
+                        </Popconfirm>
+                        <Popconfirm
+                          title="删除指标体系"
+                          description="确定要删除该指标体系吗？此操作不可恢复。"
+                          onConfirm={() => handleDelete(system.id)}
+                          okText="确定"
+                          cancelText="取消"
+                          okButtonProps={{ danger: true }}
+                        >
+                          <span className={`${styles.actionBtn} ${styles.danger}`}>
+                            <DeleteOutlined /> 删除
+                          </span>
+                        </Popconfirm>
+                      </>
+                    )
                   )}
                 </div>
               </div>
@@ -535,7 +543,9 @@ const IndicatorLibrary: React.FC = () => {
 
             <div className={styles.infoModalFooter}>
               <Button onClick={() => setInfoModalVisible(false)}>关闭</Button>
-              <Button type="primary" icon={<EditOutlined />} onClick={handleEditInfo}>编辑</Button>
+              {permissions.canManageSystem && (
+                <Button type="primary" icon={<EditOutlined />} onClick={handleEditInfo}>编辑</Button>
+              )}
             </div>
           </div>
         )}
