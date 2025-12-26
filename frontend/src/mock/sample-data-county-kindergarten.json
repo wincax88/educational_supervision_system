@@ -88,54 +88,278 @@
 
   "_group_supporting_materials": "七、佐证材料",
   "_divider_material_coverage": "普及普惠水平",
-  "inclusive_kindergarten_list_url": null,
+  "inclusive_kindergarten_list_url": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_party": "党的领导",
-  "party_building_implementation": null,
+  "party_building_implementation": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_planning": "发展规划",
-  "preschool_layout_planning": null,
-  "regional_detailed_planning": null,
+  "preschool_layout_planning": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "regional_detailed_planning": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_network": "公共服务网络",
-  "township_kindergarten_list": null,
+  "township_kindergarten_list": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_residential": "小区配套园管理",
-  "residential_management_summary": null,
-  "residential_transfer_agreement": null,
-  "residential_construction_list": null,
-  "residential_handover_form": null,
-  "residential_overview_table": null,
+  "residential_management_summary": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "residential_transfer_agreement": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "residential_construction_list": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "residential_handover_form": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "residential_overview_table": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_finance": "财政投入",
-  "inclusive_private_policy_doc": null,
-  "inclusive_private_funding_proof": null,
-  "inclusive_private_subsidy_proof": null,
+  "inclusive_private_policy_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "inclusive_private_funding_proof": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "inclusive_private_subsidy_proof": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_fee": "收费管理",
-  "fee_standard_doc": null,
+  "fee_standard_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_salary": "教师待遇",
-  "teacher_salary_policy_doc": null,
+  "teacher_salary_policy_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_safety": "安全管理",
-  "safety_coordination_doc": null,
-  "preschool_coordination_doc": null,
+  "safety_coordination_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "preschool_coordination_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_supervision": "监管制度",
-  "info_disclosure_doc": null,
-  "supervision_plan_doc": null,
-  "supervision_report_doc": null,
-  "supervisor_assignment_plan": null,
-  "supervisor_list_doc": null,
-  "unlicensed_remediation_plan": null,
-  "unlicensed_remediation_summary": null,
+  "info_disclosure_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "supervision_plan_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "supervision_report_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "supervisor_assignment_plan": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "supervisor_list_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "unlicensed_remediation_plan": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "unlicensed_remediation_summary": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_divider_material_quality": "保教质量",
-  "facility_condition_doc": null,
-  "public_staffing_doc": null,
-  "teacher_qualification_doc": null,
-  "teacher_training_doc": null,
+  "facility_condition_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "public_staffing_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "teacher_qualification_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
+  "teacher_training_doc": [
+    {
+      "url": "https://2olrdvm7btta8ugw.public.blob.vercel-storage.com/facility_condition_doc/1766729198788-%E6%B2%88%E9%98%B3%E5%B8%82%E5%8E%BF%E5%9F%9F%E5%AD%A6%E5%89%8D%E6%95%99%E8%82%B2%E6%99%AE%E5%8F%8A%E6%99%AE%E6%83%A0%E7%9D%A3%E5%AF%BC%E8%AF%84%E4%BC%B0%E8%87%AA%E8%AF%84%E8%A1%A8-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "pathname": "facility_condition_doc/1766729198788-沈阳市县域学前教育普及普惠督导评估自评表-jQAsV9QwEX9CuIj6hkXnCGxHQT293m.xlsx",
+      "fileName": "沈阳市县域学前教育普及普惠督导评估自评表.xlsx",
+      "fileSize": 15401,
+      "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  ],
 
   "_legacy_fields": "以下为历史字段，保留供参考",
   "urban_street_count": 12,

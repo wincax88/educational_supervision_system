@@ -954,13 +954,21 @@ router.get('/districts/:districtId/submissions', async (req, res) => {
     const { districtId } = req.params;
     const { projectId, schoolId, formId, status } = req.query;
 
-    // 验证区县存在
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    if (!districtResult.rows[0]) {
+    // 验证区县存在（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
+    if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }
-
-    const district = districtResult.rows[0];
 
     // 如果没有指定项目ID，使用原有逻辑（通过schools表查询）
     if (!projectId) {
@@ -1148,9 +1156,18 @@ router.get('/districts/:districtId/district-submissions', async (req, res) => {
     const { districtId } = req.params;
     const { projectId, formId, status, keyword } = req.query;
 
-    // 验证区县存在
-    const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 验证区县存在（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }

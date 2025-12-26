@@ -216,12 +216,21 @@ router.get('/districts/:districtId/universalization-summary', async (req, res) =
       return res.status(400).json({ error: '缺少必需参数: projectId' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query(
-      'SELECT id, code, name FROM districts WHERE id = $1',
-      [districtId]
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, code, name FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
     );
-    const district = districtResult.rows[0];
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query(
+        'SELECT id, code, name FROM districts WHERE id = $1',
+        [districtId]
+      );
+      district = districtResult.rows[0];
+    }
 
     if (!district) {
       return res.status(404).json({ error: '区县不存在' });
@@ -338,12 +347,21 @@ router.get('/districts/:districtId/overall-compliance', async (req, res) => {
       return res.status(400).json({ error: '缺少必需参数: projectId' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query(
-      'SELECT id, code, name FROM districts WHERE id = $1',
-      [districtId]
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, code, name FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
     );
-    const district = districtResult.rows[0];
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query(
+        'SELECT id, code, name FROM districts WHERE id = $1',
+        [districtId]
+      );
+      district = districtResult.rows[0];
+    }
 
     if (!district) {
       return res.status(404).json({ error: '区县不存在' });

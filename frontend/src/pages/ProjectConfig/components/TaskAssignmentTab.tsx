@@ -329,7 +329,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     {
       title: '填报范围',
       key: 'target',
-      width: 150,
+      width: 400,
       render: (_, record) => {
         const targetName = getTargetName(record);
         if (!targetName) {

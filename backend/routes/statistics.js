@@ -173,9 +173,18 @@ async function calculateIndicatorValueFromElements(code, projectId, districtId, 
 
           // 如果区县表单没有，尝试从学校汇总获取
           if (refValue === null || isNaN(refValue)) {
-            // 先获取区县名称用于匹配学校提交记录
-            const districtResult = await db.query('SELECT name FROM districts WHERE id = $1', [districtId]);
-            const districtName = districtResult.rows[0]?.name;
+            // 先获取区县名称用于匹配学校提交记录（优先从 project_samples 查询）
+            let districtName = null;
+            const projectSampleResult = await db.query(
+              'SELECT name FROM project_samples WHERE id = $1 AND type = $2',
+              [districtId, 'district']
+            );
+            if (projectSampleResult.rows.length > 0) {
+              districtName = projectSampleResult.rows[0].name;
+            } else {
+              const districtResult = await db.query('SELECT name FROM districts WHERE id = $1', [districtId]);
+              districtName = districtResult.rows[0]?.name;
+            }
 
             if (districtName) {
               // 查询学校填报数据汇总
@@ -324,9 +333,18 @@ function calculateCV(values) {
 
 // 获取区县差异系数分析
 async function getDistrictCVAnalysis(projectId, districtId, schoolType) {
-  // 获取区县信息
-  const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
-  const district = districtResult.rows[0];
+  // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+  let district = null;
+  const projectSampleResult = await db.query(
+    'SELECT id, name FROM project_samples WHERE id = $1 AND type = $2',
+    [districtId, 'district']
+  );
+  if (projectSampleResult.rows.length > 0) {
+    district = projectSampleResult.rows[0];
+  } else {
+    const districtResult = await db.query('SELECT id, name FROM districts WHERE id = $1', [districtId]);
+    district = districtResult.rows[0];
+  }
   if (!district) return null;
 
   // 获取该区县该类型的学校列表
@@ -985,9 +1003,18 @@ router.get('/districts/:districtId/schools-indicator-summary', async (req, res) 
     );
     const indicatorSystemId = projectResult.rows?.[0]?.indicatorSystemId || null;
 
-    // 获取区县信息
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }
@@ -1887,9 +1914,18 @@ router.get('/districts/:districtId/resource-indicators-summary', async (req, res
       return res.status(400).json({ code: 400, message: '请指定项目ID' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }
@@ -2492,9 +2528,18 @@ router.get('/districts/:districtId/government-guarantee-summary', async (req, re
       return res.status(400).json({ code: 400, message: '请指定项目ID' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }
@@ -3260,9 +3305,18 @@ router.get('/districts/:districtId/education-quality-summary', async (req, res) 
       return res.status(400).json({ code: 400, message: '请指定项目ID' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }
@@ -3794,9 +3848,18 @@ router.get('/districts/:districtId/social-recognition-summary', async (req, res)
       return res.status(400).json({ code: 400, message: '请指定项目ID' });
     }
 
-    // 获取区县信息
-    const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
-    const district = districtResult.rows[0];
+    // 获取区县信息（优先从 project_samples 查询，兼容 districts 表）
+    let district = null;
+    const projectSampleResult = await db.query(
+      'SELECT id, name, code FROM project_samples WHERE id = $1 AND type = $2',
+      [districtId, 'district']
+    );
+    if (projectSampleResult.rows.length > 0) {
+      district = projectSampleResult.rows[0];
+    } else {
+      const districtResult = await db.query('SELECT id, name, code FROM districts WHERE id = $1', [districtId]);
+      district = districtResult.rows[0];
+    }
     if (!district) {
       return res.status(404).json({ code: 404, message: '区县不存在' });
     }

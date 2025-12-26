@@ -219,16 +219,17 @@ router.get('/expert/projects/:projectId/district-stats', async (req, res) => {
     const project = projectResult.rows[0];
 
     // 获取各区县的审核统计
-    // 直接通过 tasks 和 submissions 关联统计，不依赖 schools 表
-    // 使用 submitter_org 字段来判断所属区县
+    // 支持多种关联方式：
+    // 1. 通过 school_id 关联 project_samples (type='school')，再通过 parent_id 关联区县样本
+    // 2. 通过 school_id 直接关联 project_samples (type='district')（区县填报）
+    // 3. 通过 submitter_org 匹配区县名（备用）
     const districtStatsResult = await db.query(`
       SELECT
-        d.id as "districtId",
-        d.name as "districtName",
-        d.code as "districtCode",
+        ps_district.id as "districtId",
+        ps_district.name as "districtName",
+        ps_district.code as "districtCode",
         COUNT(DISTINCT CASE
-          WHEN s.submitter_org IS NOT NULL AND s.submitter_org != d.name
-          THEN s.submitter_org
+          WHEN ps_school.id IS NOT NULL AND ps_school.type = 'school' THEN ps_school.id
           ELSE NULL
         END) as "schoolCount",
         COUNT(s.id) as total,
@@ -236,11 +237,29 @@ router.get('/expert/projects/:projectId/district-stats', async (req, res) => {
         SUM(CASE WHEN s.status = 'submitted' THEN 1 ELSE 0 END) as submitted,
         SUM(CASE WHEN s.status = 'approved' THEN 1 ELSE 0 END) as approved,
         SUM(CASE WHEN s.status = 'rejected' THEN 1 ELSE 0 END) as rejected
-      FROM districts d
+      FROM project_samples ps_district
       LEFT JOIN submissions s ON s.project_id = $1
-        AND (s.submitter_org LIKE d.name || '%' OR s.submitter_org = d.name)
-      GROUP BY d.id, d.name, d.code
-      ORDER BY d.code
+        AND (
+          -- 方式1: school_id 关联的是学校样本，通过 parent_id 关联区县
+          EXISTS (
+            SELECT 1 FROM project_samples ps
+            WHERE ps.id = s.school_id
+            AND ps.type = 'school'
+            AND ps.parent_id = ps_district.id
+          )
+          OR
+          -- 方式2: school_id 直接关联区县样本（区县填报）
+          (s.school_id = ps_district.id AND ps_district.type = 'district')
+          OR
+          -- 方式3: 通过 submitter_org 匹配区县名（备用）
+          (s.school_id IS NULL AND (s.submitter_org LIKE ps_district.name || '%' OR s.submitter_org = ps_district.name))
+        )
+      LEFT JOIN project_samples ps_school ON ps_school.id = s.school_id
+        AND ps_school.type = 'school'
+        AND ps_school.parent_id = ps_district.id
+      WHERE ps_district.project_id = $1 AND ps_district.type = 'district'
+      GROUP BY ps_district.id, ps_district.name, ps_district.code
+      ORDER BY ps_district.code
     `, [projectId]);
 
     // 处理统计数据
@@ -269,20 +288,39 @@ router.get('/expert/projects/:projectId/district-stats', async (req, res) => {
       };
     });
 
-    // 计算汇总
-    const summary = districts.reduce((acc, d) => {
-      acc.totalSchools += d.schoolCount;
-      acc.totalRecords += d.stats.total;
-      acc.totalSubmitted += d.stats.submitted;
-      acc.totalApproved += d.stats.approved;
-      acc.totalRejected += d.stats.rejected;
-      return acc;
-    }, { totalSchools: 0, totalRecords: 0, totalSubmitted: 0, totalApproved: 0, totalRejected: 0 });
+    // 直接查询 submissions 表统计汇总（与项目详情 API 保持一致）
+    const summaryStatsResult = await db.query(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+        SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) as submitted,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+      FROM submissions
+      WHERE project_id = $1
+    `, [projectId]);
 
-    summary.totalCompleted = summary.totalApproved + summary.totalRejected;
-    summary.overallCompletionRate = summary.totalRecords > 0
-      ? Math.round((summary.totalCompleted / summary.totalRecords) * 100 * 10) / 10
-      : 0;
+    const summaryStats = summaryStatsResult.rows[0];
+    const totalRecords = parseInt(summaryStats.total) || 0;
+    const totalSubmitted = parseInt(summaryStats.submitted) || 0;
+    const totalApproved = parseInt(summaryStats.approved) || 0;
+    const totalRejected = parseInt(summaryStats.rejected) || 0;
+    const totalCompleted = totalApproved + totalRejected;
+
+    // 计算学校总数（从区县统计中汇总）
+    const totalSchools = districts.reduce((acc, d) => acc + d.schoolCount, 0);
+
+    const summary = {
+      totalSchools,
+      totalRecords,
+      totalSubmitted,
+      totalApproved,
+      totalRejected,
+      totalCompleted,
+      overallCompletionRate: totalRecords > 0
+        ? Math.round((totalCompleted / totalRecords) * 100 * 10) / 10
+        : 0
+    };
 
     res.json({
       code: 200,
@@ -323,25 +361,27 @@ router.get('/expert/projects/:projectId/submissions', async (req, res) => {
         s.approved_at as "approvedAt",
         t.name as "formName",
         t.target as "formTarget",
-        sc.name as "schoolName",
-        sc.code as "schoolCode",
-        sc.school_type as "schoolType",
-        d.id as "districtId",
-        d.name as "districtName"
+        ps_school.name as "schoolName",
+        ps_school.code as "schoolCode",
+        ps_school.school_type as "schoolType",
+        COALESCE(ps_district.id, ps_direct_district.id) as "districtId",
+        COALESCE(ps_district.name, ps_direct_district.name) as "districtName"
       FROM submissions s
       LEFT JOIN data_tools t ON COALESCE(s.form_id, s.tool_id) = t.id
-      LEFT JOIN schools sc ON s.school_id = sc.id
-      LEFT JOIN districts d ON sc.district_id = d.id
+      LEFT JOIN project_samples ps_school ON s.school_id = ps_school.id AND ps_school.type = 'school'
+      LEFT JOIN project_samples ps_district ON ps_school.parent_id = ps_district.id AND ps_district.type = 'district'
+      LEFT JOIN project_samples ps_direct_district ON s.school_id = ps_direct_district.id AND ps_direct_district.type = 'district'
       WHERE s.project_id = $1
     `;
 
     const params = [projectId];
     let paramIndex = 2;
 
-    // 按区县筛选
+    // 按区县筛选（使用 project_samples 的区县 ID）
     if (districtId) {
-      sql += ` AND d.id = $${paramIndex++}`;
+      sql += ` AND (ps_district.id = $${paramIndex} OR ps_direct_district.id = $${paramIndex})`;
       params.push(districtId);
+      paramIndex++;
     }
 
     // 按表单筛选
@@ -358,7 +398,7 @@ router.get('/expert/projects/:projectId/submissions', async (req, res) => {
 
     // 关键词搜索
     if (keyword) {
-      sql += ` AND (s.submitter_name ILIKE $${paramIndex} OR s.submitter_org ILIKE $${paramIndex} OR sc.name ILIKE $${paramIndex})`;
+      sql += ` AND (s.submitter_name ILIKE $${paramIndex} OR s.submitter_org ILIKE $${paramIndex} OR ps_school.name ILIKE $${paramIndex})`;
       params.push(`%${keyword}%`);
       paramIndex++;
     }
@@ -434,15 +474,13 @@ router.get('/expert/projects/:projectId/districts', async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    // 获取有填报记录的区县
+    // 获取项目样本中的区县列表（来自 project_samples）
     const result = await db.query(`
       SELECT DISTINCT
-        d.id, d.name, d.code
-      FROM districts d
-      INNER JOIN schools sc ON sc.district_id = d.id
-      INNER JOIN submissions s ON s.school_id = sc.id
-      WHERE s.project_id = $1
-      ORDER BY d.code
+        ps.id, ps.name, ps.code
+      FROM project_samples ps
+      WHERE ps.project_id = $1 AND ps.type = 'district'
+      ORDER BY ps.code
     `, [projectId]);
 
     res.json({
