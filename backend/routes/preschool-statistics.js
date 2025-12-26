@@ -237,23 +237,22 @@ router.get('/districts/:districtId/universalization-summary', async (req, res) =
     }
 
     // 获取区县最新填报数据
-    // 通过 tasks 表的 submission_id 关联
+    // 直接从 submissions 表查询，支持多种匹配方式
     const submissionResult = await db.query(
       `SELECT s.id, s.data, s.status, s.submitted_at
        FROM submissions s
+       LEFT JOIN data_tools dt ON COALESCE(s.form_id, s.tool_id) = dt.id
        WHERE s.project_id = $1
-         AND s.id IN (
-           SELECT t.submission_id
-           FROM tasks t
-           WHERE t.project_id = $1
-             AND t.target_type = 'district'
-             AND t.target_id = $2
-             AND t.submission_id IS NOT NULL
+         AND (
+           s.school_id = $2
+           OR s.submitter_org = $3
+           OR s.submitter_org LIKE $3 || '%'
          )
+         AND dt.target = '区县'
          AND s.status IN ('submitted', 'approved')
        ORDER BY s.submitted_at DESC
        LIMIT 1`,
-      [projectId, districtId]
+      [projectId, districtId, district.name]
     );
     const submission = submissionResult.rows[0];
 
@@ -385,7 +384,7 @@ router.get('/districts/:districtId/overall-compliance', async (req, res) => {
     const leafIndicatorsResult = await db.query(
       `SELECT id, code, name, level
        FROM indicators
-       WHERE system_id = $1 AND is_leaf = true
+       WHERE system_id = $1 AND is_leaf = 1
        ORDER BY code`,
       [indicatorSystem.id]
     );
@@ -400,23 +399,22 @@ router.get('/districts/:districtId/overall-compliance', async (req, res) => {
     }
 
     // 获取区县最新填报数据
-    // 通过 tasks 表的 submission_id 关联
+    // 直接从 submissions 表查询，支持多种匹配方式
     const submissionResult = await db.query(
       `SELECT s.id, s.data, s.status, s.submitted_at
        FROM submissions s
+       LEFT JOIN data_tools dt ON COALESCE(s.form_id, s.tool_id) = dt.id
        WHERE s.project_id = $1
-         AND s.id IN (
-           SELECT t.submission_id
-           FROM tasks t
-           WHERE t.project_id = $1
-             AND t.target_type = 'district'
-             AND t.target_id = $2
-             AND t.submission_id IS NOT NULL
+         AND (
+           s.school_id = $2
+           OR s.submitter_org = $3
+           OR s.submitter_org LIKE $3 || '%'
          )
+         AND dt.target = '区县'
          AND s.status IN ('submitted', 'approved')
        ORDER BY s.submitted_at DESC
        LIMIT 1`,
-      [projectId, districtId]
+      [projectId, districtId, district.name]
     );
     const submission = submissionResult.rows[0];
 
