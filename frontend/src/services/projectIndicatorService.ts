@@ -162,3 +162,97 @@ export async function deleteProjectIndicator(
 ): Promise<{ deletedCount: number }> {
   return del(`/projects/${projectId}/indicators/${indicatorId}`);
 }
+
+// ==================== 数据指标-要素关联 ====================
+
+// 要素关联类型
+export interface ProjectElementAssociation {
+  id: string;
+  dataIndicatorId?: string;
+  supportingMaterialId?: string;
+  elementId: string;
+  mappingType: 'primary' | 'reference';
+  description: string;
+  elementCode: string;
+  elementName: string;
+  elementType: string;
+  dataType: string;
+  formula?: string;
+  libraryId: string;
+  libraryName: string;
+}
+
+// 数据指标及其要素关联
+export interface ProjectDataIndicatorWithElements {
+  id: string;
+  code: string;
+  name: string;
+  threshold?: string;
+  description?: string;
+  indicatorId: string;
+  indicatorCode: string;
+  indicatorName: string;
+  elements: ProjectElementAssociation[];
+}
+
+/**
+ * 获取项目下所有数据指标及其要素关联
+ */
+export async function getProjectDataIndicatorElements(
+  projectId: string
+): Promise<ProjectDataIndicatorWithElements[]> {
+  const result = await get<ProjectDataIndicatorWithElements[]>(
+    `/projects/${projectId}/indicator-system/data-indicator-elements`
+  );
+  return result || [];
+}
+
+/**
+ * 获取项目数据指标的要素关联列表
+ */
+export async function getProjectDataIndicatorElementsById(
+  projectId: string,
+  dataIndicatorId: string
+): Promise<ProjectElementAssociation[]> {
+  const result = await get<ProjectElementAssociation[]>(
+    `/projects/${projectId}/data-indicators/${dataIndicatorId}/elements`
+  );
+  return result || [];
+}
+
+/**
+ * 批量保存项目数据指标-要素关联
+ */
+export async function saveProjectDataIndicatorElements(
+  projectId: string,
+  dataIndicatorId: string,
+  elements: Array<{ elementId: string; mappingType?: string; description?: string }>
+): Promise<void> {
+  return put(`/projects/${projectId}/data-indicators/${dataIndicatorId}/elements`, { elements });
+}
+
+// ==================== 佐证材料-要素关联 ====================
+
+/**
+ * 获取项目佐证材料的要素关联列表
+ */
+export async function getProjectSupportingMaterialElements(
+  projectId: string,
+  supportingMaterialId: string
+): Promise<ProjectElementAssociation[]> {
+  const result = await get<ProjectElementAssociation[]>(
+    `/projects/${projectId}/supporting-materials/${supportingMaterialId}/elements`
+  );
+  return result || [];
+}
+
+/**
+ * 批量保存项目佐证材料-要素关联
+ */
+export async function saveProjectSupportingMaterialElements(
+  projectId: string,
+  supportingMaterialId: string,
+  elements: Array<{ elementId: string; mappingType?: string; description?: string }>
+): Promise<void> {
+  return put(`/projects/${projectId}/supporting-materials/${supportingMaterialId}/elements`, { elements });
+}

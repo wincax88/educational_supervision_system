@@ -704,5 +704,222 @@ router.put('/projects/:projectId/data-indicators/:dataIndicatorId/elements', ver
   }
 });
 
+// ==================== 批量获取数据指标要素关联 ====================
+
+/**
+ * 获取项目下所有数据指标及其要素关联
+ * GET /projects/:projectId/indicator-system/data-indicator-elements
+ */
+router.get('/projects/:projectId/indicator-system/data-indicator-elements', verifyToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // 获取项目指标体系
+    const { data: system } = await db.from('project_indicator_systems')
+      .select('id')
+      .eq('project_id', projectId)
+      .single();
+
+    if (!system) {
+      return res.json({ code: 200, data: [] });
+    }
+
+    // 获取所有数据指标
+    const { data: dataIndicators, error: diErr } = await db.from('project_data_indicators')
+      .select('*')
+      .eq('project_id', projectId);
+
+    if (diErr) throw diErr;
+    if (!dataIndicators || dataIndicators.length === 0) {
+      return res.json({ code: 200, data: [] });
+    }
+
+    const diIds = dataIndicators.map(d => d.id);
+
+    // 获取所有要素关联
+    const { data: associations, error: assocErr } = await db.from('project_data_indicator_elements')
+      .select('*')
+      .in('data_indicator_id', diIds);
+
+    if (assocErr) throw assocErr;
+
+    // 获取关联的要素详情
+    const elementIds = (associations || []).map(a => a.element_id);
+    let elements = [];
+    if (elementIds.length > 0) {
+      const { data: elementsData } = await db.from('project_elements')
+        .select('id, code, name, element_type, data_type, formula, library_id');
+      elements = elementsData || [];
+    }
+
+    // 获取要素库信息
+    const { data: library } = await db.from('project_element_libraries')
+      .select('id, name')
+      .eq('project_id', projectId)
+      .single();
+
+    const elementsMap = {};
+    elements.forEach(e => {
+      elementsMap[e.id] = {
+        ...e,
+        libraryName: library?.name || '未知要素库'
+      };
+    });
+
+    // 获取指标信息
+    const { data: indicators } = await db.from('project_indicators')
+      .select('id, code, name')
+      .eq('project_id', projectId);
+
+    const indicatorMap = {};
+    (indicators || []).forEach(i => { indicatorMap[i.id] = i; });
+
+    // 构建关联映射
+    const assocMap = {};
+    (associations || []).forEach(a => {
+      if (!assocMap[a.data_indicator_id]) assocMap[a.data_indicator_id] = [];
+      const elem = elementsMap[a.element_id];
+      assocMap[a.data_indicator_id].push({
+        id: a.id,
+        dataIndicatorId: a.data_indicator_id,
+        elementId: a.element_id,
+        mappingType: a.mapping_type,
+        description: a.description,
+        elementCode: elem?.code || '',
+        elementName: elem?.name || '',
+        elementType: elem?.element_type || '',
+        dataType: elem?.data_type || '',
+        formula: elem?.formula || '',
+        libraryId: elem?.library_id || '',
+        libraryName: elem?.libraryName || ''
+      });
+    });
+
+    // 构建结果
+    const result = dataIndicators.map(di => {
+      const indicator = indicatorMap[di.indicator_id] || {};
+      return {
+        id: di.id,
+        code: di.code,
+        name: di.name,
+        threshold: di.threshold,
+        description: di.description,
+        indicatorId: di.indicator_id,
+        indicatorCode: indicator.code || '',
+        indicatorName: indicator.name || '',
+        elements: assocMap[di.id] || []
+      };
+    });
+
+    res.json({ code: 200, data: result });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
+// ==================== 项目佐证材料-要素关联 ====================
+
+/**
+ * 获取佐证材料的要素关联
+ * GET /projects/:projectId/supporting-materials/:materialId/elements
+ */
+router.get('/projects/:projectId/supporting-materials/:materialId/elements', verifyToken, async (req, res) => {
+  try {
+    const { projectId, materialId } = req.params;
+
+    const { data, error } = await db.from('project_supporting_material_elements')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('supporting_material_id', materialId);
+
+    if (error) throw error;
+
+    // 获取要素详情
+    const elementIds = (data || []).map(d => d.element_id);
+    let elements = [];
+    if (elementIds.length > 0) {
+      const { data: elementsData } = await db.from('project_elements')
+        .select('id, code, name, element_type, data_type, formula, library_id')
+        .in('id', elementIds);
+      elements = elementsData || [];
+    }
+
+    // 获取要素库信息
+    const { data: library } = await db.from('project_element_libraries')
+      .select('id, name')
+      .eq('project_id', projectId)
+      .single();
+
+    const elementsMap = {};
+    elements.forEach(e => {
+      elementsMap[e.id] = {
+        ...e,
+        libraryName: library?.name || '未知要素库'
+      };
+    });
+
+    const result = (data || []).map(d => {
+      const elem = elementsMap[d.element_id] || {};
+      return {
+        id: d.id,
+        supportingMaterialId: d.supporting_material_id,
+        elementId: d.element_id,
+        mappingType: d.mapping_type,
+        description: d.description,
+        elementCode: elem.code || '',
+        elementName: elem.name || '',
+        elementType: elem.element_type || '',
+        dataType: elem.data_type || '',
+        libraryId: elem.library_id || '',
+        libraryName: elem.libraryName || ''
+      };
+    });
+
+    res.json({ code: 200, data: result });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
+/**
+ * 批量保存佐证材料-要素关联
+ * PUT /projects/:projectId/supporting-materials/:materialId/elements
+ */
+router.put('/projects/:projectId/supporting-materials/:materialId/elements', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
+  try {
+    const { projectId, materialId } = req.params;
+    const { elements } = req.body;
+
+    if (!Array.isArray(elements)) {
+      return res.status(400).json({ code: 400, message: 'elements 必须是数组' });
+    }
+
+    // 删除旧关联
+    await db.from('project_supporting_material_elements')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('supporting_material_id', materialId);
+
+    // 插入新关联
+    const timestamp = now();
+    for (const elem of elements) {
+      await db.from('project_supporting_material_elements').insert({
+        id: generateId(),
+        project_id: projectId,
+        supporting_material_id: materialId,
+        element_id: elem.elementId,
+        mapping_type: elem.mappingType || 'primary',
+        description: elem.description || '',
+        created_at: timestamp,
+        updated_at: timestamp
+      });
+    }
+
+    res.json({ code: 200, message: '保存成功' });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
 module.exports = router;
 module.exports.setDb = setDb;

@@ -44,7 +44,9 @@ import { useLocation } from 'react-router-dom';
 import type { DataNode } from 'antd/es/tree';
 import type { UploadFile } from 'antd/es/upload/interface';
 import * as indicatorService from '../../../services/indicatorService';
+import * as projectIndicatorService from '../../../services/projectIndicatorService';
 import type { Indicator, DataIndicator, SupportingMaterial, DataIndicatorWithElements, ElementAssociation } from '../../../services/indicatorService';
+import type { ProjectIndicator, ProjectDataIndicator, ProjectSupportingMaterial, ProjectDataIndicatorWithElements, ProjectElementAssociation } from '../../../services/projectIndicatorService';
 import * as toolService from '../../../services/toolService';
 import ElementAssociationDrawer from './ElementAssociationDrawer';
 import styles from '../index.module.css';
@@ -172,7 +174,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
   // 加载指标体系树和要素关联
   const loadData = useCallback(async () => {
-    if (!indicatorSystemId) return;
+    if (!projectId) return;
 
     setLoading(true);
     try {
@@ -181,16 +183,17 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
 
       if (USE_MOCK) {
         // 使用 Mock 数据
-        treeData = indicatorTrees[indicatorSystemId] || [];
-        elementsData = dataIndicatorElements[indicatorSystemId] || [];
+        treeData = indicatorTrees[indicatorSystemId || ''] || [];
+        elementsData = dataIndicatorElements[indicatorSystemId || ''] || [];
       } else {
-        // 使用 API 数据
+        // 优先使用项目级 API（项目副本数据）
         const [apiTreeData, apiElementsData] = await Promise.all([
-          indicatorService.getIndicatorTree(indicatorSystemId),
-          indicatorService.getSystemDataIndicatorElements(indicatorSystemId),
+          projectIndicatorService.getProjectIndicatorTree(projectId),
+          projectIndicatorService.getProjectDataIndicatorElements(projectId),
         ]);
-        treeData = apiTreeData;
-        elementsData = apiElementsData;
+        // 转换项目级数据格式为组件期望的格式
+        treeData = apiTreeData as unknown as Indicator[];
+        elementsData = apiElementsData as unknown as DataIndicatorWithElements[];
       }
 
       setIndicators(treeData);
@@ -223,16 +226,17 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
           });
         };
         collectMaterials(treeData);
-        
+
         // 去重，避免重复请求同一个材料
         const uniqueMaterialIds = Array.from(new Set(materialIds));
-        
-        // 批量加载所有佐证材料的要素关联
+
+        // 批量加载所有佐证材料的要素关联（使用项目级 API）
         await Promise.all(
           uniqueMaterialIds.map(async (materialId) => {
             try {
-              const assoc = await indicatorService.getSupportingMaterialElements(materialId);
-              materialAssocMap.set(materialId, assoc);
+              const assoc = await projectIndicatorService.getProjectSupportingMaterialElements(projectId, materialId);
+              // 转换为组件期望的格式
+              materialAssocMap.set(materialId, assoc as unknown as ElementAssociation[]);
             } catch (error) {
               console.error(`加载佐证材料 ${materialId} 的要素关联失败:`, error);
               materialAssocMap.set(materialId, []);
@@ -326,7 +330,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [indicatorSystemId]);
+  }, [projectId]);
 
   // 收集全部数据指标（包含所在指标名称）
   const collectDataIndicators = useCallback((): Array<{ di: DataIndicator; indicatorName: string }> => {
@@ -514,7 +518,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             }
 
             console.log(`[自动关联] 关联数据指标 ${di.code} -> 要素 ${matched.code} (${matched.name})`);
-            await indicatorService.saveDataIndicatorElements(di.id, [
+            await projectIndicatorService.saveProjectDataIndicatorElements(projectId, di.id, [
               { elementId: matched.id, mappingType: 'primary', description: '' },
             ]);
             diLinked++;
@@ -565,7 +569,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
             }
 
             console.log(`[自动关联] 关联佐证材料 ${material.code} -> 要素 ${matched.code} (${matched.name})`);
-            await indicatorService.saveSupportingMaterialElements(material.id, [
+            await projectIndicatorService.saveProjectSupportingMaterialElements(projectId, material.id, [
               { elementId: matched.id, mappingType: 'primary', description: '' },
             ]);
             smLinked++;
@@ -1169,6 +1173,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         onSaved={loadData}
         readonly={disabled}
         allowedLibraryIds={elementLibraryId ? [elementLibraryId] : undefined}
+        projectId={projectId}
       />
 
       {/* 佐证材料要素关联编辑抽屉 */}
@@ -1183,6 +1188,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({
         onSaved={loadData}
         readonly={disabled}
         allowedLibraryIds={elementLibraryId ? [elementLibraryId] : undefined}
+        projectId={projectId}
       />
 
       {/* 自动关联要素 - 选择要素库 */}

@@ -32,6 +32,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import * as indicatorService from '../../../services/indicatorService';
+import * as projectIndicatorService from '../../../services/projectIndicatorService';
 import * as toolService from '../../../services/toolService';
 import type { ElementAssociation, DataIndicator } from '../../../services/indicatorService';
 import ElementSelector from '../../../components/ElementSelector';
@@ -47,6 +48,8 @@ interface ElementAssociationDrawerProps {
   readonly?: boolean; // 只读模式，隐藏编辑操作
   /** 允许选择的要素库ID列表 */
   allowedLibraryIds?: string[];
+  /** 项目ID，用于项目级要素关联 */
+  projectId?: string;
 }
 
 interface LocalAssociation {
@@ -73,6 +76,7 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
   onSaved,
   readonly = false,
   allowedLibraryIds,
+  projectId,
 }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,9 +93,24 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
 
     setLoading(true);
     try {
-      const data = isSupportingMaterial
-        ? await indicatorService.getSupportingMaterialElements(targetId)
-        : await indicatorService.getDataIndicatorElements(targetId);
+      let data: ElementAssociation[];
+
+      // 优先使用项目级 API（当 projectId 存在时）
+      if (projectId) {
+        if (isSupportingMaterial) {
+          const result = await projectIndicatorService.getProjectSupportingMaterialElements(projectId, targetId);
+          data = result as unknown as ElementAssociation[];
+        } else {
+          const result = await projectIndicatorService.getProjectDataIndicatorElementsById(projectId, targetId);
+          data = result as unknown as ElementAssociation[];
+        }
+      } else {
+        // 回退到模板级 API
+        data = isSupportingMaterial
+          ? await indicatorService.getSupportingMaterialElements(targetId)
+          : await indicatorService.getDataIndicatorElements(targetId);
+      }
+
       setAssociations(data.map(a => ({
         id: a.id,
         elementId: a.elementId,
@@ -110,7 +129,7 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [targetId, isSupportingMaterial]);
+  }, [targetId, isSupportingMaterial, projectId]);
 
   // 只在抽屉可见且 targetId 存在时加载，避免重复调用
   useEffect(() => {
@@ -180,25 +199,36 @@ const ElementAssociationDrawer: React.FC<ElementAssociationDrawerProps> = ({
 
     setSaving(true);
     try {
-      if (isSupportingMaterial) {
-        await indicatorService.saveSupportingMaterialElements(
-          targetId,
-          associations.map(a => ({
-            elementId: a.elementId,
-            mappingType: a.mappingType,
-            description: a.description,
-          }))
-        );
+      const assocData = associations.map(a => ({
+        elementId: a.elementId,
+        mappingType: a.mappingType,
+        description: a.description,
+      }));
+
+      // 优先使用项目级 API（当 projectId 存在时）
+      if (projectId) {
+        if (isSupportingMaterial) {
+          await projectIndicatorService.saveProjectSupportingMaterialElements(
+            projectId,
+            targetId,
+            assocData
+          );
+        } else {
+          await projectIndicatorService.saveProjectDataIndicatorElements(
+            projectId,
+            targetId,
+            assocData
+          );
+        }
       } else {
-        await indicatorService.saveDataIndicatorElements(
-          targetId,
-          associations.map(a => ({
-            elementId: a.elementId,
-            mappingType: a.mappingType,
-            description: a.description,
-          }))
-        );
+        // 回退到模板级 API
+        if (isSupportingMaterial) {
+          await indicatorService.saveSupportingMaterialElements(targetId, assocData);
+        } else {
+          await indicatorService.saveDataIndicatorElements(targetId, assocData);
+        }
       }
+
       message.success('保存成功');
       onSaved?.();
       onClose();
