@@ -16,10 +16,10 @@ interface RoleOption {
 // 快速登录测试账号
 const roles: RoleOption[] = [
   { key: 'admin', name: '系统管理员', description: '系统全局配置、用户管理', phone: '13800000000', password: '000000' },
-  { key: 'project_admin', name: '项目管理员', description: '项目配置和管理', phone: '13800000001', password: '000001' },
-  { key: 'data_collector', name: '数据采集员', description: '数据填报和采集', phone: '13800000002', password: '000002' },
-  { key: 'project_expert', name: '项目评估专家', description: '数据审核和评估', phone: '13800000003', password: '000003' },
-  { key: 'decision_maker', name: '报告决策者', description: '查看评估报告和决策', phone: '13800000004', password: '000004' },
+  { key: 'project_admin', name: '项目管理员', description: '项目配置和管理', phone: '13900139003', password: 'Pass@123456' },
+  { key: 'data_collector', name: '数据采集员', description: '数据填报和采集', phone: '13700137006', password: 'Pass@123456' },
+  { key: 'project_expert', name: '项目评估专家', description: '数据审核和评估', phone: '13600136005', password: 'Pass@123456' },
+  { key: 'decision_maker', name: '报告决策者', description: '查看评估报告和决策', phone: '13500135003', password: 'Pass@123456' },
 ];
 
 const Login: React.FC = () => {
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
           </Radio.Group>
 
           <p className={styles.passwordTip}>
-            默认密码为手机号后6位
+            默认密码为 Pass@123456
           </p>
         </div>
       </div>
