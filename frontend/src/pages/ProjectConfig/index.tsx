@@ -544,11 +544,12 @@ const ProjectConfig: React.FC = () => {
           </span>
           <h1 className={styles.pageTitle}>评估项目配置</h1>
         </div>
-        <div className={styles.headerRight}>
+        {/* 暂时隐藏库管理入口按钮 */}
+        {/* <div className={styles.headerRight}>
           <Button icon={<FileTextOutlined />}>评估指标体系库</Button>
           <Button icon={<SettingOutlined />}>评估要素库</Button>
           <Button icon={<PaperClipOutlined />}>数据采集工具库</Button>
-        </div>
+        </div> */}
       </div>
 
       {/* 项目信息卡片 */}

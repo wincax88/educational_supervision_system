@@ -69,8 +69,8 @@ const MainLayout: React.FC = () => {
       });
     }
 
-    // 数据填报 - 采集员可见（管理员也可见，方便查看）
-    if (isAdmin || userRoles.includes('data_collector')) {
+    // 数据填报 - 仅采集员可见
+    if (userRoles.includes('data_collector')) {
       items.push({
         key: '/collector',
         icon: <FormOutlined />,
@@ -78,8 +78,8 @@ const MainLayout: React.FC = () => {
       });
     }
 
-    // 专家评审 - 专家可见（管理员也可见，方便查看）
-    if (isAdmin || userRoles.includes('project_expert')) {
+    // 专家评审 - 仅专家可见
+    if (userRoles.includes('project_expert')) {
       items.push({
         key: '/expert',
         icon: <AuditOutlined />,
@@ -87,8 +87,8 @@ const MainLayout: React.FC = () => {
       });
     }
 
-    // 报告查看 - 决策者可见（管理员也可见）
-    if (isAdmin || userRoles.includes('decision_maker')) {
+    // 报告查看 - 仅决策者可见
+    if (userRoles.includes('decision_maker')) {
       items.push({
         key: '/reports',
         icon: <FileTextOutlined />,
