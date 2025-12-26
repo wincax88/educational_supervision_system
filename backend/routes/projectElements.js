@@ -5,7 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
+const { verifyToken, roles, checkProjectPermission } = require('../dist/middleware/auth');
 const { copyElementLibraryToProject, deleteProjectElementLibrary } = require('../services/projectCopyService');
 
 // 数据库连接
@@ -50,6 +50,10 @@ router.post('/projects/:projectId/element-library/copy', verifyToken, checkProje
 router.get('/projects/:projectId/element-library', verifyToken, async (req, res) => {
   try {
     const { projectId } = req.params;
+
+    if (!db) {
+      return res.status(500).json({ code: 500, message: '数据库未初始化' });
+    }
 
     const { data, error } = await db.from('project_element_libraries')
       .select('*')

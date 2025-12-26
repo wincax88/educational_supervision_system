@@ -3,7 +3,7 @@ const router = express.Router();
 const { toolRules, elementLibraryRules, elementRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteDataTool, deleteElementLibrary } = require('../services/cascadeService');
-const { verifyToken, roles } = require('../src/middleware/auth');
+const { verifyToken, roles } = require('../dist/middleware/auth');
 
 let db = null;
 

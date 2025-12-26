@@ -5,7 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
+const { verifyToken, roles, checkProjectPermission } = require('../dist/middleware/auth');
 const { copyDataToolToProject, deleteProjectDataTools } = require('../services/projectCopyService');
 
 // 数据库连接

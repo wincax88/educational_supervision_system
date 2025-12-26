@@ -30,7 +30,7 @@ import {
   ExclamationCircleOutlined,
   SendOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import * as projectService from '../../services/projectService';
 import type { Project } from '../../services/projectService';
 import * as personnelService from '../../services/personnelService';
@@ -73,7 +73,11 @@ const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true';
 
 const ProjectConfig: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { projectId } = useParams<{ projectId: string }>();
+
+  // 获取当前路径的基础部分（去掉最后的 /config）
+  const basePath = location.pathname.replace(/\/config$/, '');
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
@@ -544,12 +548,29 @@ const ProjectConfig: React.FC = () => {
           </span>
           <h1 className={styles.pageTitle}>评估项目配置</h1>
         </div>
-        {/* 暂时隐藏库管理入口按钮 */}
-        {/* <div className={styles.headerRight}>
-          <Button icon={<FileTextOutlined />}>评估指标体系库</Button>
-          <Button icon={<SettingOutlined />}>评估要素库</Button>
-          <Button icon={<PaperClipOutlined />}>数据采集工具库</Button>
-        </div> */}
+        <div className={styles.headerRight}>
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => navigate(`${basePath}/indicator-system`)}
+            disabled={!isEditable}
+          >
+            评估指标体系
+          </Button>
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => navigate(`${basePath}/elements`)}
+            disabled={!isEditable}
+          >
+            评估要素
+          </Button>
+          <Button
+            icon={<PaperClipOutlined />}
+            onClick={() => navigate(`${basePath}/data-tools`)}
+            disabled={!isEditable}
+          >
+            采集工具
+          </Button>
+        </div>
       </div>
 
       {/* 项目信息卡片 */}

@@ -15,6 +15,9 @@ import IndicatorTreeEdit from './pages/IndicatorTreeEdit';
 import DataEntry from './pages/DataEntry';
 import DataEntryForm from './pages/DataEntryForm';
 import ProjectConfig from './pages/ProjectConfig';
+import ProjectIndicatorSystem from './pages/ProjectIndicatorSystem';
+import ProjectElements from './pages/ProjectElements';
+import ProjectDataTools from './pages/ProjectDataTools';
 import DistrictManagement from './pages/DistrictManagement';
 import SchoolManagement from './pages/SchoolManagement';
 import CVAnalysis from './pages/CVAnalysis';
@@ -105,6 +108,21 @@ const App: React.FC = () => {
                 <ProjectConfig />
               </ProtectedRoute>
             } />
+            <Route path="home/balanced/project/:projectId/indicator-system" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectIndicatorSystem />
+              </ProtectedRoute>
+            } />
+            <Route path="home/balanced/project/:projectId/elements" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectElements />
+              </ProtectedRoute>
+            } />
+            <Route path="home/balanced/project/:projectId/data-tools" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectDataTools />
+              </ProtectedRoute>
+            } />
             <Route path="home/balanced/project/:projectId/detail" element={
               <ProtectedRoute requiredPermission="canManageProjects">
                 <DistrictListPage />
@@ -168,6 +186,21 @@ const App: React.FC = () => {
             <Route path="home/kindergarten/project/:projectId/config" element={
               <ProtectedRoute requiredPermission="canConfigProject">
                 <ProjectConfig />
+              </ProtectedRoute>
+            } />
+            <Route path="home/kindergarten/project/:projectId/indicator-system" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectIndicatorSystem />
+              </ProtectedRoute>
+            } />
+            <Route path="home/kindergarten/project/:projectId/elements" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectElements />
+              </ProtectedRoute>
+            } />
+            <Route path="home/kindergarten/project/:projectId/data-tools" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <ProjectDataTools />
               </ProtectedRoute>
             } />
             <Route path="home/kindergarten/project/:projectId/detail" element={

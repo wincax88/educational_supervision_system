@@ -1,0 +1,53 @@
+.page {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.infoCard {
+  margin-bottom: 16px;
+}
+
+.systemInfo {
+  display: flex;
+  align-items: center;
+}
+
+.mainCard {
+  min-height: 400px;
+}
+
+.toolbar {
+  margin-bottom: 16px;
+}
+
+.indicatorTree {
+  background: transparent;
+}
+
+.indicatorTree :global(.ant-tree-node-content-wrapper) {
+  flex: 1;
+}
+
+.indicatorTree :global(.ant-tree-title) {
+  flex: 1;
+}

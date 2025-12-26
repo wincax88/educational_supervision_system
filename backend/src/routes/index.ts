@@ -26,6 +26,12 @@ const submissionsJs = require('../../routes/submissions');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const projectToolsJs = require('../../routes/projectTools');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+const projectIndicatorsJs = require('../../routes/projectIndicators');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const projectElementsJs = require('../../routes/projectElements');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const projectDataToolsJs = require('../../routes/projectDataTools');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const schoolsJs = require('../../routes/schools');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const statisticsJs = require('../../routes/statistics');
@@ -60,6 +66,16 @@ export const setSubmissionDb: (db: Database) => void = submissionsJs.setDb;
 
 export const projectToolRouter: Router = projectToolsJs.router;
 export const setProjectToolDb: (db: Database) => void = projectToolsJs.setDb;
+
+// 项目级副本路由（legacy JS 路由直接导出 router 本体）
+export const projectIndicatorRouter: Router = projectIndicatorsJs;
+export const setProjectIndicatorDb: (db: Database) => void = projectIndicatorsJs.setDb;
+
+export const projectElementRouter: Router = projectElementsJs;
+export const setProjectElementDb: (db: Database) => void = projectElementsJs.setDb;
+
+export const projectDataToolRouter: Router = projectDataToolsJs;
+export const setProjectDataToolDb: (db: Database) => void = projectDataToolsJs.setDb;
 
 export const schoolRouter: Router = schoolsJs.router;
 export const setSchoolDb: (db: Database) => void = schoolsJs.setDb;
@@ -106,6 +122,9 @@ export function injectDatabase(db: Database): void {
   setToolDb(db);
   setSubmissionDb(db);
   setProjectToolDb(db);
+  setProjectIndicatorDb(db);
+  setProjectElementDb(db);
+  setProjectDataToolDb(db);
   setSchoolDb(db);
   setStatisticsDb(db);
   setComplianceDb(db);

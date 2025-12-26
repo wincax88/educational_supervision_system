@@ -4,7 +4,7 @@ const { projectRules, submissionRules, idParamRules } = require('../middleware/v
 const { validateEnum } = require('../constants/enums');
 const { deleteProject } = require('../services/cascadeService');
 const { copyTemplatesToProject } = require('../services/projectCopyService');
-const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
+const { verifyToken, roles, checkProjectPermission } = require('../dist/middleware/auth');
 const { checkCompliance } = require('../services/statisticsService');
 const {
   EXTENDED_FUNCTION_KEYWORDS,
@@ -499,7 +499,28 @@ router.post('/projects', verifyToken, roles.admin, projectRules.create, async (r
       .select('id');
 
     if (error) throw error;
-    return res.json({ code: 200, data: { id: data?.[0]?.id || id }, message: '创建成功' });
+
+    const projectId = data?.[0]?.id || id;
+
+    // 自动复制指标体系和要素库模板到项目
+    let copyResult = null;
+    if (indicatorSystemId || elementLibraryId) {
+      try {
+        copyResult = await copyTemplatesToProject(projectId, {
+          indicatorSystemId,
+          elementLibraryId
+        });
+      } catch (copyErr) {
+        console.error('自动复制模板失败:', copyErr.message);
+        // 复制失败不影响项目创建，记录日志即可
+      }
+    }
+
+    return res.json({
+      code: 200,
+      data: { id: projectId, copyResult },
+      message: '创建成功'
+    });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }

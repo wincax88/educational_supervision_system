@@ -18,6 +18,9 @@ import {
   toolRouter,
   submissionRouter,
   projectToolRouter,
+  projectIndicatorRouter,
+  projectElementRouter,
+  projectDataToolRouter,
   schoolRouter,
   statisticsRouter,
   complianceRouter,
@@ -69,6 +72,10 @@ export function createApp(db?: Database): Express {
   app.use('/api', blobRouter);
   app.use('/api', indicatorRouter);
   app.use('/api', toolRouter);
+  // 项目级副本路由要先注册，避免被更通用的 /projects 路由覆盖（legacy submissions 中存在 /projects/:id）
+  app.use('/api', projectIndicatorRouter);
+  app.use('/api', projectElementRouter);
+  app.use('/api', projectDataToolRouter);
   app.use('/api', submissionRouter);
   app.use('/api', projectToolRouter);
   app.use('/api', districtRouter);

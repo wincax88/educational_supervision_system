@@ -86,8 +86,14 @@ async function initDatabase() {
 // API 路由
 app.use('/api', indicatorRoutes);
 app.use('/api', toolRoutes);
-app.use('/api', submissionRoutes);
+// 项目级副本路由（指标体系、要素库、采集工具）- 必须在更通用的 /projects 路由之前注册
+console.log('[index.js] 注册项目级副本路由...');
+app.use('/api', projectIndicatorRoutes);
+app.use('/api', projectElementRoutes);
+console.log('[index.js] projectElementRoutes 已注册，路由数量:', projectElementRoutes.stack?.length || 0);
+app.use('/api', projectDataToolRoutes);
 app.use('/api', projectToolRoutes);
+app.use('/api', submissionRoutes);
 app.use('/api', districtRoutes);
 app.use('/api', schoolRoutes);
 app.use('/api', statisticsRoutes);
@@ -99,10 +105,6 @@ app.use('/api', taskRoutes);
 app.use('/api', reviewAssignmentRoutes);
 app.use('/api', expertRoutes);
 app.use('/api', userRoutes);
-// 项目级副本路由（指标体系、要素库、采集工具）
-app.use('/api', projectIndicatorRoutes);
-app.use('/api', projectElementRoutes);
-app.use('/api', projectDataToolRoutes);
 // 文件上传路由
 app.use('/api', uploadsRouteFactory(db));
 

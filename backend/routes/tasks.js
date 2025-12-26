@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, roles, checkProjectPermission } = require('../src/middleware/auth');
+const { verifyToken, roles, checkProjectPermission } = require('../dist/middleware/auth');
 const userStore = require('../services/userStore');
 
 let db = null;

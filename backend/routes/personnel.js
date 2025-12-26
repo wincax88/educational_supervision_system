@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userSyncService = require('../dist/services/userSyncService').default;
-const { verifyToken, checkProjectPermission } = require('../src/middleware/auth');
+const { verifyToken, checkProjectPermission } = require('../dist/middleware/auth');
 
 let db = null;
 

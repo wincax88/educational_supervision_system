@@ -3,7 +3,7 @@ const router = express.Router();
 const { indicatorSystemRules, listQueryRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteIndicatorSystem, deleteIndicator } = require('../services/cascadeService');
-const { verifyToken, roles } = require('../src/middleware/auth');
+const { verifyToken, roles } = require('../dist/middleware/auth');
 
 // 数据库连接将在index.js中注入
 let db = null;
