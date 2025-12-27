@@ -256,6 +256,37 @@ router.delete('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPer
   }
 });
 
+// 调整工具排序（需要该项目的管理员权限）
+// 注意：此路由必须在 /tools/:toolId 之前定义，否则 'order' 会被当作 toolId 匹配
+router.put('/projects/:projectId/tools/order', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { toolIds } = req.body;
+
+    if (!toolIds || !Array.isArray(toolIds)) {
+      return res.status(400).json({ code: 400, message: '工具ID列表格式错误' });
+    }
+
+    for (let index = 0; index < toolIds.length; index++) {
+      const toolId = toolIds[index];
+      const { data, error } = await db
+        .from('project_tools')
+        .update({ sort_order: index })
+        .eq('project_id', projectId)
+        .eq('tool_id', toolId)
+        .select('id');
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        return res.status(404).json({ code: 404, message: '关联关系不存在' });
+      }
+    }
+
+    return res.json({ code: 200, message: '排序更新成功' });
+  } catch (error) {
+    return res.status(500).json({ code: 500, message: error.message });
+  }
+});
+
 // 更新关联属性（是否必填、是否需要审核，需要该项目的管理员权限）
 router.put('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
@@ -323,36 +354,6 @@ router.put('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPermis
     }
 
     return res.json({ code: 200, message: '更新成功' });
-  } catch (error) {
-    return res.status(500).json({ code: 500, message: error.message });
-  }
-});
-
-// 调整工具排序（需要该项目的管理员权限）
-router.put('/projects/:projectId/tools/order', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { toolIds } = req.body;
-
-    if (!toolIds || !Array.isArray(toolIds)) {
-      return res.status(400).json({ code: 400, message: '工具ID列表格式错误' });
-    }
-
-    for (let index = 0; index < toolIds.length; index++) {
-      const toolId = toolIds[index];
-      const { data, error } = await db
-        .from('project_tools')
-        .update({ sort_order: index })
-        .eq('project_id', projectId)
-        .eq('tool_id', toolId)
-        .select('id');
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        return res.status(404).json({ code: 404, message: '关联关系不存在' });
-      }
-    }
-
-    return res.json({ code: 200, message: '排序更新成功' });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }

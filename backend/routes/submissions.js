@@ -3,7 +3,7 @@ const router = express.Router();
 const { projectRules, submissionRules, idParamRules } = require('../middleware/validate');
 const { validateEnum } = require('../constants/enums');
 const { deleteProject } = require('../services/cascadeService');
-const { copyTemplatesToProject } = require('../services/projectCopyService');
+const { copyTemplatesToProject, copyElementLibraryToProject, deleteProjectElementLibrary } = require('../services/projectCopyService');
 const { verifyToken, roles, checkProjectPermission } = require('../dist/middleware/auth');
 const { checkCompliance } = require('../services/statisticsService');
 const {
@@ -593,6 +593,18 @@ router.put('/projects/:id', verifyToken, checkProjectPermission(['project_admin'
       }
     }
 
+    const projectId = req.params.id;
+
+    // 获取当前项目信息，检查要素库是否变更
+    const currentProjectResult = await db.query(
+      'SELECT element_library_id FROM projects WHERE id = $1',
+      [projectId]
+    );
+    const currentProject = currentProjectResult.rows[0];
+    if (!currentProject) {
+      return res.status(404).json({ code: 404, message: '项目不存在' });
+    }
+
     const timestamp = now().split('T')[0];
 
     const updates = {
@@ -611,7 +623,7 @@ router.put('/projects/:id', verifyToken, checkProjectPermission(['project_admin'
     const { data, error } = await db
       .from('projects')
       .update(updates)
-      .eq('id', req.params.id)
+      .eq('id', projectId)
       .select('id');
 
     if (error) throw error;
@@ -619,7 +631,57 @@ router.put('/projects/:id', verifyToken, checkProjectPermission(['project_admin'
       return res.status(404).json({ code: 404, message: '项目不存在' });
     }
 
-    return res.json({ code: 200, message: '更新成功' });
+    // 处理要素库变更：自动复制要素库到项目副本
+    let elementLibraryCopyResult = null;
+    if (elementLibraryId !== undefined) {
+      const oldLibraryId = currentProject.element_library_id;
+      const newLibraryId = elementLibraryId;
+
+      // 如果要素库发生变更
+      if (newLibraryId !== oldLibraryId) {
+        try {
+          // 删除旧的项目要素库副本（如果存在）
+          if (oldLibraryId) {
+            await deleteProjectElementLibrary(projectId);
+            console.log(`[项目更新] 已删除旧的项目要素库副本: projectId=${projectId}`);
+          }
+          // 复制新的要素库到项目
+          if (newLibraryId) {
+            elementLibraryCopyResult = await copyElementLibraryToProject(projectId, newLibraryId);
+            console.log(`[项目更新] 已复制新的要素库到项目: projectId=${projectId}, elementLibraryId=${newLibraryId}, count=${elementLibraryCopyResult.elementCount}`);
+          }
+        } catch (copyErr) {
+          console.error('[项目更新] 复制要素库失败:', copyErr.message);
+          // 复制失败不影响更新，但返回警告信息
+          return res.json({
+            code: 200,
+            message: '更新成功，但要素库复制失败: ' + copyErr.message,
+            warning: copyErr.message
+          });
+        }
+      } else if (newLibraryId) {
+        // 要素库未变更，但检查是否存在项目副本，不存在则自动复制
+        const { data: existingLib } = await db.from('project_element_libraries')
+          .select('id')
+          .eq('project_id', projectId)
+          .single();
+
+        if (!existingLib) {
+          try {
+            elementLibraryCopyResult = await copyElementLibraryToProject(projectId, newLibraryId);
+            console.log(`[项目更新] 项目要素库副本不存在，已自动复制: projectId=${projectId}, elementLibraryId=${newLibraryId}, count=${elementLibraryCopyResult.elementCount}`);
+          } catch (copyErr) {
+            console.error('[项目更新] 自动复制要素库失败:', copyErr.message);
+          }
+        }
+      }
+    }
+
+    return res.json({
+      code: 200,
+      message: '更新成功',
+      ...(elementLibraryCopyResult ? { elementLibraryCopy: elementLibraryCopyResult } : {})
+    });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }
