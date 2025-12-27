@@ -442,6 +442,7 @@ async function copyDataToolToProject(projectId, sourceToolId) {
   const { error: insertErr } = await db.from('project_data_tools').insert({
     id: newToolId,
     project_id: projectId,
+    source_tool_id: sourceToolId, // 记录来源模板工具ID
     name: sourceTool.name,
     type: sourceTool.type,
     target: sourceTool.target,
@@ -757,6 +758,37 @@ async function deleteProjectDataTools(projectId, toolId = null) {
   await query;
 }
 
+/**
+ * 根据来源工具ID删除项目采集工具副本
+ * @param {string} projectId - 项目ID
+ * @param {string} sourceToolId - 来源模板工具ID
+ */
+async function deleteProjectDataToolBySourceId(projectId, sourceToolId) {
+  // 先查找对应的项目工具副本
+  const { data: tools, error: findErr } = await db.from('project_data_tools')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('source_tool_id', sourceToolId);
+
+  if (findErr) {
+    throw new Error(`查找项目工具副本失败: ${findErr.message}`);
+  }
+
+  if (!tools || tools.length === 0) {
+    return; // 没有找到对应的副本，可能还没复制过
+  }
+
+  // 删除字段映射和工具副本
+  for (const tool of tools) {
+    await db.from('project_field_mappings').delete()
+      .eq('project_id', projectId)
+      .eq('tool_id', tool.id);
+
+    await db.from('project_data_tools').delete()
+      .eq('id', tool.id);
+  }
+}
+
 module.exports = {
   copyIndicatorSystemToProject,
   copyElementLibraryToProject,
@@ -766,5 +798,6 @@ module.exports = {
   copySupportingMaterialElementsToProject,
   deleteProjectIndicatorSystem,
   deleteProjectElementLibrary,
-  deleteProjectDataTools
+  deleteProjectDataTools,
+  deleteProjectDataToolBySourceId
 };

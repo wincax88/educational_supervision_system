@@ -192,7 +192,8 @@ async function ensureSchema() {
     const requiredColumns = [
       { table: 'projects', column: 'keywords' },
       { table: 'projects', column: 'is_published' },
-      { table: 'elements', column: 'aggregation' }
+      { table: 'elements', column: 'aggregation' },
+      { table: 'project_data_tools', column: 'source_tool_id' }
     ];
 
     const missing = [];

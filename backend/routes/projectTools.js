@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken, checkProjectPermission } = require('../dist/middleware/auth');
+const { copyDataToolToProject, deleteProjectDataToolBySourceId } = require('../services/projectCopyService');
 
 let db = null;
 
@@ -155,7 +156,16 @@ router.post('/projects/:projectId/tools', verifyToken, checkProjectPermission(['
     }
 
     if (error) throw error;
-    return res.json({ code: 200, data: { id: data?.[0]?.id || id }, message: '关联成功' });
+
+    // 同时复制采集工具到项目级副本表（project_data_tools）
+    let copyResult = null;
+    try {
+      copyResult = await copyDataToolToProject(projectId, toolId);
+    } catch (copyErr) {
+      console.error(`[单个关联] 复制采集工具到项目副本失败: toolId=${toolId}, error=${copyErr.message}`);
+    }
+
+    return res.json({ code: 200, data: { id: data?.[0]?.id || id, projectToolId: copyResult?.id }, message: '关联成功' });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }
@@ -188,6 +198,8 @@ router.post('/projects/:projectId/tools/batch', verifyToken, checkProjectPermiss
       .limit(1);
     if (maxErr) throw maxErr;
     let sortOrder = ((maxRows?.[0]?.sort_order ?? -1) + 1);
+
+    const copyResults = [];
 
     for (const toolId of toolIds) {
       // 检查是否已关联
@@ -225,9 +237,18 @@ router.post('/projects/:projectId/tools/batch', verifyToken, checkProjectPermiss
           throw insertError;
         }
       }
+
+      // 同时复制采集工具到项目级副本表（project_data_tools）
+      try {
+        const copyResult = await copyDataToolToProject(projectId, toolId);
+        copyResults.push({ toolId, copied: true, projectToolId: copyResult.id });
+      } catch (copyErr) {
+        console.error(`[批量关联] 复制采集工具到项目副本失败: toolId=${toolId}, error=${copyErr.message}`);
+        copyResults.push({ toolId, copied: false, error: copyErr.message });
+      }
     }
 
-    return res.json({ code: 200, message: '批量关联成功' });
+    return res.json({ code: 200, message: '批量关联成功', copyResults });
   } catch (error) {
     return res.status(500).json({ code: 500, message: error.message });
   }
@@ -248,6 +269,14 @@ router.delete('/projects/:projectId/tools/:toolId', verifyToken, checkProjectPer
     if (error) throw error;
     if (!data || data.length === 0) {
       return res.status(404).json({ code: 404, message: '关联关系不存在' });
+    }
+
+    // 同时删除项目级采集工具副本（project_data_tools）
+    try {
+      await deleteProjectDataToolBySourceId(projectId, toolId);
+    } catch (delErr) {
+      console.error(`[移除关联] 删除项目工具副本失败: toolId=${toolId}, error=${delErr.message}`);
+      // 不阻断主流程
     }
 
     return res.json({ code: 200, message: '移除成功' });

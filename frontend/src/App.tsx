@@ -123,6 +123,11 @@ const App: React.FC = () => {
                 <ProjectDataTools />
               </ProtectedRoute>
             } />
+            <Route path="home/balanced/project/:projectId/data-tools/:toolId/edit" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <FormToolEdit isProjectTool />
+              </ProtectedRoute>
+            } />
             <Route path="home/balanced/project/:projectId/detail" element={
               <ProtectedRoute requiredPermission="canManageProjects">
                 <DistrictListPage />
@@ -201,6 +206,11 @@ const App: React.FC = () => {
             <Route path="home/kindergarten/project/:projectId/data-tools" element={
               <ProtectedRoute requiredPermission="canConfigProject">
                 <ProjectDataTools />
+              </ProtectedRoute>
+            } />
+            <Route path="home/kindergarten/project/:projectId/data-tools/:toolId/edit" element={
+              <ProtectedRoute requiredPermission="canConfigProject">
+                <FormToolEdit isProjectTool />
               </ProtectedRoute>
             } />
             <Route path="home/kindergarten/project/:projectId/detail" element={

@@ -342,7 +342,7 @@ const ProjectDataTools: React.FC = () => {
               type="link"
               size="small"
               icon={<FormOutlined />}
-              onClick={() => navigate(`/form-tool/${record.id}`)}
+              onClick={() => navigate(getFormEditorUrl(record.id))}
             />
           </Tooltip>
           <Tooltip title="编辑信息">

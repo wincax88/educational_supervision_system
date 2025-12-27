@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS project_supporting_material_elements (
 CREATE TABLE IF NOT EXISTS project_data_tools (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL,
+  source_tool_id TEXT,     -- 来源模板工具ID（用于追踪和同步删除）
   name TEXT NOT NULL,
   type TEXT,               -- 表单 | 问卷
   target TEXT,

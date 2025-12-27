@@ -33,7 +33,9 @@ import styles from './index.module.css';
 import DataIndicatorSelector from '../../components/DataIndicatorSelector';
 import ElementSelector from '../../components/ElementSelector';
 import * as toolService from '../../services/toolService';
+import * as projectDataToolService from '../../services/projectDataToolService';
 import type { DataTool } from '../../services/toolService';
+import type { ProjectDataTool } from '../../services/projectDataToolService';
 
 // 控件类型定义
 type ControlType =
@@ -225,10 +227,16 @@ const createDefaultField = (type: ControlType): FormField => {
   return baseField;
 };
 
-const FormToolEdit: React.FC = () => {
+interface FormToolEditProps {
+  isProjectTool?: boolean;
+}
+
+const FormToolEdit: React.FC<FormToolEditProps> = ({ isProjectTool = false }) => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const [tool, setTool] = useState<DataTool | null>(null);
+  const { id, projectId, toolId } = useParams<{ id?: string; projectId?: string; toolId?: string }>();
+  // 根据路由确定实际的工具ID
+  const actualToolId = isProjectTool ? toolId : id;
+  const [tool, setTool] = useState<DataTool | ProjectDataTool | null>(null);
   const [controlTab, setControlTab] = useState<string>('all');
   const [propertyTab, setPropertyTab] = useState<string>('basic');
   const [formFields, setFormFields] = useState<FormField[]>([]);
@@ -269,31 +277,52 @@ const FormToolEdit: React.FC = () => {
   // 加载工具数据
   useEffect(() => {
     const loadToolData = async () => {
-      if (!id) return;
+      if (!actualToolId) return;
 
       try {
-        // 加载工具信息
-        const toolData = await toolService.getTool(id);
+        let toolData: DataTool | ProjectDataTool;
+        let schemaData: any;
+
+        if (isProjectTool && projectId) {
+          // 加载项目级工具信息
+          const projectTool = await projectDataToolService.getProjectDataTool(projectId, actualToolId);
+          if (!projectTool) {
+            message.error('项目采集工具不存在');
+            return;
+          }
+          toolData = projectTool;
+          // 加载项目级工具的 schema
+          try {
+            schemaData = await projectDataToolService.getProjectDataToolSchema(projectId, actualToolId);
+          } catch {
+            console.log('No existing schema found for project tool');
+          }
+        } else {
+          // 加载模板工具信息
+          toolData = await toolService.getTool(actualToolId);
+          // 加载模板工具的 schema
+          try {
+            const schemaResponse = await toolService.getSchema(actualToolId);
+            schemaData = schemaResponse?.schema;
+          } catch {
+            console.log('No existing schema found');
+          }
+        }
+
         setTool(toolData);
 
-        // 加载表单 schema
-        try {
-          const schemaResponse = await toolService.getSchema(id);
-          if (schemaResponse.schema && schemaResponse.schema.length > 0) {
-            const rawSchema = schemaResponse.schema as any[];
-            
-            // 分离 config 和字段
-            const configItem = rawSchema.find((item: any) => item.type === 'config' && item.id === '_split_config');
-            const fields = rawSchema.filter((item: any) => item.type !== 'config') as FormField[];
-            
-            if (configItem) {
-              setSplitConfig(configItem);
-            }
-            setFormFields(fields);
+        // 处理 schema
+        if (schemaData && schemaData.length > 0) {
+          const rawSchema = schemaData as any[];
+
+          // 分离 config 和字段
+          const configItem = rawSchema.find((item: any) => item.type === 'config' && item.id === '_split_config');
+          const fields = rawSchema.filter((item: any) => item.type !== 'config') as FormField[];
+
+          if (configItem) {
+            setSplitConfig(configItem);
           }
-        } catch (schemaError) {
-          // schema 可能不存在，忽略错误
-          console.log('No existing schema found');
+          setFormFields(fields);
         }
       } catch (error) {
         console.error('加载工具数据失败:', error);
@@ -302,11 +331,11 @@ const FormToolEdit: React.FC = () => {
     };
 
     loadToolData();
-  }, [id]);
+  }, [actualToolId, isProjectTool, projectId]);
 
   // 保存表单 schema
   const handleSaveSchema = async () => {
-    if (!id) return;
+    if (!actualToolId) return;
 
     try {
       // 合并 config 和 fields
@@ -314,8 +343,14 @@ const FormToolEdit: React.FC = () => {
       if (splitConfig) {
         schemaToSave.unshift(splitConfig);
       }
-      
-      await toolService.saveToolSchema(id, schemaToSave as any);
+
+      if (isProjectTool && projectId) {
+        // 保存到项目级工具
+        await projectDataToolService.saveProjectDataToolSchema(projectId, actualToolId, schemaToSave as any);
+      } else {
+        // 保存到模板工具
+        await toolService.saveToolSchema(actualToolId, schemaToSave as any);
+      }
       message.success('保存成功');
     } catch (error) {
       console.error('保存失败:', error);
@@ -1643,9 +1678,9 @@ const FormToolEdit: React.FC = () => {
         <p className={styles.toolDescription}>{tool.description}</p>
         <div className={styles.toolMeta}>
           <span>创建时间: {tool.createdAt}</span>
-          <span>创建人: {tool.createdBy}</span>
+          {'createdBy' in tool && <span>创建人: {tool.createdBy}</span>}
           <span>更新时间: {tool.updatedAt}</span>
-          <span>更新人: {tool.updatedBy}</span>
+          {'updatedBy' in tool && <span>更新人: {tool.updatedBy}</span>}
         </div>
       </div>
 
