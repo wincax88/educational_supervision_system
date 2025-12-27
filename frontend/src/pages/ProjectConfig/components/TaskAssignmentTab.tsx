@@ -111,6 +111,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   // 新增状态：当前选择的工具范围和评估对象
   const [currentToolScope, setCurrentToolScope] = useState<ToolScope | null>(null);
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([]);
+  const [selectedToolId, setSelectedToolId] = useState<string>('');  // 当前选中的工具ID
 
   // 获取数据采集员列表（支持新旧角色）
   const collectors = useMemo(() => [
@@ -243,6 +244,25 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     return Array.from(collectorMap.values());
   }, [selectedTargetIds, availableTargets, assessmentObjectsWithCollector]);
 
+  // ==================== 获取当前工具已分配的评估对象 ====================
+
+  // 当前选中工具已分配任务的目标 ID 集合
+  const assignedTargetIds = useMemo(() => {
+    if (!selectedToolId) return new Set<string>();
+
+    // 筛选出当前工具的所有任务的目标 ID
+    const targetIds = tasks
+      .filter(task => task.toolId === selectedToolId && task.targetId)
+      .map(task => task.targetId as string);
+
+    return new Set(targetIds);
+  }, [tasks, selectedToolId]);
+
+  // 当前可选（未分配）的评估对象数量
+  const unassignedTargetsCount = useMemo(() => {
+    return availableTargets.filter(t => !assignedTargetIds.has(t.id)).length;
+  }, [availableTargets, assignedTargetIds]);
+
   // 加载任务和统计数据
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -302,6 +322,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     const scope = parseToolScope(selectedTool?.toolTarget);
     setCurrentToolScope(scope);
     setSelectedTargetIds([]);
+    setSelectedToolId(toolId);  // 保存当前选中的工具ID
 
     // 重置表单
     assignForm.setFieldsValue({
@@ -309,14 +330,17 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     });
   };
 
-  // 当选择评估对象时更新状态
+  // 当选择评估对象时更新状态（排除已分配的）
   const handleTargetChange = (targetIds: string[]) => {
-    setSelectedTargetIds(targetIds);
+    // 过滤掉已分配的目标（防止通过其他方式选中）
+    const validTargetIds = targetIds.filter(id => !assignedTargetIds.has(id));
+    setSelectedTargetIds(validTargetIds);
   };
 
   // 打开分配任务弹窗
   const handleOpenAssignModal = () => {
     assignForm.resetFields();
+    setSelectedToolId('');  // 重置选中的工具ID
     setCurrentToolScope(null);
     setSelectedTargetIds([]);
     setAssignModalVisible(true);
@@ -463,7 +487,8 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     {
       title: '填报范围',
       key: 'target',
-      width: 400,
+      width: 180,
+      ellipsis: true,
       render: (_, record) => {
         const targetName = getTargetName(record);
         if (!targetName) {
@@ -474,7 +499,13 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
         const typeText = record.targetType === 'district' ? '区县' : '学校';
         return (
           <Tooltip title={`${typeText}: ${targetName}`}>
-            <Tag icon={icon} color={color}>{targetName}</Tag>
+            <Tag
+              icon={icon}
+              color={color}
+              style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
+              {targetName}
+            </Tag>
           </Tooltip>
         );
       },
@@ -804,7 +835,10 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
               label={
                 <Space>
                   <span>2. 选择评估对象</span>
-                  <Tag color="green">{availableTargets.length} 个可选</Tag>
+                  <Tag color="green">{unassignedTargetsCount} 个可选</Tag>
+                  {assignedTargetIds.size > 0 && (
+                    <Tag color="default">{assignedTargetIds.size} 个已分配</Tag>
+                  )}
                   {selectedTargetIds.length > 0 && (
                     <Tag color="blue">已选 {selectedTargetIds.length} 个</Tag>
                   )}
@@ -814,28 +848,36 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
               extra={
                 availableTargets.length === 0
                   ? `暂无已配置采集员的${currentToolScope === '区县' ? '区县' : '学校'}，请先在"填报账号"中设置数据采集员`
-                  : `仅显示已配置数据采集员的${currentToolScope === '区县' ? '区县' : '学校'}`
+                  : unassignedTargetsCount === 0
+                    ? `所有${currentToolScope === '区县' ? '区县' : '学校'}均已分配任务`
+                    : `仅显示已配置数据采集员的${currentToolScope === '区县' ? '区县' : '学校'}，已分配的显示为灰色`
               }
             >
               <div style={{ border: '1px solid #d9d9d9', borderRadius: 4, padding: 8 }}>
                 {availableTargets.length > 0 ? (
                   <>
                     {/* 全选功能 - 放在 Checkbox.Group 外部避免事件冲突 */}
-                    <Checkbox
-                      checked={selectedTargetIds.length === availableTargets.length && availableTargets.length > 0}
-                      indeterminate={selectedTargetIds.length > 0 && selectedTargetIds.length < availableTargets.length}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        if (e.target.checked) {
-                          handleTargetChange(availableTargets.map(t => t.id));
-                        } else {
-                          handleTargetChange([]);
-                        }
-                      }}
-                      style={{ fontWeight: 'bold', marginBottom: 8, display: 'block' }}
-                    >
-                      全选（{availableTargets.length}）
-                    </Checkbox>
+                    {unassignedTargetsCount > 0 && (
+                      <Checkbox
+                        checked={selectedTargetIds.length === unassignedTargetsCount && unassignedTargetsCount > 0}
+                        indeterminate={selectedTargetIds.length > 0 && selectedTargetIds.length < unassignedTargetsCount}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          if (e.target.checked) {
+                            // 只选择未分配的目标
+                            const unassignedIds = availableTargets
+                              .filter(t => !assignedTargetIds.has(t.id))
+                              .map(t => t.id);
+                            handleTargetChange(unassignedIds);
+                          } else {
+                            handleTargetChange([]);
+                          }
+                        }}
+                        style={{ fontWeight: 'bold', marginBottom: 8, display: 'block' }}
+                      >
+                        全选未分配（{unassignedTargetsCount}）
+                      </Checkbox>
+                    )}
                     {/* 评估对象列表 */}
                     <Checkbox.Group
                       style={{ width: '100%' }}
@@ -844,24 +886,36 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
                     >
                       <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                         <Space direction="vertical" style={{ width: '100%' }}>
-                          {availableTargets.map(target => (
-                            <Checkbox key={target.id} value={target.id} style={{ marginLeft: 0, width: '100%' }}>
-                              <Space>
-                                {target.type === 'district' ? (
-                                  <ApartmentOutlined style={{ color: '#1890ff' }} />
-                                ) : (
-                                  <BankOutlined style={{ color: '#52c41a' }} />
-                                )}
-                                <span>{target.name}</span>
-                                {target.districtName && (
-                                  <Tag style={{ fontSize: 11 }}>{target.districtName}</Tag>
-                                )}
-                                <span style={{ color: '#999', fontSize: 12 }}>
-                                  采集员：{target.collectorName}
-                                </span>
-                              </Space>
-                            </Checkbox>
-                          ))}
+                          {availableTargets.map(target => {
+                            const isAssigned = assignedTargetIds.has(target.id);
+                            return (
+                              <Checkbox
+                                key={target.id}
+                                value={target.id}
+                                disabled={isAssigned}
+                                style={{ marginLeft: 0, width: '100%', opacity: isAssigned ? 0.6 : 1 }}
+                              >
+                                <Space>
+                                  {target.type === 'district' ? (
+                                    <ApartmentOutlined style={{ color: isAssigned ? '#999' : '#1890ff' }} />
+                                  ) : (
+                                    <BankOutlined style={{ color: isAssigned ? '#999' : '#52c41a' }} />
+                                  )}
+                                  <span style={{ color: isAssigned ? '#999' : 'inherit' }}>{target.name}</span>
+                                  {target.districtName && (
+                                    <Tag style={{ fontSize: 11 }}>{target.districtName}</Tag>
+                                  )}
+                                  {isAssigned ? (
+                                    <Tag color="default" style={{ fontSize: 11 }}>已分配</Tag>
+                                  ) : (
+                                    <span style={{ color: '#999', fontSize: 12 }}>
+                                      采集员：{target.collectorName}
+                                    </span>
+                                  )}
+                                </Space>
+                              </Checkbox>
+                            );
+                          })}
                         </Space>
                       </div>
                     </Checkbox.Group>
