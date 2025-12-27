@@ -3,7 +3,7 @@
  * 管理项目的数据采集任务分配
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Button,
   Table,
@@ -24,8 +24,8 @@ import {
   Tooltip,
   Badge,
   DatePicker,
-  Radio,
-  TreeSelect,
+  Alert,
+  Checkbox,
 } from 'antd';
 import {
   PlusOutlined,
@@ -39,6 +39,8 @@ import {
   CalendarOutlined,
   ApartmentOutlined,
   BankOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import * as taskService from '../../../services/taskService';
@@ -50,11 +52,40 @@ import type { Sample } from '../../../services/sampleService';
 import type { Personnel } from '../types';
 import styles from '../index.module.css';
 
+// 工具范围类型
+type ToolScope = '区县' | '学校' | '教师' | '学生' | '家长' | '其他';
+
+// 评估对象选项（带采集员信息）
+interface AssessmentTarget {
+  id: string;
+  name: string;
+  type: 'district' | 'school';
+  collectorId?: string;
+  collectorName?: string;
+  collectorPhone?: string;
+  districtName?: string;  // 仅学校有
+}
+
 interface TaskAssignmentTabProps {
   projectId: string;
   projectStatus: string;
   personnel: Record<string, Personnel[]>;
   disabled?: boolean;
+  // 新增：评估对象数据
+  submissionDistricts?: Array<{
+    id: string;
+    name: string;
+    collectorId?: string;
+    collectorName?: string;
+    collectorPhone?: string;
+    schools: Array<{
+      id: string;
+      name: string;
+      collectorId?: string;
+      collectorName?: string;
+      collectorPhone?: string;
+    }>;
+  }>;
 }
 
 const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
@@ -62,6 +93,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   projectStatus,
   personnel,
   disabled = false,
+  submissionDistricts = [],
 }) => {
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -75,51 +107,141 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   const [assignForm] = Form.useForm();
   const [assignLoading, setAssignLoading] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [targetType, setTargetType] = useState<'all' | 'district' | 'school'>('all');
+
+  // 新增状态：当前选择的工具范围和评估对象
+  const [currentToolScope, setCurrentToolScope] = useState<ToolScope | null>(null);
+  const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([]);
 
   // 获取数据采集员列表（支持新旧角色）
-  const collectors = [
+  const collectors = useMemo(() => [
     ...(personnel['data_collector'] || []),
     ...(personnel['district_reporter'] || []),
     ...(personnel['school_reporter'] || []),
-  ];
+  ], [personnel]);
 
   // 获取区县列表
   const districts = samples.filter(s => s.type === 'district');
 
-  // 构建区县-学校树形结构（用于TreeSelect）
-  const buildSchoolTree = useCallback(() => {
-    const tree: any[] = [];
-    districts.forEach(district => {
-      const schools = samples.filter(s => s.type === 'school' && s.parentId === district.id);
-      tree.push({
-        value: district.id,
-        title: district.name,
-        icon: <ApartmentOutlined />,
-        selectable: false,
-        children: schools.map(school => ({
-          value: school.id,
-          title: school.name,
-          icon: <BankOutlined />,
-        })),
+  // ==================== 前提条件检查 ====================
+
+  // 检查是否有评估对象
+  const hasAssessmentObjects = useMemo(() => {
+    return submissionDistricts.length > 0 ||
+           submissionDistricts.some(d => d.schools.length > 0);
+  }, [submissionDistricts]);
+
+  // 检查是否有已关联采集员的评估对象
+  const assessmentObjectsWithCollector = useMemo(() => {
+    const districtsWithCollector: AssessmentTarget[] = [];
+    const schoolsWithCollector: AssessmentTarget[] = [];
+
+    submissionDistricts.forEach(district => {
+      // 区县级采集员
+      if (district.collectorId) {
+        districtsWithCollector.push({
+          id: district.id,
+          name: district.name,
+          type: 'district',
+          collectorId: district.collectorId,
+          collectorName: district.collectorName,
+          collectorPhone: district.collectorPhone,
+        });
+      }
+
+      // 学校级采集员
+      district.schools.forEach(school => {
+        if (school.collectorId) {
+          schoolsWithCollector.push({
+            id: school.id,
+            name: school.name,
+            type: 'school',
+            collectorId: school.collectorId,
+            collectorName: school.collectorName,
+            collectorPhone: school.collectorPhone,
+            districtName: district.name,
+          });
+        }
       });
     });
-    // 添加没有区县的学校
-    const orphanSchools = samples.filter(s => s.type === 'school' && !s.parentId);
-    if (orphanSchools.length > 0) {
-      tree.push({
-        value: 'no-district',
-        title: '未分配区县',
-        selectable: false,
-        children: orphanSchools.map(school => ({
-          value: school.id,
-          title: school.name,
-          icon: <BankOutlined />,
-        })),
-      });
+
+    return {
+      districts: districtsWithCollector,
+      schools: schoolsWithCollector,
+      hasAny: districtsWithCollector.length > 0 || schoolsWithCollector.length > 0,
+    };
+  }, [submissionDistricts]);
+
+  // 前提条件是否满足
+  const canAssignTasks = useMemo(() => {
+    return hasAssessmentObjects &&
+           assessmentObjectsWithCollector.hasAny &&
+           tools.length > 0;
+  }, [hasAssessmentObjects, assessmentObjectsWithCollector, tools]);
+
+  // 前提条件不满足的原因
+  const assignDisabledReason = useMemo(() => {
+    const reasons: string[] = [];
+    if (!hasAssessmentObjects) {
+      reasons.push('评估对象未创建');
     }
-    return tree;
-  }, [districts, samples]);
+    if (!assessmentObjectsWithCollector.hasAny) {
+      reasons.push('填报账号未关联评估对象');
+    }
+    if (tools.length === 0) {
+      reasons.push('采集工具未配置');
+    }
+    return reasons;
+  }, [hasAssessmentObjects, assessmentObjectsWithCollector, tools]);
+
+  // ==================== 根据工具范围获取可选的评估对象 ====================
+
+  const getAvailableTargets = useCallback((scope: ToolScope | null): AssessmentTarget[] => {
+    if (!scope) return [];
+
+    switch (scope) {
+      case '区县':
+        // 区县工具只显示有区县采集员的区县
+        return assessmentObjectsWithCollector.districts;
+      case '学校':
+      case '教师':
+      case '学生':
+      case '家长':
+      case '其他':
+        // 学校及以下级别的工具，显示有学校采集员的学校
+        return assessmentObjectsWithCollector.schools;
+      default:
+        return [];
+    }
+  }, [assessmentObjectsWithCollector]);
+
+  // 当前可选的评估对象列表
+  const availableTargets = useMemo(() => {
+    return getAvailableTargets(currentToolScope);
+  }, [currentToolScope, getAvailableTargets]);
+
+  // ==================== 根据选中的评估对象获取可用的填报账号 ====================
+
+  // 从评估对象中直接提取采集员信息（而不是从 personnel 中查找）
+  const availableCollectors = useMemo(() => {
+    // 构建采集员信息（直接从评估对象中获取）
+    const collectorMap = new Map<string, { id: string; name: string; phone?: string }>();
+
+    const targets = selectedTargetIds.length > 0
+      ? availableTargets.filter(t => selectedTargetIds.includes(t.id))
+      : [...assessmentObjectsWithCollector.districts, ...assessmentObjectsWithCollector.schools];
+
+    targets.forEach(target => {
+      if (target.collectorId && target.collectorName) {
+        collectorMap.set(target.collectorId, {
+          id: target.collectorId,
+          name: target.collectorName,
+          phone: target.collectorPhone,
+        });
+      }
+    });
+
+    return Array.from(collectorMap.values());
+  }, [selectedTargetIds, availableTargets, assessmentObjectsWithCollector]);
 
   // 加载任务和统计数据
   const loadData = useCallback(async () => {
@@ -167,76 +289,98 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     return matchStatus && matchTool && matchKeyword;
   });
 
-  // 获取所有学校的ID列表
-  const allSchoolIds = samples.filter(s => s.type === 'school').map(s => s.id);
+  // 解析工具范围类型
+  const parseToolScope = (toolTarget: string | undefined): ToolScope | null => {
+    if (!toolTarget) return null;
+    const scopes: ToolScope[] = ['区县', '学校', '教师', '学生', '家长', '其他'];
+    return scopes.find(scope => toolTarget.includes(scope)) || null;
+  };
 
-  // 当选择工具时，检查采集对象是否包含"学校"
+  // 当选择工具时，更新工具范围并重置选择
   const handleToolChange = (toolId: string) => {
     const selectedTool = tools.find(t => t.toolId === toolId);
-    if (selectedTool?.toolTarget?.includes('学校')) {
-      // 如果采集对象包含学校，自动设置为指定学校模式，并选中所有学校
-      setTargetType('school');
-      assignForm.setFieldsValue({
-        toolId,
-        targetIds: allSchoolIds
-      });
-    } else {
-      // 否则重置为全部模式
-      setTargetType('all');
-      assignForm.setFieldsValue({
-        toolId,
-        targetIds: undefined
-      });
-    }
+    const scope = parseToolScope(selectedTool?.toolTarget);
+    setCurrentToolScope(scope);
+    setSelectedTargetIds([]);
+
+    // 重置表单中的评估对象和填报账号选择
+    assignForm.setFieldsValue({
+      toolId,
+      targetIds: undefined,
+      assigneeIds: undefined,
+    });
+  };
+
+  // 当选择评估对象时，自动更新可用的填报账号
+  const handleTargetChange = (targetIds: string[]) => {
+    setSelectedTargetIds(targetIds);
+
+    // 自动选中这些评估对象对应的采集员
+    const autoSelectedCollectorIds: string[] = [];
+    targetIds.forEach(targetId => {
+      const target = availableTargets.find(t => t.id === targetId);
+      if (target?.collectorId) {
+        if (!autoSelectedCollectorIds.includes(target.collectorId)) {
+          autoSelectedCollectorIds.push(target.collectorId);
+        }
+      }
+    });
+
+    // 同时更新表单字段值（确保全选等操作能正确同步）
+    assignForm.setFieldsValue({
+      targetIds: targetIds,
+      assigneeIds: autoSelectedCollectorIds,
+    });
   };
 
   // 打开分配任务弹窗
   const handleOpenAssignModal = () => {
     assignForm.resetFields();
-    setTargetType('all');
+    setCurrentToolScope(null);
+    setSelectedTargetIds([]);
     setAssignModalVisible(true);
   };
 
   // 分配任务
   const handleAssignTasks = async (values: any) => {
-    if (!values.toolId || !values.assigneeIds?.length) {
-      message.warning('请选择工具和采集员');
+    if (!values.toolId) {
+      message.warning('请选择采集工具');
       return;
     }
 
-    // 如果选择了区县或学校模式，必须选择目标
-    if (targetType !== 'all' && (!values.targetIds || values.targetIds.length === 0)) {
-      message.warning(targetType === 'district' ? '请选择区县' : '请选择学校');
+    if (!values.targetIds || values.targetIds.length === 0) {
+      message.warning('请选择评估对象');
+      return;
+    }
+
+    if (!values.assigneeIds || values.assigneeIds.length === 0) {
+      message.warning('请选择填报账号');
       return;
     }
 
     setAssignLoading(true);
     try {
-      // 根据目标类型，为每个目标创建任务
-      if (targetType === 'all') {
-        // 全部模式：只创建一个任务（不指定具体目标）
-        await taskService.batchCreateTasks({
-          projectId,
-          toolId: values.toolId,
-          assigneeIds: values.assigneeIds,
-          dueDate: values.dueDate?.format('YYYY-MM-DD'),
-        });
-      } else {
-        // 区县/学校模式：为每个目标创建任务
-        const targetIds = values.targetIds;
-        for (const targetId of targetIds) {
-          for (const assigneeId of values.assigneeIds) {
-            await taskService.createTask({
-              projectId,
-              toolId: values.toolId,
-              assigneeId,
-              targetType,
-              targetId,
-              dueDate: values.dueDate?.format('YYYY-MM-DD'),
-            });
-          }
+      // 确定目标类型
+      const targetType = currentToolScope === '区县' ? 'district' : 'school';
+
+      // 为每个目标创建任务（目标和采集员按关联关系匹配）
+      const targetIds = values.targetIds as string[];
+
+      for (const targetId of targetIds) {
+        // 找到该目标对应的采集员
+        const target = availableTargets.find(t => t.id === targetId);
+        if (target?.collectorId && values.assigneeIds.includes(target.collectorId)) {
+          await taskService.createTask({
+            projectId,
+            toolId: values.toolId,
+            assigneeId: target.collectorId,
+            targetType,
+            targetId,
+            dueDate: values.dueDate?.format('YYYY-MM-DD'),
+          });
         }
       }
+
       message.success('任务分配成功');
       setAssignModalVisible(false);
       loadData();
@@ -514,24 +658,63 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             </Button>
           )}
           {!disabled && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleOpenAssignModal}
-              disabled={collectors.length === 0 || tools.length === 0}
+            <Tooltip
+              title={!canAssignTasks ? assignDisabledReason.join('、') : undefined}
             >
-              分配任务
-            </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleOpenAssignModal}
+                disabled={!canAssignTasks}
+              >
+                分配任务
+              </Button>
+            </Tooltip>
           )}
         </Space>
       </div>
 
-      {/* 提示信息 */}
-      {collectors.length === 0 && (
-        <div className={styles.warningTip}>
-          <ExclamationCircleOutlined style={{ color: '#faad14', marginRight: 8 }} />
-          暂无数据采集员，请先在"人员配置"中添加数据采集员
-        </div>
+      {/* 前提条件检查提示 */}
+      {!canAssignTasks && (
+        <Alert
+          type="warning"
+          showIcon
+          icon={<ExclamationCircleOutlined />}
+          message="分配任务前需满足以下条件"
+          description={
+            <div style={{ marginTop: 8 }}>
+              <Space direction="vertical" size={4}>
+                <div>
+                  {hasAssessmentObjects ? (
+                    <Space><CheckCircleOutlined style={{ color: '#52c41a' }} /> 评估对象已创建</Space>
+                  ) : (
+                    <Space><CloseCircleOutlined style={{ color: '#ff4d4f' }} /> 评估对象未创建（请先在"评估对象"中添加区县和学校）</Space>
+                  )}
+                </div>
+                <div>
+                  {assessmentObjectsWithCollector.hasAny ? (
+                    <Space>
+                      <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                      填报账号已关联
+                      <Tag color="blue">{assessmentObjectsWithCollector.districts.length} 个区县</Tag>
+                      <Tag color="green">{assessmentObjectsWithCollector.schools.length} 所学校</Tag>
+                    </Space>
+                  ) : (
+                    <Space><CloseCircleOutlined style={{ color: '#ff4d4f' }} /> 填报账号未关联（请先在"填报账号"中为评估对象设置数据采集员）</Space>
+                  )}
+                </div>
+                <div>
+                  {tools.length > 0 ? (
+                    <Space><CheckCircleOutlined style={{ color: '#52c41a' }} /> 采集工具已配置（{tools.length}个）</Space>
+                  ) : (
+                    <Space><CloseCircleOutlined style={{ color: '#ff4d4f' }} /> 采集工具未配置（请先在"采集工具"中添加工具）</Space>
+                  )}
+                </div>
+              </Space>
+            </div>
+          }
+          style={{ marginBottom: 16 }}
+        />
       )}
 
       {/* 任务列表 */}
@@ -566,7 +749,7 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
                 : '暂无任务分配'
             }
           >
-            {!disabled && collectors.length > 0 && tools.length > 0 && (
+            {!disabled && canAssignTasks && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenAssignModal}>
                 分配任务
               </Button>
@@ -586,18 +769,32 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
         open={assignModalVisible}
         onCancel={() => setAssignModalVisible(false)}
         footer={null}
-        width={640}
+        width={700}
+        destroyOnClose
       >
         <p className={styles.modalSubtitle}>
-          选择采集工具、填报范围和填报账号。
+          选择采集工具后，根据工具范围自动确定可选的评估对象和填报账号。
         </p>
         <Form form={assignForm} onFinish={handleAssignTasks} layout="vertical">
+          {/* 第一步：选择采集工具 */}
           <Form.Item
             name="toolId"
-            label="采集工具"
+            label={
+              <Space>
+                <span>1. 选择采集工具</span>
+                {currentToolScope && (
+                  <Tag color="blue">范围：{currentToolScope}</Tag>
+                )}
+              </Space>
+            }
             rules={[{ required: true, message: '请选择采集工具' }]}
           >
-            <Select placeholder="请选择要分配的采集工具" onChange={handleToolChange}>
+            <Select
+              placeholder="请选择要分配的采集工具"
+              onChange={handleToolChange}
+              showSearch
+              optionFilterProp="children"
+            >
               {tools.map(tool => (
                 <Select.Option key={tool.toolId} value={tool.toolId}>
                   <Space>
@@ -611,48 +808,109 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             </Select>
           </Form.Item>
 
-          {/* 填报范围类型 */}
-          <Form.Item
-            label="填报范围"
-            extra="选择任务的填报范围类型"
-          >
-            <Radio.Group
-              value={targetType}
-              onChange={(e) => {
-                setTargetType(e.target.value);
-                assignForm.setFieldsValue({ targetIds: undefined });
-              }}
-            >
-              <Radio.Button value="all">
-                全部（按采集员权限）
-              </Radio.Button>
-              <Radio.Button value="district">
-                指定区县
-              </Radio.Button>
-              <Radio.Button value="school">
-                指定学校
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
-
-          {/* 区县选择 */}
-          {targetType === 'district' && (
+          {/* 第二步：选择评估对象（根据工具范围显示） */}
+          {currentToolScope && (
             <Form.Item
               name="targetIds"
-              label="选择区县"
-              rules={[{ required: true, message: '请选择区县' }]}
+              label={
+                <Space>
+                  <span>2. 选择评估对象</span>
+                  <Tag color="green">{availableTargets.length} 个可选</Tag>
+                </Space>
+              }
+              rules={[{ required: true, message: '请选择评估对象' }]}
+              extra={
+                availableTargets.length === 0
+                  ? `暂无已配置采集员的${currentToolScope === '区县' ? '区县' : '学校'}，请先在"填报账号"中设置数据采集员`
+                  : `仅显示已配置数据采集员的${currentToolScope === '区县' ? '区县' : '学校'}`
+              }
+            >
+              <div style={{ border: '1px solid #d9d9d9', borderRadius: 4, padding: 8 }}>
+                {availableTargets.length > 0 ? (
+                  <>
+                    {/* 全选功能 - 放在 Checkbox.Group 外部避免事件冲突 */}
+                    <Checkbox
+                      checked={selectedTargetIds.length === availableTargets.length && availableTargets.length > 0}
+                      indeterminate={selectedTargetIds.length > 0 && selectedTargetIds.length < availableTargets.length}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        if (e.target.checked) {
+                          handleTargetChange(availableTargets.map(t => t.id));
+                        } else {
+                          handleTargetChange([]);
+                        }
+                      }}
+                      style={{ fontWeight: 'bold', marginBottom: 8, display: 'block' }}
+                    >
+                      全选（{availableTargets.length}）
+                    </Checkbox>
+                    {/* 评估对象列表 */}
+                    <Checkbox.Group
+                      style={{ width: '100%' }}
+                      value={selectedTargetIds}
+                      onChange={(values) => handleTargetChange(values as string[])}
+                    >
+                      <div style={{ maxHeight: 180, overflowY: 'auto' }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          {availableTargets.map(target => (
+                            <Checkbox key={target.id} value={target.id} style={{ marginLeft: 0, width: '100%' }}>
+                              <Space>
+                                {target.type === 'district' ? (
+                                  <ApartmentOutlined style={{ color: '#1890ff' }} />
+                                ) : (
+                                  <BankOutlined style={{ color: '#52c41a' }} />
+                                )}
+                                <span>{target.name}</span>
+                                {target.districtName && (
+                                  <Tag style={{ fontSize: 11 }}>{target.districtName}</Tag>
+                                )}
+                                <span style={{ color: '#999', fontSize: 12 }}>
+                                  采集员：{target.collectorName}
+                                </span>
+                              </Space>
+                            </Checkbox>
+                          ))}
+                        </Space>
+                      </div>
+                    </Checkbox.Group>
+                  </>
+                ) : (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={`暂无已配置采集员的${currentToolScope === '区县' ? '区县' : '学校'}`}
+                  />
+                )}
+              </div>
+            </Form.Item>
+          )}
+
+          {/* 第三步：确认填报账号 */}
+          {currentToolScope && selectedTargetIds.length > 0 && (
+            <Form.Item
+              name="assigneeIds"
+              label={
+                <Space>
+                  <span>3. 确认填报账号</span>
+                  <Tag color="orange">{availableCollectors.length} 个关联</Tag>
+                </Space>
+              }
+              rules={[{ required: true, message: '请选择填报账号' }]}
+              extra="根据所选评估对象自动匹配关联的数据采集员"
             >
               <Select
                 mode="multiple"
-                placeholder="请选择区县（可多选）"
+                placeholder="请选择填报账号（可多选）"
                 optionFilterProp="children"
-                maxTagCount={3}
+                maxTagCount={5}
               >
-                {districts.map(d => (
-                  <Select.Option key={d.id} value={d.id}>
+                {availableCollectors.map(p => (
+                  <Select.Option key={p.id} value={p.id}>
                     <Space>
-                      <ApartmentOutlined style={{ color: '#1890ff' }} />
-                      {d.name}
+                      <UserOutlined />
+                      {p.name}
+                      {p.phone && (
+                        <span style={{ color: '#999' }}>({p.phone})</span>
+                      )}
                     </Space>
                   </Select.Option>
                 ))}
@@ -660,58 +918,11 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             </Form.Item>
           )}
 
-          {/* 学校选择 */}
-          {targetType === 'school' && (
-            <Form.Item
-              name="targetIds"
-              label="选择学校"
-              rules={[{ required: true, message: '请选择学校' }]}
-            >
-              <TreeSelect
-                multiple
-                treeData={buildSchoolTree()}
-                placeholder="请选择学校（可多选）"
-                treeIcon
-                showSearch
-                treeNodeFilterProp="title"
-                maxTagCount={3}
-                style={{ width: '100%' }}
-                allowClear
-              />
-            </Form.Item>
-          )}
-
-          <Form.Item
-            name="assigneeIds"
-            label="填报账号"
-            rules={[{ required: true, message: '请选择填报账号' }]}
-            extra={targetType === 'all' ? '采集员将根据其关联的区县确定可填报范围' : '指定的填报账号将负责所选范围的数据填报'}
-          >
-            <Select
-              mode="multiple"
-              placeholder="请选择填报账号（可多选）"
-              optionFilterProp="children"
-              maxTagCount={3}
-            >
-              {collectors.map(p => (
-                <Select.Option key={p.id} value={p.id}>
-                  <Space>
-                    <UserOutlined />
-                    {p.name}
-                    {p.districtName && (
-                      <Tag color="blue" style={{ marginLeft: 4 }}>{p.districtName}</Tag>
-                    )}
-                    <span style={{ color: '#999' }}>({p.organization})</span>
-                  </Space>
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
+          {/* 第四步：设置截止日期（可选） */}
           <Form.Item
             name="dueDate"
-            label="截止日期"
-            extra="可选，设置任务的截止日期"
+            label="4. 截止日期（可选）"
+            extra="设置任务的截止日期，逾期任务会标记为已逾期"
           >
             <DatePicker
               placeholder="选择截止日期"
@@ -721,7 +932,12 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
 
           <Form.Item className={styles.formFooter}>
             <Button onClick={() => setAssignModalVisible(false)}>取消</Button>
-            <Button type="primary" htmlType="submit" loading={assignLoading}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={assignLoading}
+              disabled={!currentToolScope || selectedTargetIds.length === 0}
+            >
               确认分配
             </Button>
           </Form.Item>

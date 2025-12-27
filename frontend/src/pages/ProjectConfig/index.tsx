@@ -799,6 +799,7 @@ const ProjectConfig: React.FC = () => {
                   projectStatus={project.status}
                   personnel={personnel}
                   disabled={isReadOnly}
+                  submissionDistricts={allSubmissionDistricts}
                 />
               ),
             },

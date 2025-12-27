@@ -36,11 +36,20 @@ router.get('/projects/:projectId/tasks', verifyToken, checkProjectPermission(['p
         t.updated_at as "updatedAt",
         dt.name as "toolName",
         dt.type as "toolType",
-        pp.name as "assigneeName",
-        pp.organization as "assigneeOrg",
+        -- 优先从 sys_users 获取采集员信息（assignee_id 是用户手机号）
+        COALESCE(su.name, pp.name) as "assigneeName",
+        -- 从目标评估对象获取名称作为所属单位
+        COALESCE(
+          (SELECT ps2.name FROM project_samples ps2
+           WHERE ps2.id = t.target_id
+           LIMIT 1),
+          su.organization,
+          pp.organization
+        ) as "assigneeOrg",
         ps.name as "assigneeDistrict"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
+      LEFT JOIN sys_users su ON t.assignee_id = su.phone
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
       LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
       WHERE t.project_id = $1
@@ -144,11 +153,20 @@ router.get('/tasks/:id', async (req, res) => {
         t.updated_at as "updatedAt",
         dt.name as "toolName",
         dt.type as "toolType",
-        pp.name as "assigneeName",
-        pp.organization as "assigneeOrg",
+        -- 优先从 sys_users 获取采集员信息（assignee_id 是用户手机号）
+        COALESCE(su.name, pp.name) as "assigneeName",
+        -- 从目标评估对象获取名称作为所属单位
+        COALESCE(
+          (SELECT ps2.name FROM project_samples ps2
+           WHERE ps2.id = t.target_id
+           LIMIT 1),
+          su.organization,
+          pp.organization
+        ) as "assigneeOrg",
         ps.name as "assigneeDistrict"
       FROM tasks t
       LEFT JOIN data_tools dt ON t.tool_id = dt.id
+      LEFT JOIN sys_users su ON t.assignee_id = su.phone
       LEFT JOIN project_personnel pp ON t.assignee_id = pp.id
       LEFT JOIN project_samples ps ON pp.district_id = ps.id AND ps.type = 'district'
       WHERE t.id = $1
