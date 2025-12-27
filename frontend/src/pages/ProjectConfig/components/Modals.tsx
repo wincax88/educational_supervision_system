@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Modal, Form, Input, Select, Button, Upload, Table, Space, Tag, Checkbox, message, Alert, Spin } from 'antd';
+import { Modal, Form, Input, Select, Button, Upload, Table, Space, Tag, Checkbox, message, Alert, Spin, Tree } from 'antd';
 import type { FormInstance, UploadFile } from 'antd';
 import {
   SearchOutlined,
@@ -12,6 +12,8 @@ import {
   FileExcelOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
+  BankOutlined,
+  HomeOutlined,
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import type { ColumnsType } from 'antd/es/table';
@@ -1532,3 +1534,393 @@ export const ImportSubmissionSchoolModal: React.FC<ImportSubmissionSchoolModalPr
     </Modal>
   );
 };
+
+// ==================== 选择学校弹窗 ====================
+
+// 系统学校类型
+interface SystemSchoolForSelect {
+  id: string;
+  code: string;
+  name: string;
+  districtId: string;
+  districtName?: string;
+  schoolType: string;
+  schoolCategory?: string;
+  urbanRural?: string;
+}
+
+// 系统区县类型（包含学校列表）
+interface SystemDistrictForSelect {
+  id: string;
+  code: string;
+  name: string;
+  schools: SystemSchoolForSelect[];
+}
+
+interface SelectSchoolModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: (schools: SystemSchoolForSelect[]) => void;
+  systemDistricts: SystemDistrictForSelect[];
+  loading: boolean;
+  isSchoolSelected: (code: string) => boolean;
+}
+
+// 学校类型选项（用于多选）
+const SCHOOL_TYPE_OPTIONS = [
+  { value: '幼儿园', label: '幼儿园' },
+  { value: '小学', label: '小学' },
+  { value: '初中', label: '初中' },
+  { value: '九年一贯制', label: '九年一贯制' },
+  { value: '完全中学', label: '完全中学' },
+];
+
+// 学校类型对应的标签颜色
+const SCHOOL_TYPE_COLORS_FOR_SELECT: Record<string, string> = {
+  '幼儿园': 'magenta',
+  '小学': 'blue',
+  '初中': 'green',
+  '九年一贯制': 'purple',
+  '完全中学': 'orange',
+};
+
+export const SelectSchoolModal: React.FC<SelectSchoolModalProps> = ({
+  visible,
+  onCancel,
+  onConfirm,
+  systemDistricts,
+  loading,
+  isSchoolSelected,
+}) => {
+  const [checkedKeys, setCheckedKeys] = React.useState<string[]>([]);
+  const [expandedKeys, setExpandedKeys] = React.useState<string[]>([]);
+  // 内部筛选状态
+  const [keyword, setKeyword] = React.useState('');
+  const [selectedTypes, setSelectedTypes] = React.useState<string[]>([]);
+
+  // 重置状态
+  React.useEffect(() => {
+    if (visible) {
+      setCheckedKeys([]);
+      setKeyword('');
+      setSelectedTypes([]);
+      // 默认展开所有区县
+      setExpandedKeys(systemDistricts.map(d => `district-${d.id}`));
+    }
+  }, [visible, systemDistricts]);
+
+  // 根据筛选条件过滤数据
+  const filteredSystemDistricts = React.useMemo(() => {
+    let result = systemDistricts;
+
+    // 按学校类型筛选（多选）
+    if (selectedTypes.length > 0) {
+      result = result.map(d => ({
+        ...d,
+        schools: d.schools.filter(s => selectedTypes.includes(s.schoolType)),
+      })).filter(d => d.schools.length > 0);
+    }
+
+    // 按关键字筛选
+    if (keyword.trim()) {
+      const kw = keyword.trim().toLowerCase();
+      result = result.map(d => ({
+        ...d,
+        schools: d.schools.filter(s =>
+          s.name.toLowerCase().includes(kw) ||
+          s.code.toLowerCase().includes(kw)
+        ),
+      })).filter(d => d.schools.length > 0);
+    }
+
+    return result;
+  }, [systemDistricts, selectedTypes, keyword]);
+
+  // 构建树形数据
+  const treeData = React.useMemo(() => {
+    return filteredSystemDistricts.map(district => ({
+      key: `district-${district.id}`,
+      title: (
+        <span>
+          <BankOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+          {district.name}
+          <span style={{ color: '#999', fontSize: 12, marginLeft: 8 }}>
+            ({district.schools.length} 所)
+          </span>
+        </span>
+      ),
+      children: district.schools.map(school => {
+        const selected = isSchoolSelected(school.code);
+        return {
+          key: school.code,
+          title: (
+            <span style={{ color: selected ? '#999' : undefined }}>
+              <HomeOutlined style={{ marginRight: 8, color: selected ? '#999' : '#52c41a' }} />
+              {school.name}
+              <Tag
+                color={selected ? 'default' : SCHOOL_TYPE_COLORS_FOR_SELECT[school.schoolType]}
+                style={{ marginLeft: 8 }}
+              >
+                {school.schoolType}
+              </Tag>
+              {selected && (
+                <Tag color="default" style={{ marginLeft: 4 }}>
+                  <CheckCircleOutlined /> 已添加
+                </Tag>
+              )}
+            </span>
+          ),
+          disabled: selected,
+          schoolData: school,
+        };
+      }),
+    }));
+  }, [filteredSystemDistricts, isSchoolSelected]);
+
+  // 处理选中变化
+  const handleCheck = (checked: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
+    const keys = Array.isArray(checked) ? checked : checked.checked;
+    const schoolKeys = keys.filter(k => !String(k).startsWith('district-'));
+    setCheckedKeys(schoolKeys as string[]);
+  };
+
+  // 处理展开
+  const handleExpand = (expanded: React.Key[]) => {
+    setExpandedKeys(expanded as string[]);
+  };
+
+  // 全选当前筛选结果
+  const handleSelectAll = () => {
+    const allSchoolKeys: string[] = [];
+    filteredSystemDistricts.forEach(district => {
+      district.schools.forEach(school => {
+        if (!isSchoolSelected(school.code)) {
+          allSchoolKeys.push(school.code);
+        }
+      });
+    });
+    setCheckedKeys(allSchoolKeys);
+  };
+
+  // 清空选中
+  const handleClearSelection = () => {
+    setCheckedKeys([]);
+  };
+
+  // 确认选择
+  const handleConfirm = () => {
+    const selectedSchools: SystemSchoolForSelect[] = [];
+    filteredSystemDistricts.forEach(district => {
+      district.schools.forEach(school => {
+        if (checkedKeys.includes(school.code)) {
+          selectedSchools.push(school);
+        }
+      });
+    });
+    onConfirm(selectedSchools);
+    setCheckedKeys([]);
+  };
+
+  // 统计可选数量
+  const availableCount = React.useMemo(() => {
+    let count = 0;
+    filteredSystemDistricts.forEach(d => {
+      d.schools.forEach(s => {
+        if (!isSchoolSelected(s.code)) {
+          count++;
+        }
+      });
+    });
+    return count;
+  }, [filteredSystemDistricts, isSchoolSelected]);
+
+  return (
+    <Modal
+      title="选择学校"
+      open={visible}
+      onCancel={onCancel}
+      width={700}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>取消</Button>,
+        <Button
+          key="confirm"
+          type="primary"
+          onClick={handleConfirm}
+          disabled={checkedKeys.length === 0}
+        >
+          确定添加 ({checkedKeys.length})
+        </Button>,
+      ]}
+      destroyOnClose
+    >
+      <Spin spinning={loading}>
+        {/* 筛选条件 */}
+        <Space style={{ marginBottom: 16, width: '100%' }} direction="vertical">
+          <Space wrap>
+            <Input
+              placeholder="搜索学校名称或代码"
+              prefix={<SearchOutlined />}
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              allowClear
+              style={{ width: 240 }}
+            />
+            <Select
+              mode="multiple"
+              placeholder="选择学校类型"
+              value={selectedTypes}
+              onChange={setSelectedTypes}
+              style={{ minWidth: 200 }}
+              options={SCHOOL_TYPE_OPTIONS}
+              maxTagCount="responsive"
+              allowClear
+            />
+          </Space>
+        </Space>
+
+        {/* 操作按钮 */}
+        <div style={{ marginBottom: 12 }}>
+          <Space>
+            <Button size="small" onClick={handleSelectAll} disabled={availableCount === 0}>
+              全选 ({availableCount})
+            </Button>
+            <Button size="small" onClick={handleClearSelection} disabled={checkedKeys.length === 0}>
+              清空选择
+            </Button>
+          </Space>
+        </div>
+
+        {/* 学校树 */}
+        <div style={{ maxHeight: 400, overflow: 'auto', border: '1px solid #e8e8e8', borderRadius: 8, padding: 12 }}>
+          {treeData.length > 0 ? (
+            <Tree
+              checkable
+              checkedKeys={checkedKeys}
+              expandedKeys={expandedKeys}
+              onCheck={handleCheck}
+              onExpand={handleExpand}
+              treeData={treeData}
+              selectable={false}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
+              没有找到匹配的学校
+            </div>
+          )}
+        </div>
+      </Spin>
+    </Modal>
+  );
+};
+
+// ==================== 新增学校弹窗（同步到系统） ====================
+
+interface CreateSchoolModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onSubmit: (values: {
+    name: string;
+    code: string;
+    districtId: string;
+    schoolType: string;
+    schoolCategory?: string;
+    urbanRural?: string;
+  }) => void;
+  form: FormInstance;
+  districts: Array<{ id: string; code: string; name: string }>;
+  loading?: boolean;
+}
+
+export const CreateSchoolModal: React.FC<CreateSchoolModalProps> = ({
+  visible,
+  onCancel,
+  onSubmit,
+  form,
+  districts,
+  loading = false,
+}) => (
+  <Modal
+    title="新增学校"
+    open={visible}
+    onCancel={onCancel}
+    footer={null}
+    width={500}
+    destroyOnClose
+  >
+    <p className={styles.modalSubtitle}>
+      在系统学校库中新增学校，并自动添加到评估对象中
+    </p>
+    <Form form={form} onFinish={onSubmit} layout="vertical">
+      <Form.Item
+        label="所属区县"
+        name="districtId"
+        rules={[{ required: true, message: '请选择所属区县' }]}
+      >
+        <Select
+          placeholder="请选择区县"
+          showSearch
+          filterOption={(input, option) =>
+            (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+          }
+          options={districts.map(d => ({
+            value: d.id,
+            label: d.name,
+          }))}
+        />
+      </Form.Item>
+      <Form.Item
+        label="学校代码"
+        name="code"
+        rules={[{ required: true, message: '请输入学校代码' }]}
+      >
+        <Input placeholder="请输入学校代码，如：2101020001" />
+      </Form.Item>
+      <Form.Item
+        label="学校名称"
+        name="name"
+        rules={[{ required: true, message: '请输入学校名称' }]}
+      >
+        <Input placeholder="请输入学校名称" />
+      </Form.Item>
+      <Form.Item
+        label="学校类型"
+        name="schoolType"
+        rules={[{ required: true, message: '请选择学校类型' }]}
+        initialValue="小学"
+      >
+        <Select placeholder="请选择学校类型">
+          <Select.Option value="幼儿园">幼儿园</Select.Option>
+          <Select.Option value="小学">小学</Select.Option>
+          <Select.Option value="初中">初中</Select.Option>
+          <Select.Option value="九年一贯制">九年一贯制</Select.Option>
+          <Select.Option value="完全中学">完全中学</Select.Option>
+        </Select>
+      </Form.Item>
+      <Form.Item
+        label="办学性质"
+        name="schoolCategory"
+      >
+        <Select placeholder="请选择办学性质" allowClear>
+          <Select.Option value="公办">公办</Select.Option>
+          <Select.Option value="民办">民办</Select.Option>
+        </Select>
+      </Form.Item>
+      <Form.Item
+        label="城乡类型"
+        name="urbanRural"
+      >
+        <Select placeholder="请选择城乡类型" allowClear>
+          <Select.Option value="城区">城区</Select.Option>
+          <Select.Option value="镇区">镇区</Select.Option>
+          <Select.Option value="乡村">乡村</Select.Option>
+        </Select>
+      </Form.Item>
+      <Form.Item className={styles.formFooter}>
+        <Button onClick={onCancel}>取消</Button>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          确定创建
+        </Button>
+      </Form.Item>
+    </Form>
+  </Modal>
+);

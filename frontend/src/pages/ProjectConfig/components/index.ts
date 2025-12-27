@@ -20,4 +20,6 @@ export {
   AddSubmissionDistrictModal,
   AddSubmissionSchoolModal,
   ImportSubmissionSchoolModal,
+  SelectSchoolModal,
+  CreateSchoolModal,
 } from './Modals';

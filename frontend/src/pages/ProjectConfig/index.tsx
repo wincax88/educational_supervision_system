@@ -57,6 +57,8 @@ import {
   AddSubmissionDistrictModal,
   AddSubmissionSchoolModal,
   ImportSubmissionSchoolModal,
+  SelectSchoolModal,
+  CreateSchoolModal,
 } from './components';
 
 // Hooks 导入
@@ -81,7 +83,7 @@ const ProjectConfig: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState('indicator');
+  const [activeTab, setActiveTab] = useState('submission-school');
 
   // 人员配置 Hook
   const {
@@ -118,7 +120,7 @@ const ProjectConfig: React.FC = () => {
     getSchoolById,
   } = useSamples(projectId);
 
-  // 填报学校配置 Hook
+  // 评估对象配置 Hook
   const {
     districts: allSubmissionDistricts,
     filteredDistricts: submissionDistricts,
@@ -136,6 +138,17 @@ const ProjectConfig: React.FC = () => {
     getAllDistricts,
     getAllSchools,
     importSchools,
+    // 系统学校相关
+    systemDistricts,
+    filteredSystemDistricts,
+    systemLoading,
+    systemSchoolKeyword,
+    setSystemSchoolKeyword,
+    systemSchoolTypeFilter,
+    setSystemSchoolTypeFilter,
+    isSchoolSelected,
+    addSchoolsFromSystem,
+    createAndAddSchool,
   } = useSubmissionSchools(projectId);
 
   // 弹窗状态
@@ -150,11 +163,13 @@ const ProjectConfig: React.FC = () => {
   const [addTeacherModalVisible, setAddTeacherModalVisible] = useState(false);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
 
-  // 填报学校弹窗状态
+  // 评估对象弹窗状态
   const [addDistrictModalVisible, setAddDistrictModalVisible] = useState(false);
   const [addSchoolModalVisible, setAddSchoolModalVisible] = useState(false);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>('');
   const [importSchoolModalVisible, setImportSchoolModalVisible] = useState(false);
+  const [selectSchoolModalVisible, setSelectSchoolModalVisible] = useState(false);
+  const [createSchoolModalVisible, setCreateSchoolModalVisible] = useState(false);
 
   // 表单实例
   const [addPersonForm] = Form.useForm();
@@ -162,6 +177,7 @@ const ProjectConfig: React.FC = () => {
   const [addTeacherForm] = Form.useForm();
   const [addDistrictForm] = Form.useForm();
   const [addSchoolForm] = Form.useForm();
+  const [createSchoolForm] = Form.useForm();
 
   // 用户列表（用于人员配置选择）
   const [userList, setUserList] = useState<SystemUser[]>([]);
@@ -290,7 +306,7 @@ const ProjectConfig: React.FC = () => {
     setAddTeacherModalVisible(true);
   };
 
-  // ==================== 填报学校配置处理 ====================
+  // ==================== 评估对象配置处理 ====================
 
   const handleAddDistrict = async (values: { name: string; code?: string }) => {
     await addSubmissionDistrict(values);
@@ -307,6 +323,20 @@ const ProjectConfig: React.FC = () => {
     await addSubmissionSchool(selectedDistrictId, values);
     setAddSchoolModalVisible(false);
     addSchoolForm.resetFields();
+  };
+
+  // 创建新学校（同步到系统学校库）
+  const handleCreateSchool = async (values: {
+    name: string;
+    code: string;
+    districtId: string;
+    schoolType: string;
+    schoolCategory?: string;
+    urbanRural?: string;
+  }) => {
+    await createAndAddSchool(values);
+    setCreateSchoolModalVisible(false);
+    createSchoolForm.resetFields();
   };
 
   // ==================== 可选组织列表（用于人员配置） ====================
@@ -670,44 +700,16 @@ const ProjectConfig: React.FC = () => {
           className={styles.mainTabs}
           items={[
             {
-              key: 'indicator',
-              label: '指标体系',
-              children: (
-                <IndicatorTab
-                  projectId={projectId || ''}
-                  indicatorSystemId={project.indicatorSystemId}
-                  indicatorSystemName={project.indicatorSystemName}
-                  disabled={!isEditable}
-                  elementLibraryId={project.elementLibraryId}
-                />
-              ),
-            },
-            {
-              key: 'data',
-              label: '采集工具',
-              children: (
-                <DataEntryTab
-                  projectId={projectId || ''}
-                  disabled={!isEditable}
-                />
-              ),
-            },
-            {
               key: 'submission-school',
-              label: '填报学校',
+              label: '评估对象',
               children: (
                 <SubmissionSchoolTab
                   districts={submissionDistricts}
-                  expandedDistricts={submissionExpandedDistricts}
-                  schoolTypeFilter={schoolTypeFilter}
                   statistics={submissionStatistics}
-                  onSchoolTypeFilterChange={setSchoolTypeFilter}
-                  onToggleExpand={toggleSubmissionDistrictExpand}
-                  onAddDistrict={() => setAddDistrictModalVisible(true)}
-                  onAddSchool={handleOpenAddSchool}
-                  onDeleteDistrict={deleteSubmissionDistrict}
+                  onSelectSchool={() => setSelectSchoolModalVisible(true)}
                   onDeleteSchool={deleteSubmissionSchool}
                   onImport={() => setImportSchoolModalVisible(true)}
+                  onCreateSchool={() => setCreateSchoolModalVisible(true)}
                   disabled={!isEditable}
                   loading={submissionLoading}
                 />
@@ -735,8 +737,31 @@ const ProjectConfig: React.FC = () => {
               ),
             },
             {
+              key: 'indicator',
+              label: '指标体系',
+              children: (
+                <IndicatorTab
+                  projectId={projectId || ''}
+                  indicatorSystemId={project.indicatorSystemId}
+                  indicatorSystemName={project.indicatorSystemName}
+                  disabled={!isEditable}
+                  elementLibraryId={project.elementLibraryId}
+                />
+              ),
+            },
+            {
+              key: 'data',
+              label: '采集工具',
+              children: (
+                <DataEntryTab
+                  projectId={projectId || ''}
+                  disabled={!isEditable}
+                />
+              ),
+            },
+            {
               key: 'task',
-              label: '任务分配',
+              label: '填报任务',
               children: (
                 <TaskAssignmentTab
                   projectId={projectId || ''}
@@ -874,6 +899,29 @@ const ProjectConfig: React.FC = () => {
         onCancel={() => setImportSchoolModalVisible(false)}
         onImport={importSchools}
         existingDistricts={allSubmissionDistricts.map(d => ({ name: d.name, code: d.code }))}
+      />
+
+      <SelectSchoolModal
+        visible={selectSchoolModalVisible}
+        onCancel={() => setSelectSchoolModalVisible(false)}
+        onConfirm={(schools) => {
+          addSchoolsFromSystem(schools);
+          setSelectSchoolModalVisible(false);
+        }}
+        systemDistricts={systemDistricts}
+        loading={systemLoading}
+        isSchoolSelected={isSchoolSelected}
+      />
+
+      <CreateSchoolModal
+        visible={createSchoolModalVisible}
+        onCancel={() => {
+          setCreateSchoolModalVisible(false);
+          createSchoolForm.resetFields();
+        }}
+        onSubmit={handleCreateSchool}
+        form={createSchoolForm}
+        districts={systemDistricts.map(d => ({ id: d.id, code: d.code, name: d.name }))}
       />
     </div>
   );
