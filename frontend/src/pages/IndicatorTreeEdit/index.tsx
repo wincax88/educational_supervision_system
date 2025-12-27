@@ -207,11 +207,19 @@ const IndicatorTreeEdit: React.FC = () => {
   const [tempMaterial, setTempMaterial] = useState<Partial<SupportingMaterial>>({});
   const [evaluationBasis, setEvaluationBasis] = useState<string[]>(['dataIndicators', 'materials']);
 
-  // 统计指标数量
+  // 统计指标数量（只统计数据指标和佐证资料的数量）
   const countIndicators = (nodes: Indicator[]): number => {
     let count = 0;
     for (const node of nodes) {
-      count++;
+      // 统计该节点下的数据指标数量
+      if (node.dataIndicators) {
+        count += node.dataIndicators.length;
+      }
+      // 统计该节点下的佐证资料数量
+      if (node.supportingMaterials) {
+        count += node.supportingMaterials.length;
+      }
+      // 递归统计子节点
       if (node.children) {
         count += countIndicators(node.children);
       }

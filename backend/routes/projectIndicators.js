@@ -320,6 +320,10 @@ router.get('/projects/:projectId/indicator-system/tree', verifyToken, async (req
 /**
  * 保存项目指标树
  * PUT /projects/:projectId/indicator-system/tree
+ *
+ * 注意：为了避免丢失佐证材料数据，采用以下策略：
+ * - 如果前端传递了 supportingMaterials（包括空数组[]），使用前端数据
+ * - 如果前端没有传递 supportingMaterials（undefined），保留数据库中已有的佐证材料
  */
 router.put('/projects/:projectId/indicator-system/tree', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
@@ -341,11 +345,40 @@ router.put('/projects/:projectId/indicator-system/tree', verifyToken, checkProje
       return res.status(404).json({ code: 404, message: '项目指标体系不存在，请先复制模板' });
     }
 
-    // 清空旧树
+    // ========== 备份佐证材料（按指标code映射） ==========
+    // 获取旧指标
+    const { data: oldIndicators } = await db.from('project_indicators')
+      .select('id, code')
+      .eq('project_id', projectId);
+
+    const oldIndicatorIds = (oldIndicators || []).map(i => i.id);
+    const oldIndicatorCodeMap = {}; // id -> code
+    (oldIndicators || []).forEach(i => { oldIndicatorCodeMap[i.id] = i.code; });
+
+    // 获取旧佐证材料并按指标code分组
+    let oldMaterialsByCode = {}; // indicatorCode -> materials[]
+    if (oldIndicatorIds.length > 0) {
+      const { data: oldMaterials } = await db.from('project_supporting_materials')
+        .select('*')
+        .in('indicator_id', oldIndicatorIds);
+
+      (oldMaterials || []).forEach(m => {
+        const indicatorCode = oldIndicatorCodeMap[m.indicator_id];
+        if (indicatorCode) {
+          if (!oldMaterialsByCode[indicatorCode]) {
+            oldMaterialsByCode[indicatorCode] = [];
+          }
+          oldMaterialsByCode[indicatorCode].push(m);
+        }
+      });
+    }
+
+    // 清空旧树（包括佐证材料，稍后会恢复未传递的）
     await clearProjectIndicatorTree(projectId, system.id, timestamp);
 
     // 递归插入新树
     let indicatorCount = 0;
+    let restoredMaterialCount = 0;
 
     const ensureUniqueId = async (id, table) => {
       if (!id) return generateId();
@@ -399,25 +432,60 @@ router.put('/projects/:projectId/indicator-system/tree', verifyToken, checkProje
         }
       }
 
-      // 佐证资料
-      if (node.isLeaf && node.supportingMaterials && Array.isArray(node.supportingMaterials)) {
-        for (let idx = 0; idx < node.supportingMaterials.length; idx++) {
-          const sm = node.supportingMaterials[idx];
-          const smId = await ensureUniqueId(sm.id, 'project_supporting_materials');
-          await db.from('project_supporting_materials').insert({
-            id: smId,
-            project_id: projectId,
-            indicator_id: nodeId,
-            code: sm.code || '',
-            name: sm.name,
-            file_types: sm.fileTypes || sm.file_types || '',
-            max_size: sm.maxSize || sm.max_size || null,
-            description: sm.description || '',
-            required: sm.required ? 1 : 0,
-            sort_order: idx,
-            created_at: timestamp,
-            updated_at: timestamp
-          });
+      // 佐证资料处理策略：
+      // - 如果前端传了 supportingMaterials（包括空数组），使用前端数据
+      // - 如果前端没传（undefined），从备份中恢复
+      if (node.isLeaf) {
+        const hasSupportingMaterials = node.supportingMaterials !== undefined;
+
+        if (hasSupportingMaterials && Array.isArray(node.supportingMaterials)) {
+          // 前端传了数据，使用前端数据
+          for (let idx = 0; idx < node.supportingMaterials.length; idx++) {
+            const sm = node.supportingMaterials[idx];
+            const smId = await ensureUniqueId(sm.id, 'project_supporting_materials');
+            // 处理 max_size 字段（可能是字符串如 "20MB" 或数字）
+            let maxSize = sm.maxSize || sm.max_size;
+            if (typeof maxSize === 'string') {
+              const match = maxSize.match(/^(\d+)/);
+              maxSize = match ? parseInt(match[1], 10) : null;
+            }
+            await db.from('project_supporting_materials').insert({
+              id: smId,
+              project_id: projectId,
+              indicator_id: nodeId,
+              code: sm.code || '',
+              name: sm.name,
+              file_types: sm.fileTypes || sm.file_types || '',
+              max_size: maxSize || null,
+              description: sm.description || '',
+              required: sm.required ? 1 : 0,
+              sort_order: idx,
+              created_at: timestamp,
+              updated_at: timestamp
+            });
+          }
+        } else if (!hasSupportingMaterials && oldMaterialsByCode[node.code]) {
+          // 前端没传，从备份中恢复
+          const backupMaterials = oldMaterialsByCode[node.code];
+          for (let idx = 0; idx < backupMaterials.length; idx++) {
+            const oldM = backupMaterials[idx];
+            const smId = generateId(); // 使用新ID
+            await db.from('project_supporting_materials').insert({
+              id: smId,
+              project_id: projectId,
+              indicator_id: nodeId,
+              code: oldM.code || '',
+              name: oldM.name,
+              file_types: oldM.file_types || '',
+              max_size: oldM.max_size || null,
+              description: oldM.description || '',
+              required: oldM.required ? 1 : 0,
+              sort_order: idx,
+              created_at: timestamp,
+              updated_at: timestamp
+            });
+            restoredMaterialCount++;
+          }
         }
       }
 
@@ -439,7 +507,14 @@ router.put('/projects/:projectId/indicator-system/tree', verifyToken, checkProje
       .update({ indicator_count: indicatorCount, updated_at: timestamp })
       .eq('id', system.id);
 
-    res.json({ code: 200, message: '保存成功', data: { indicatorCount } });
+    res.json({
+      code: 200,
+      message: '保存成功',
+      data: {
+        indicatorCount,
+        restoredMaterialCount // 返回恢复的佐证材料数量，便于调试
+      }
+    });
   } catch (error) {
     res.status(500).json({ code: 500, message: error.message });
   }
