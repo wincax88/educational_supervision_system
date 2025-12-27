@@ -26,6 +26,8 @@ import {
   DatePicker,
   Alert,
   Checkbox,
+  Switch,
+  Radio,
 } from 'antd';
 import {
   PlusOutlined,
@@ -41,6 +43,10 @@ import {
   BankOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  LinkOutlined,
+  LockOutlined,
+  UnlockOutlined,
+  AuditOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import * as taskService from '../../../services/taskService';
@@ -112,6 +118,12 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
   const [currentToolScope, setCurrentToolScope] = useState<ToolScope | null>(null);
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([]);
   const [selectedToolId, setSelectedToolId] = useState<string>('');  // 当前选中的工具ID
+  const [currentToolType, setCurrentToolType] = useState<string>('');  // 当前选中工具的类型
+
+  // 新增状态：任务配置选项
+  const [requiresReview, setRequiresReview] = useState<boolean>(false);  // 是否需要审核
+  const [accessUrl, setAccessUrl] = useState<string>('');  // 问卷访问地址
+  const [accessMode, setAccessMode] = useState<'anonymous' | 'login'>('anonymous');  // 访问模式
 
   // 获取数据采集员列表（支持新旧角色）
   const collectors = useMemo(() => [
@@ -323,12 +335,16 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     setCurrentToolScope(scope);
     setSelectedTargetIds([]);
     setSelectedToolId(toolId);  // 保存当前选中的工具ID
+    setCurrentToolType(selectedTool?.toolType || '');  // 保存工具类型
 
     // 重置表单
     assignForm.setFieldsValue({
       toolId,
     });
   };
+
+  // 判断当前工具是否为问卷类型
+  const isQuestionnaireType = currentToolType === '问卷';
 
   // 当选择评估对象时更新状态（排除已分配的）
   const handleTargetChange = (targetIds: string[]) => {
@@ -342,7 +358,12 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
     assignForm.resetFields();
     setSelectedToolId('');  // 重置选中的工具ID
     setCurrentToolScope(null);
+    setCurrentToolType('');  // 重置工具类型
     setSelectedTargetIds([]);
+    // 重置任务配置选项
+    setRequiresReview(false);
+    setAccessUrl('');
+    setAccessMode('login');
     setAssignModalVisible(true);
   };
 
@@ -380,6 +401,13 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             targetType,
             targetId,
             dueDate: values.dueDate?.format('YYYY-MM-DD'),
+            // 新增字段
+            requiresReview,
+            // 问卷类型才传访问地址和访问模式
+            ...(isQuestionnaireType && accessUrl ? {
+              accessUrl,
+              accessMode,
+            } : {}),
           });
           createdCount++;
         } else {
@@ -959,10 +987,87 @@ const TaskAssignmentTab: React.FC<TaskAssignmentTabProps> = ({
             </Form.Item>
           )}
 
-          {/* 第四步：设置截止日期（可选） */}
+          {/* 第四步：任务配置选项 */}
+          {currentToolScope && selectedTargetIds.length > 0 && (
+            <Form.Item
+              label={
+                <Space>
+                  <span>4. 任务配置</span>
+                </Space>
+              }
+            >
+              <div style={{ border: '1px solid #d9d9d9', borderRadius: 4, padding: 12 }}>
+                {/* 是否需要审核 */}
+                <div style={{ marginBottom: isQuestionnaireType ? 16 : 0 }}>
+                  <Space>
+                    <AuditOutlined style={{ color: '#1890ff' }} />
+                    <span>是否需要审核：</span>
+                    <Switch
+                      checked={requiresReview}
+                      onChange={setRequiresReview}
+                      checkedChildren="是"
+                      unCheckedChildren="否"
+                    />
+                    <span style={{ color: '#999', fontSize: 12 }}>
+                      {requiresReview ? '提交后需管理员审核' : '提交后直接完成'}
+                    </span>
+                  </Space>
+                </div>
+
+                {/* 问卷类型专属配置 */}
+                {isQuestionnaireType && (
+                  <>
+                    <div style={{ marginBottom: 12 }}>
+                      <Space align="start" style={{ width: '100%' }}>
+                        <LinkOutlined style={{ color: '#1890ff', marginTop: 4 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ marginBottom: 4 }}>问卷访问地址：</div>
+                          <Input
+                            value={accessUrl}
+                            onChange={(e) => setAccessUrl(e.target.value)}
+                            placeholder="请输入问卷的访问地址，如 https://example.com/survey/123"
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </Space>
+                    </div>
+                    <div>
+                      <Space>
+                        {accessMode === 'anonymous' ? (
+                          <UnlockOutlined style={{ color: '#52c41a' }} />
+                        ) : (
+                          <LockOutlined style={{ color: '#faad14' }} />
+                        )}
+                        <span>访问模式：</span>
+                        <Radio.Group
+                          value={accessMode}
+                          onChange={(e) => setAccessMode(e.target.value)}
+                        >
+                          <Radio value="anonymous">
+                            <Space>
+                              匿名访问
+                              <span style={{ color: '#999', fontSize: 12 }}>（无需登录即可填写）</span>
+                            </Space>
+                          </Radio>
+                          <Radio value="login">
+                            <Space>
+                              需要登录
+                              <span style={{ color: '#999', fontSize: 12 }}>（需登录后才能填写）</span>
+                            </Space>
+                          </Radio>
+                        </Radio.Group>
+                      </Space>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Form.Item>
+          )}
+
+          {/* 第五步：设置截止日期（可选） */}
           <Form.Item
             name="dueDate"
-            label="4. 截止日期（可选）"
+            label={`${currentToolScope && selectedTargetIds.length > 0 ? '5' : '4'}. 截止日期（可选）`}
             extra="设置任务的截止日期，逾期任务会标记为已逾期"
           >
             <DatePicker

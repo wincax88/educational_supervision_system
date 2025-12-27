@@ -8,6 +8,7 @@ import { message, Modal } from 'antd';
 import * as sampleService from '../../../services/sampleService';
 import * as schoolService from '../../../services/schoolService';
 import * as districtService from '../../../services/districtService';
+import * as taskService from '../../../services/taskService';
 
 // 系统学校类型
 export interface SystemSchool {
@@ -416,15 +417,26 @@ export function useSubmissionSchools(projectId?: string) {
     Modal.confirm({
       title: '确认删除区县',
       content: schoolCount > 0
-        ? `删除区县将同时删除其下 ${schoolCount} 所学校，确定要删除吗？`
+        ? `删除区县将同时删除其下 ${schoolCount} 所学校及其已分配的任务，确定要删除吗？`
         : '确定要删除该区县吗？',
       okText: '删除',
       okType: 'danger',
       cancelText: '取消',
       onOk: async () => {
         try {
+          // 先删除该区县下所有学校相关的任务
+          if (district && district.schools.length > 0) {
+            for (const school of district.schools) {
+              try {
+                await taskService.deleteTasksByTarget(projectId, school.id);
+              } catch (taskError) {
+                console.warn(`删除学校 ${school.name} 的相关任务时出错:`, taskError);
+              }
+            }
+          }
+
           await sampleService.deleteSample(projectId, districtId);
-          message.success('删除成功');
+          message.success('区县及相关任务已删除');
           loadData();
         } catch (error) {
           console.error('删除区县失败:', error);
@@ -445,21 +457,32 @@ export function useSubmissionSchools(projectId?: string) {
     Modal.confirm({
       title: '确认删除学校',
       content: isLastSchoolInDistrict
-        ? '这是该区县下的最后一所学校，删除后区县也将被移除，确定要删除吗？'
-        : '确定要删除该学校吗？',
+        ? '这是该区县下的最后一所学校，删除后区县也将被移除，同时删除该学校已分配的任务，确定要删除吗？'
+        : '删除学校将同时删除该学校已分配的任务，确定要删除吗？',
       okText: '删除',
       okType: 'danger',
       cancelText: '取消',
       onOk: async () => {
         try {
+          // 先删除该学校相关的任务
+          try {
+            const result = await taskService.deleteTasksByTarget(projectId, schoolId);
+            if (result.deleted > 0) {
+              console.log(`已删除 ${result.deleted} 个相关任务`);
+            }
+          } catch (taskError) {
+            // 任务删除失败不阻止学校删除（可能没有任务表或没有相关任务）
+            console.warn('删除相关任务时出错:', taskError);
+          }
+
           await sampleService.deleteSample(projectId, schoolId);
 
           // 如果是区县下最后一所学校，同时删除区县
           if (isLastSchoolInDistrict && parentDistrict) {
             await sampleService.deleteSample(projectId, parentDistrict.id);
-            message.success('学校及空区县已删除');
+            message.success('学校及空区县已删除，相关任务已同步删除');
           } else {
-            message.success('删除成功');
+            message.success('学校已删除，相关任务已同步删除');
           }
 
           loadData();

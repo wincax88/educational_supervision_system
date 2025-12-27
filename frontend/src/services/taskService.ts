@@ -74,6 +74,10 @@ export async function createTask(data: {
   targetType?: 'district' | 'school' | 'all';
   targetId?: string;
   dueDate?: string;
+  // 新增字段
+  requiresReview?: boolean;  // 是否需要审核
+  accessUrl?: string;        // 访问地址（问卷类型）
+  accessMode?: 'anonymous' | 'login';  // 访问模式：匿名/需要登录
 }): Promise<{ id: string }> {
   return post<{ id: string }>(`/projects/${data.projectId}/tasks`, data);
 }
@@ -99,6 +103,11 @@ export async function deleteTask(taskId: string): Promise<void> {
 // 批量删除任务
 export async function batchDeleteTasks(taskIds: string[]): Promise<{ deleted: number }> {
   return post<{ deleted: number }>('/tasks/batch-delete', { taskIds });
+}
+
+// 按 target_id 删除任务（删除评估对象时同步删除相关任务）
+export async function deleteTasksByTarget(projectId: string, targetId: string): Promise<{ deleted: number }> {
+  return del<{ deleted: number }>(`/projects/${projectId}/tasks/by-target/${targetId}`);
 }
 
 // 获取任务统计

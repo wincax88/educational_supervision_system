@@ -193,7 +193,17 @@ router.get('/tasks/:id', async (req, res) => {
 router.post('/projects/:projectId/tasks', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { toolId, assigneeId, targetType, targetId, dueDate } = req.body;
+    const {
+      toolId,
+      assigneeId,
+      targetType,
+      targetId,
+      dueDate,
+      // 新增字段
+      requiresReview,  // 是否需要审核
+      accessUrl,       // 问卷访问地址
+      accessMode,      // 访问模式：anonymous | login
+    } = req.body;
 
     if (!toolId || !assigneeId) {
       return res.status(400).json({ code: 400, message: '工具ID和采集员ID为必填项' });
@@ -214,6 +224,10 @@ router.post('/projects/:projectId/tasks', verifyToken, checkProjectPermission(['
         target_id: targetId || null,
         due_date: dueDate || null,
         status: 'pending',
+        // 新增字段
+        requires_review: requiresReview || false,
+        access_url: accessUrl || null,
+        access_mode: accessMode || null,
         created_at: timestamp,
         updated_at: timestamp,
       })
@@ -378,6 +392,33 @@ router.post('/tasks/batch-delete', async (req, res) => {
       .from('tasks')
       .delete()
       .in('id', taskIds)
+      .select('id');
+    if (error) throw error;
+
+    const deleted = data?.length || 0;
+    res.json({ code: 200, data: { deleted }, message: `成功删除 ${deleted} 个任务` });
+  } catch (error) {
+    const msg = String(error?.message || '');
+    if (msg.includes('relation "tasks" does not exist')) {
+      return res.status(500).json({
+        code: 500,
+        message: '数据库缺少 tasks 表：请在 Supabase SQL Editor 执行 backend/database/fix-missing-tasks-table.sql',
+      });
+    }
+    res.status(500).json({ code: 500, message: msg });
+  }
+});
+
+// 按 target_id 删除任务（删除评估对象时同步删除相关任务）
+router.delete('/projects/:projectId/tasks/by-target/:targetId', verifyToken, checkProjectPermission(['project_admin']), async (req, res) => {
+  try {
+    const { projectId, targetId } = req.params;
+
+    const { data, error } = await db
+      .from('tasks')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('target_id', targetId)
       .select('id');
     if (error) throw error;
 
